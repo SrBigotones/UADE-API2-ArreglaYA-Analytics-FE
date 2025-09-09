@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilos para la funcionalidad de arrastrar y soltar con HTML5 Drag and Drop */
+.metric-card-container[draggable="true"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card-container[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.metric-card-container.drag-over {
+  background: rgba(20, 184, 166, 0.05);
+  border: 2px dashed #14b8a6;
+  border-radius: 0.5rem;
+  transform: scale(1.02);
+}
+
+.metric-card-container {
+  transition: all 0.2s ease;
+}
+
+.metric-card-container.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.metric-card-handle {
+  transition: all 0.2s ease;
+}
+
+.metric-card-handle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Indicador visual para mostrar que las tarjetas son arrastrables */
+.dashboard-grid {
+  position: relative;
+}
+
+.dashboard-grid::before {
+  content: "💡 Arrastra las tarjetas para reordenarlas";
+  position: absolute;
+  top: -40px;
+  right: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Estilos para el modo oscuro */
+.dark .swapy-ghost {
+  background: rgba(20, 184, 166, 0.2);
+  border-color: #14b8a6;
+}
+
+.dark .swapy-drop {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: #14b8a6;
+}
+
+.dark .dashboard-grid::before {
+  color: #9ca3af;
+}

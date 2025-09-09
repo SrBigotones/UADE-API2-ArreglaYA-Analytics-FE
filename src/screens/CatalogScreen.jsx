@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import MetricCard from '../components/MetricCard';
+import DateRangeSelector from '../components/DateRangeSelector';
+import PieResponsiveContainer from '../components/PieResponsiveContainer';
+import AreaResponsiveContainer from '../components/AreaResponsiveContainer';
 
-const CatalogScreen = () => {
+const CatalogScreen = ({ isDarkMode }) => {
+  const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const metrics = [
     { name: "Nuevos prestadores registrados", value: "47", change: "+23%", status: "positive" },
     { name: "Perfiles completados", value: "89.3%", change: "+4.7%", status: "positive" },
@@ -9,40 +14,42 @@ const CatalogScreen = () => {
     { name: "Categorías disponibles", value: "24", change: "+2", status: "positive" }
   ];
 
+  const pieData = [
+    { name: 'Alta', value: 45 },
+    { name: 'Media', value: 30 },
+    { name: 'Baja', value: 25 }
+  ];
+
+  const areaData = [
+    { name: 'Ene', value: 30 },
+    { name: 'Feb', value: 45 },
+    { name: 'Mar', value: 40 },
+    { name: 'Abr', value: 55 },
+    { name: 'May', value: 50 },
+    { name: 'Jun', value: 62 }
+  ];
+
   return (
     <>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2 text-gray-900">
+        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Catálogo de Servicios y Prestadores
         </h2>
-        <p className="text-gray-600">Métricas del catálogo de servicios y prestadores</p>
+        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del catálogo de servicios y prestadores</p>
       </div>
-
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {metrics.map((metric, index) => (
-          <div key={index} className="rounded-lg shadow-sm border p-6 bg-white border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">{metric.name}</h3>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                metric.status === 'positive' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {metric.change}
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">{metric.value}</div>
-            <div className="mt-2 flex items-center">
-              <span className={`text-sm ${
-                metric.status === 'positive' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {metric.change.includes('+') ? '↗' : '↘'} {metric.change}
-              </span>
-              <span className="text-sm ml-2 text-gray-500">vs mes anterior</span>
-            </div>
-          </div>
-        ))}
+      <div className="mb-4">
+          <DateRangeSelector value={dateRange} onChange={setDateRange} />
+      </div>
+      {/* Metrics Grid (incluye demo card) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+        <MetricCard
+          title="Nuevos prestadores registrados"
+          value="47"
+          change="+23%"
+          changeStatus="positive"
+          periodLabel={dateRange.preset === 'custom' ? 'Personalizado' : 'Últimos 7 días'}
+        />
+        
       </div>
     </>
   );

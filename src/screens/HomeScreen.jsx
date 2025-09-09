@@ -53,14 +53,6 @@ const HomeScreen = () => {
         { name: "Cotizaciones aceptadas", value: "78.9%", change: "+6.1%", status: "positive" },
         { name: "Tiempo de respuesta prestadores", value: "2.1s", change: "-22%", status: "positive" }
       ]
-    },
-    reputation: {
-      title: "Métricas y Reputación",
-      metrics: [
-        { name: "Eventos procesados/hora", value: "45,678", change: "+15%", status: "positive" },
-        { name: "Latencia en cálculo de KPIs", value: "0.8s", change: "-25%", status: "positive" },
-        { name: "Tasa de disponibilidad", value: "99.97%", change: "+0.02%", status: "positive" }
-      ]
     }
   };
 

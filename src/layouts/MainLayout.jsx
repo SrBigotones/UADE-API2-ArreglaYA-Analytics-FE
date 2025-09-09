@@ -1,32 +1,34 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
-import CoreScreen from '../screens/CoreScreen';
+import CoreScreen from '../screens/DashboardScreen';
 import CatalogScreen from '../screens/CatalogScreen';
 import AppScreen from '../screens/AppScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import UsersScreen from '../screens/UsersScreen';
 import MatchingScreen from '../screens/MatchingScreen';
-import ReputationScreen from '../screens/ReputationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const MainLayout = () => {
-  const [activeCategory, setActiveCategory] = useState('core');
+  const [activeCategory, setActiveCategory] = useState('dashboard');
   const [activeScreen, setActiveScreen] = useState('dashboard'); // 'dashboard' o 'profile'
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const closeSidebar = () => setIsSidebarOpen(false);
+
   const categories = [
-    { id: 'core', name: 'Core' },
-    { id: 'catalog', name: 'Catálogo' },
-    { id: 'app', name: 'App' },
-    { id: 'payments', name: 'Pagos' },
-    { id: 'users', name: 'Usuarios' },
-    { id: 'matching', name: 'Matching' },
-    { id: 'reputation', name: 'Reputación' }
+    { id: 'dashboard', name: 'Dashboard' },
+    { id: 'catalog', name: 'catalogo de servicios y prestadores' },
+    { id: 'app', name: 'app de busqueda y solicitudes' },
+    { id: 'payments', name: 'pagos y facturacion' },
+    { id: 'users', name: 'usuarios y roles' },
+    { id: 'matching', name: 'matching y agenda' }
   ];
 
   // Función para manejar el clic en Perfil desde la navbar
@@ -52,55 +54,62 @@ const MainLayout = () => {
   // Función para renderizar la pantalla según la categoría activa
   const renderDashboardScreen = () => {
     switch (activeCategory) {
-      case 'core':
-        return <CoreScreen />;
+      case 'dashboard':
+        return <CoreScreen isDarkMode={isDarkMode} />;
       case 'catalog':
-        return <CatalogScreen />;
+        return <CatalogScreen isDarkMode={isDarkMode} />;
       case 'app':
-        return <AppScreen />;
+        return <AppScreen isDarkMode={isDarkMode} />;
       case 'payments':
-        return <PaymentsScreen />;
+        return <PaymentsScreen isDarkMode={isDarkMode} />;
       case 'users':
-        return <UsersScreen />;
+        return <UsersScreen isDarkMode={isDarkMode} />;
       case 'matching':
-        return <MatchingScreen />;
-      case 'reputation':
-        return <ReputationScreen />;
+        return <MatchingScreen isDarkMode={isDarkMode} />;
       default:
-        return <CoreScreen />;
+        return <CoreScreen isDarkMode={isDarkMode} />;
     }
   };
 
   // Función para renderizar la pantalla activa
   const renderActiveScreen = () => {
     if (activeScreen === 'profile') {
-      return <ProfileScreen onBackToDashboard={handleBackToDashboard} />;
+      return <ProfileScreen onBackToDashboard={handleBackToDashboard} isDarkMode={isDarkMode} />;
     }
     return renderDashboardScreen();
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {/* Topbar */}
       <Navbar 
         isDarkMode={isDarkMode} 
         toggleDarkMode={toggleDarkMode}
         onProfileClick={handleProfileClick}
+        onToggleSidebar={toggleSidebar}
       />
 
       <div className="flex">
         {/* Sidebar - solo se muestra en dashboard */}
         {activeScreen === 'dashboard' && (
-          <Sidebar 
-            activeCategory={activeCategory} 
-            setActiveCategory={handleCategoryClick} 
-            isDarkMode={isDarkMode} 
-            categories={categories} 
-          />
+          <>
+            {/* Overlay móvil */}
+            {isSidebarOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden" onClick={closeSidebar}></div>
+            )}
+            <Sidebar 
+              activeCategory={activeCategory} 
+              setActiveCategory={(id) => { handleCategoryClick(id); closeSidebar(); }} 
+              isDarkMode={isDarkMode} 
+              categories={categories} 
+              isOpen={isSidebarOpen}
+              onClose={closeSidebar}
+            />
+          </>
         )}
 
         {/* Main Content */}
-        <div className={`p-8 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'}`}>
+        <div className={`p-8 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {renderActiveScreen()}
         </div>
       </div>

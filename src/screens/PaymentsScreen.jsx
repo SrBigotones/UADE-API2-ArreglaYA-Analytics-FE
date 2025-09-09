@@ -1,47 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
+import DateRangeSelector from '../components/DateRangeSelector';
+import MetricRenderer from '../components/MetricRenderer';
+import { useModuleMetrics } from '../hooks/useMetrics';
 
-const PaymentsScreen = () => {
-  const metrics = [
-    { name: "Tasa de éxito de pagos", value: "98.7%", change: "+0.8%", status: "positive" },
-    { name: "Tiempo promedio de procesamiento", value: "1.8s", change: "-12%", status: "positive" },
-    { name: "Reembolsos emitidos", value: "23", change: "-15%", status: "positive" },
-    { name: "Volumen total procesado", value: "$2.4M", change: "+28%", status: "positive" },
-    { name: "Transacciones por hora", value: "1,847", change: "+22%", status: "positive" }
-  ];
+const PaymentsScreen = ({ isDarkMode }) => {
+  const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  
+  // Obtener métricas específicas del módulo de pagos desde el hook
+  const { metrics: paymentsMetrics, loading, error, refetch } = useModuleMetrics('payments', dateRange);
 
   return (
     <>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2 text-gray-900">
+        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Pagos y Facturación
         </h2>
-        <p className="text-gray-600">Métricas del sistema de pagos y facturación</p>
+        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del sistema de pagos y facturación</p>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {metrics.map((metric, index) => (
-          <div key={index} className="rounded-lg shadow-sm border p-6 bg-white border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">{metric.name}</h3>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                metric.status === 'positive' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {metric.change}
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-gray-900">{metric.value}</div>
-            <div className="mt-2 flex items-center">
-              <span className={`text-sm ${
-                metric.status === 'positive' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {metric.change.includes('+') ? '↗' : '↘'} {metric.change}
-              </span>
-              <span className="text-sm ml-2 text-gray-500">vs mes anterior</span>
-            </div>
+      
+      <div className="mb-4">
+        <DateRangeSelector value={dateRange} onChange={setDateRange} />
+      </div>
+      
+      {/* Estados de carga y error */}
+      {error && (
+        <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-600'} mb-6`}>
+          <div className="flex items-center justify-between">
+            <span>⚠️ {error}</span>
+            <button 
+              onClick={refetch}
+              className="text-sm underline hover:no-underline"
+            >
+              Reintentar
+            </button>
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+        {loading ? (
+          // Skeletons mientras carga
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className={`rounded-lg border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="animate-pulse">
+                <div className={`h-4 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-8 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-3 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+              </div>
+            </div>
+          ))
+        ) : (
+          paymentsMetrics.map((metric) => (
+            <MetricRenderer
+              key={metric.id}
+              metric={metric}
+              dateRange={dateRange}
+              isDarkMode={isDarkMode}
+            />
+          ))
+        )}
       </div>
     </>
   );
