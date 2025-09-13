@@ -24,7 +24,7 @@ const MainLayout = () => {
 
   const categories = [
     { id: 'dashboard', name: 'Dashboard' },
-    { id: 'catalog', name: 'catalogo de servicios y prestadores' },
+    { id: 'catalog', name: 'catalogo de servicios y prestadoressadasd' },
     { id: 'app', name: 'app de busqueda y solicitudes' },
     { id: 'payments', name: 'pagos y facturacion' },
     { id: 'users', name: 'usuarios y roles' },
