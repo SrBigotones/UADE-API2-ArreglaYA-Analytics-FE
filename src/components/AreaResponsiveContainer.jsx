@@ -33,7 +33,7 @@ const AreaResponsiveContainer = ({
 
   const Chart = (
     <div className={className || ''} style={{ width: '100%', height }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -67,13 +67,15 @@ const AreaResponsiveContainer = ({
 
   if (asCard) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col">
         {title && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+          <div className="mb-2">
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
           </div>
         )}
-        {Chart}
+        <div className="flex-1">
+          {Chart}
+        </div>
       </div>
     );
   }

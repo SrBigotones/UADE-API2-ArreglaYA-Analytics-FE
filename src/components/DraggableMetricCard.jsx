@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import MetricRenderer from './MetricRenderer';
+import SimpleResizeHandles from './SimpleResizeHandles';
+import { useChartSizes } from '../hooks/useChartSizes';
 
 const DraggableMetricCard = ({ 
   metric, 
@@ -11,6 +13,9 @@ const DraggableMetricCard = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showResizeHandles, setShowResizeHandles] = useState(false);
+  
+  const { getChartSize, updateChartSize, getGridClasses: getChartGridClasses } = useChartSizes();
 
   const handleDragStart = (e) => {
     setIsDragging(true);
@@ -46,25 +51,50 @@ const DraggableMetricCard = ({
     }
   };
 
+  // Determinar si la métrica es un gráfico que puede redimensionarse (solo line charts y candlestick)
+  const isResizableChart = ['area', 'line', 'candlestick'].includes(metric.type);
+  
+  // Obtener las clases de grid (para gráficos redimensionables usa el hook, para otros usa valores fijos)
+  const gridClasses = isResizableChart 
+    ? getChartGridClasses(metric.id, metric.type)
+    : metric.type === 'pie' 
+      ? 'col-span-1 md:col-span-1 lg:col-span-1 row-span-2'
+      : 'col-span-1 row-span-1';
+  
+  const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
+
   return (
     <div
-      className={`metric-card-container ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'drag-over' : ''} ${className}`}
+      className={`metric-card-container ${gridClasses} ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'drag-over' : ''} ${className} relative group`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      onMouseEnter={() => setShowResizeHandles(true)}
+      onMouseLeave={() => setShowResizeHandles(false)}
       style={{ 
-        cursor: 'grab',
+        cursor: isDragging ? 'grabbing' : 'grab',
         transition: 'all 0.2s ease'
       }}
     >
+      {/* Handles de redimensionamiento solo para line charts y candlestick */}
+      {isResizableChart && showResizeHandles && !isDragging && (
+        <SimpleResizeHandles
+          metricId={metric.id}
+          currentSize={currentSize}
+          onSizeChange={updateChartSize}
+          isDarkMode={isDarkMode}
+        />
+      )}
+      
       <div className="metric-card-handle">
         <MetricRenderer
           metric={metric}
           dateRange={dateRange}
           isDarkMode={isDarkMode}
+          chartSize={currentSize}
         />
       </div>
     </div>

@@ -24,11 +24,11 @@ const MainLayout = () => {
 
   const categories = [
     { id: 'dashboard', name: 'Dashboard' },
-    { id: 'catalog', name: 'catalogo de servicios y prestadoressadasd' },
-    { id: 'app', name: 'app de busqueda y solicitudes' },
-    { id: 'payments', name: 'pagos y facturacion' },
-    { id: 'users', name: 'usuarios y roles' },
-    { id: 'matching', name: 'matching y agenda' }
+    { id: 'catalog', name: 'Catalogo de servicios y prestadores' },
+    { id: 'app', name: 'App de busqueda y solicitudes' },
+    { id: 'payments', name: 'Pagos y facturacion' },
+    { id: 'users', name: 'Usuarios y roles' },
+    { id: 'matching', name: 'Matching y agenda' }
   ];
 
   // Función para manejar el clic en Perfil desde la navbar

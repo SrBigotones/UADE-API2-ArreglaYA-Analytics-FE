@@ -24,18 +24,8 @@ const CoreScreen = ({ isDarkMode }) => {
   const {
     orderedMetrics,
     reorderMetrics,
-    updateOrder,
-    saveOrderToStorage,
-    loadOrderFromStorage
+    saveOrderToStorage
   } = useDashboardOrder(dashboardMetrics);
-
-  // Cargar el orden guardado cuando las métricas cambien
-  useEffect(() => {
-    if (dashboardMetrics && dashboardMetrics.length > 0) {
-      const loadedOrder = loadOrderFromStorage(dashboardMetrics);
-      updateOrder(loadedOrder);
-    }
-  }, [dashboardMetrics]);
 
   // Función para manejar el reordenamiento
   const handleReorder = (fromIndex, toIndex) => {
@@ -85,7 +75,7 @@ const CoreScreen = ({ isDarkMode }) => {
       )}
 
       {/* Metrics Grid */}
-      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-max">
+      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min grid-flow-row-dense">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 4 }).map((_, index) => (

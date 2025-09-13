@@ -22,7 +22,7 @@ const MetricCard = ({
 }) => {
   return (
     <div
-      className={`rounded-lg shadow-sm border ${compact ? 'p-4' : 'p-5'} bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} ${className || ''}`}
+      className={`rounded-lg shadow-sm border ${compact ? 'p-4' : 'p-5'} bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} ${className || ''} h-full flex flex-col`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between">

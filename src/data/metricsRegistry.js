@@ -165,10 +165,10 @@ export const METRICS_REGISTRY = {
     changeStatus: 'negative',
     description: 'Distribución por estado de pago',
     chartData: [
-      { name: 'Aprobado', value: 62 },
-      { name: 'Rechazado', value: 18 },
-      { name: 'Expirado', value: 9 },
-      { name: 'Pendiente', value: 11 }
+      { name: 'Aprobado', value: 62, color: '#22c55e' },
+      { name: 'Rechazado', value: 18, color: '#ef4444' },
+      { name: 'Expirado', value: 9, color: '#f59e0b' },
+      { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
     endpoint: '/api/metrics/payments/event-distribution',
     category: 'distribution'

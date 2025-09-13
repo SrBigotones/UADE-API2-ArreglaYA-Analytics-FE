@@ -78,11 +78,13 @@ const PieResponsiveContainer = ({
   if (!asCard) return Chart;
 
   return (
-    <div className="rounded-lg shadow-sm border p-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+    <div className="rounded-lg shadow-sm border p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-full flex flex-col">
       {title && (
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{title}</h3>
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">{title}</h3>
       )}
-      {Chart}
+      <div className="flex-1">
+        {Chart}
+      </div>
     </div>
   );
 };
