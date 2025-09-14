@@ -62,7 +62,7 @@ const PieResponsiveContainer = ({
             outerRadius={outerRadius}
             cx="50%"
             cy="50%"
-            paddingAngle={2}
+            paddingAngle={0}
             label={label}
             isAnimationActive={true}
           >

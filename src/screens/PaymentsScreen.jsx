@@ -6,7 +6,7 @@ import { useModuleMetrics } from '../hooks/useMetrics';
 const PaymentsScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   
-  // Obtener métricas específicas del módulo de pagos desde el hook
+  // Obtener métricas específicas del módulo de pagos desde el hook híbrido
   const { metrics: paymentsMetrics, loading, error, refetch } = useModuleMetrics('payments', dateRange);
 
   return (

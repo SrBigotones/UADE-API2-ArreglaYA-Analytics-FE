@@ -128,8 +128,25 @@ export const METRICS_REGISTRY = {
     change: '+0.8%',
     changeStatus: 'positive',
     description: 'Porcentaje de pagos exitosos sobre el total de los mismos.',
-    endpoint: '/api/metrics/payments/success-rate',
-    category: 'performance'
+    endpoint: '/api/metrica/pagos/exitosos',
+    category: 'performance',
+    // Configuración para integración con servicio real
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentSuccessMetrics',
+      serviceModule: 'paymentMetricsService',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   },
   'payments-processing-time': {
     id: 'payments-processing-time',
@@ -139,9 +156,26 @@ export const METRICS_REGISTRY = {
     value: '3 s',
     change: '+0,2 s',
     changeStatus: 'negative',
-    description: 'Tiempo promedio de procesamiento de pagos en segundos.',
-    endpoint: '/api/metrics/payments/processing-time',
-    category: 'performance'
+    description: 'Tiempo promedio de procesamiento de pagos en minutos.',
+    endpoint: '/api/metrica/pagos/tiempoProcesamiento',
+    category: 'performance',
+    // Configuración para integración con servicio real
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentProcessingTimeMetrics',
+      serviceModule: 'paymentMetricsService',
+      valueFormatter: (data) => `${data.value} min`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   },
   'payments-refunds-completed': {
     id: 'payments-refunds-completed',
@@ -170,8 +204,18 @@ export const METRICS_REGISTRY = {
       { name: 'Expirado', value: 9, color: '#f59e0b' },
       { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
-    endpoint: '/api/metrics/payments/event-distribution',
-    category: 'distribution'
+    endpoint: '/api/metrica/pagos/distribucion',
+    category: 'distribution',
+    // Configuración para integración con servicio real
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentDistributionMetrics',
+      serviceModule: 'paymentMetricsService',
+      chartDataFormatter: (data) => data.chartData,
+      valueFormatter: (data) => data.total?.toString() || '0',
+      changeFormatter: () => '', // Los gráficos de torta no usan change
+      statusMapper: () => 'neutral'
+    }
   },
 
   // === USUARIOS ===
@@ -184,8 +228,25 @@ export const METRICS_REGISTRY = {
     change: '+28%',
     changeStatus: 'positive',
     description: 'Nuevos usuarios registrados',
-    endpoint: '/api/metrics/users/new-registrations',
-    category: 'growth'
+    endpoint: '/api/metrica/usuarios/creados',
+    category: 'growth',
+    // Configuración para integración con servicio real
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUsersCreatedMetrics',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   },
   'users-role-assignment': {
     id: 'users-role-assignment',

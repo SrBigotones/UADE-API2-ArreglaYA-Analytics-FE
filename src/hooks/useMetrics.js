@@ -1,14 +1,34 @@
 import { useState, useEffect } from 'react';
 import { METRICS_REGISTRY } from '../data/metricsRegistry';
+import { useAxios } from './useAxios';
+
+// Importar servicios dinámicamente
+const importService = async (serviceModule, serviceName) => {
+  try {
+    let module;
+    if (serviceModule === 'paymentMetricsService') {
+      module = await import('../services/paymentMetricsService');
+    } else if (serviceModule === 'userMetricsService') {
+      module = await import('../services/userMetricsService');
+    }
+    return module?.[serviceName];
+  } catch (error) {
+    console.error(`Error importing service ${serviceName} from ${serviceModule}:`, error);
+    return null;
+  }
+};
 
 // Hook personalizado para manejar métricas desde el backend
 export const useMetrics = (metricIds, dateRange) => {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const axiosInstance = useAxios();
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      if (!axiosInstance) return; // Esperar a que axios esté listo
+      
       setLoading(true);
       setError(null);
 
@@ -18,19 +38,81 @@ export const useMetrics = (metricIds, dateRange) => {
           .map(id => METRICS_REGISTRY[id])
           .filter(Boolean);
 
-        // Simular delay para mostrar loading
-        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('🔄 SISTEMA HÍBRIDO: Procesando métricas:', baseMetrics.map(m => m.id));
 
-        // Para desarrollo: usar datos estáticos siempre
-        const metricsWithData = baseMetrics.map(metric => ({
-          ...metric,
-          loading: false,
-          error: null
-        }));
+        // Procesar métricas en paralelo
+        const metricsWithData = await Promise.all(
+          baseMetrics.map(async (metric) => {
+            if (metric.hasRealService && metric.serviceConfig) {
+              console.log(`📡 SERVICIO REAL: Cargando ${metric.id} desde ${metric.serviceConfig.serviceName}`);
+              
+              try {
+                // Importar y ejecutar el servicio real
+                const serviceFunction = await importService(
+                  metric.serviceConfig.serviceModule,
+                  metric.serviceConfig.serviceName
+                );
+                
+                if (serviceFunction) {
+                  const response = await serviceFunction(axiosInstance, dateRange);
+                  
+                  if (response.success) {
+                    const { serviceConfig } = metric;
+                    
+                    // Formatear datos según la configuración
+                    const formattedMetric = {
+                      ...metric,
+                      value: serviceConfig.valueFormatter ? serviceConfig.valueFormatter(response.data) : response.data.value,
+                      change: serviceConfig.changeFormatter ? serviceConfig.changeFormatter(response.data) : response.data.change,
+                      changeStatus: serviceConfig.statusMapper ? serviceConfig.statusMapper(response.data.changeStatus) : response.data.changeStatus,
+                      loading: false,
+                      error: null,
+                      // Para gráficos de torta, agregar los datos del gráfico
+                      ...(serviceConfig.chartDataFormatter && {
+                        chartData: serviceConfig.chartDataFormatter(response.data)
+                      }),
+                      // Marcar como datos reales
+                      isRealData: true,
+                      lastUpdated: response.data.lastUpdated
+                    };
+                    
+                    console.log(`✅ SERVICIO REAL: ${metric.id} cargado exitosamente`);
+                    return formattedMetric;
+                  } else {
+                    throw new Error('Respuesta inválida del servidor');
+                  }
+                } else {
+                  throw new Error('Servicio no disponible');
+                }
+              } catch (serviceError) {
+                console.error(`❌ SERVICIO REAL: Error en ${metric.id}:`, serviceError);
+                return {
+                  ...metric,
+                  loading: false,
+                  error: `Error de conexión: ${serviceError.message}`,
+                  isRealData: false,
+                  // NO mostrar datos genéricos cuando falla el servicio real
+                  value: 'Error',
+                  change: '',
+                  changeStatus: 'neutral'
+                };
+              }
+            }
+            
+            // Usar datos estáticos para métricas sin servicio real
+            console.log(`📊 DATOS ESTÁTICOS: Usando mock para ${metric.id}`);
+            return {
+              ...metric,
+              loading: false,
+              error: null,
+              isRealData: false
+            };
+          })
+        );
 
         setMetrics(metricsWithData);
       } catch (globalError) {
-        console.error('Error fetching metrics:', globalError);
+        console.error('❌ SISTEMA HÍBRIDO: Error global:', globalError);
         setError('Error cargando métricas');
       } finally {
         setLoading(false);
@@ -43,9 +125,11 @@ export const useMetrics = (metricIds, dateRange) => {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds.join(','), JSON.stringify(dateRange)]);
+  }, [metricIds.join(','), JSON.stringify(dateRange), axiosInstance]);
 
   const refetch = async () => {
+    if (!axiosInstance) return;
+    
     setLoading(true);
     setError(null);
 
@@ -54,17 +138,68 @@ export const useMetrics = (metricIds, dateRange) => {
         .map(id => METRICS_REGISTRY[id])
         .filter(Boolean);
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('🔄 REFETCH: Recargando métricas híbridas');
 
-      const metricsWithData = baseMetrics.map(metric => ({
-        ...metric,
-        loading: false,
-        error: null
-      }));
+      const metricsWithData = await Promise.all(
+        baseMetrics.map(async (metric) => {
+          if (metric.hasRealService && metric.serviceConfig) {
+            try {
+              const serviceFunction = await importService(
+                metric.serviceConfig.serviceModule,
+                metric.serviceConfig.serviceName
+              );
+              
+              if (serviceFunction) {
+                const response = await serviceFunction(axiosInstance, dateRange);
+                
+                if (response.success) {
+                  const { serviceConfig } = metric;
+                  
+                  return {
+                    ...metric,
+                    value: serviceConfig.valueFormatter ? serviceConfig.valueFormatter(response.data) : response.data.value,
+                    change: serviceConfig.changeFormatter ? serviceConfig.changeFormatter(response.data) : response.data.change,
+                    changeStatus: serviceConfig.statusMapper ? serviceConfig.statusMapper(response.data.changeStatus) : response.data.changeStatus,
+                    loading: false,
+                    error: null,
+                    ...(serviceConfig.chartDataFormatter && {
+                      chartData: serviceConfig.chartDataFormatter(response.data)
+                    }),
+                    isRealData: true,
+                    lastUpdated: response.data.lastUpdated
+                  };
+                } else {
+                  throw new Error('Respuesta inválida del servidor');
+                }
+              } else {
+                throw new Error('Servicio no disponible');
+              }
+            } catch (serviceError) {
+              return {
+                ...metric,
+                loading: false,
+                error: `Error de conexión: ${serviceError.message}`,
+                isRealData: false,
+                // NO mostrar datos genéricos cuando falla el servicio real
+                value: 'Error',
+                change: '',
+                changeStatus: 'neutral'
+              };
+            }
+          }
+          
+          return {
+            ...metric,
+            loading: false,
+            error: null,
+            isRealData: false
+          };
+        })
+      );
 
       setMetrics(metricsWithData);
     } catch (globalError) {
-      console.error('Error fetching metrics:', globalError);
+      console.error('❌ REFETCH: Error global:', globalError);
       setError('Error cargando métricas');
     } finally {
       setLoading(false);
