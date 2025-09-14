@@ -31,7 +31,7 @@ function App() {
             <img 
               src={reactLogo} 
               className="h-24 w-24 transition-transform group-hover:scale-110 animate-spin-slow" 
-              alt="React logo" 
+              alt="React log" 
             />
           </a>
         </div>
