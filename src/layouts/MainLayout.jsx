@@ -109,7 +109,7 @@ const MainLayout = () => {
         )}
 
         {/* Main Content */}
-        <div className={`p-8 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className={`p-4 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {renderActiveScreen()}
         </div>
       </div>

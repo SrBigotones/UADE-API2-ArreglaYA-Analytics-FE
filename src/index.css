@@ -42,16 +42,6 @@
   position: relative;
 }
 
-.dashboard-grid::before {
-  content: "💡 Arrastra las tarjetas para reordenarlas";
-  position: absolute;
-  top: -40px;
-  right: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  opacity: 0.7;
-  pointer-events: none;
-}
 
 /* Estilos para el modo oscuro */
 .dark .swapy-ghost {

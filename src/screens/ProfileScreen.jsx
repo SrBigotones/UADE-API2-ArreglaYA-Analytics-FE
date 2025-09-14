@@ -37,7 +37,7 @@ const ProfileScreen = ({ onBackToDashboard, isDarkMode }) => {
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-4">
         {/* Header con título y botón de retorno */}
         <div className="flex items-center justify-between mb-6">
           <div>

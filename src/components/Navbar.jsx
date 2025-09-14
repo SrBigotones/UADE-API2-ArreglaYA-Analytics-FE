@@ -21,7 +21,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar })
 
   return (
     <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-sm border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-6 py-2">
         <div className="flex items-center">
           {/* Hamburguesa (solo móvil) */}
           <button
@@ -36,7 +36,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar })
             <span className="block w-5 h-0.5 bg-current"></span>
           </button>
           {/* Logo real */}
-          <img src={logo} alt="Arregla Ya Logo" className="w-16 h-16 mr-3" />
+          <img src={logo} alt="Arregla Ya Logo" className="w-12 h-12 mr-3" />
           <h1 className={`hidden md:block text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
             Arregla Ya Analytics
           </h1>
@@ -75,7 +75,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar })
                 isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
               }`}
             >
-              <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+              <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                 {user?.name?.charAt(0) || 'A'}
               </div>
               <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
