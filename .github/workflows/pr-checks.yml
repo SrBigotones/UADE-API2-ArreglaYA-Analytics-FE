@@ -1,24 +1,47 @@
-name: PR Checks
+name: pr-checks
 
 on:
   pull_request:
-    branches: [ main ]
+    types: [opened, reopened, synchronize, edited]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  quality:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Validate branch naming
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if [[ ! "$BRANCH" =~ ^(feature|fix|hotfix|ci)\/[a-z0-9._-]+$ ]]; then
+            echo "❌ Branch '$BRANCH' no cumple con el naming."
+            echo "Prefijos permitidos: feature/, fix/, hotfix/, ci/"
+            exit 1
+          fi
+
+  quality:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
+          
       - name: Install dependencies
         run: npm ci
-      - name: Run tests
-        run: npm test
+        
       - name: Run linting
         run: npm run lint
+        
+      - name: Run tests
+        run: npm test
+        
       - name: Build application
         run: npm run build
