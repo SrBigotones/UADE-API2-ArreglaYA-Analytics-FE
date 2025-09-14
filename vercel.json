@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "buildCommand": "npm install @rollup/rollup-linux-x64-gnu && npm run build",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "env": {
+    "NODE_VERSION": "22.x"
+  }
+}
