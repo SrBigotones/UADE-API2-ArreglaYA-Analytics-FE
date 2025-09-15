@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import CoreScreen from '../screens/DashboardScreen';
@@ -12,8 +12,17 @@ import ProfileScreen from '../screens/ProfileScreen';
 const MainLayout = () => {
   const [activeCategory, setActiveCategory] = useState('dashboard');
   const [activeScreen, setActiveScreen] = useState('dashboard'); // 'dashboard' o 'profile'
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Cargar el tema guardado del localStorage al inicializar
+    const savedTheme = localStorage.getItem('arreglaya-dark-mode');
+    return savedTheme ? JSON.parse(savedTheme) : false;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Guardar el tema en localStorage cada vez que cambie
+  useEffect(() => {
+    localStorage.setItem('arreglaya-dark-mode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);

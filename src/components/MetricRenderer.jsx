@@ -8,7 +8,6 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
   if (!metric) return null;
 
   const commonProps = {
-    key: metric.id,
     title: metric.title,
     value: metric.value,
     change: metric.change,
@@ -28,7 +27,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   switch (metric.type) {
     case 'card':
-      return <MetricCard {...commonProps} className={className} />;
+      return <MetricCard key={metric.id} {...commonProps} className={className} />;
     
     case 'pie':
       // Si hay error, mostrar componente de error en lugar del gráfico
@@ -146,7 +145,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       );
     
     default:
-      return <MetricCard {...commonProps} className={className} />;
+      return <MetricCard key={metric.id} {...commonProps} className={className} />;
   }
 };
 

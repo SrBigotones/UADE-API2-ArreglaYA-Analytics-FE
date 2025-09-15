@@ -178,10 +178,13 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     setError(null);
 
     try {
+<<<<<<< Updated upstream
       const baseMetrics = metricIds
         .map(id => METRICS_REGISTRY[id])
         .filter(Boolean);
 
+=======
+>>>>>>> Stashed changes
 
       const metricsWithData = await Promise.all(
         baseMetrics.map(async (metric) => {
@@ -193,11 +196,46 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
               );
               
               if (serviceFunction) {
+<<<<<<< Updated upstream
                 const response = await serviceFunction(axiosInstance, { startDate, endDate, presetId });
                 
                 if (response.success) {
                   const { serviceConfig } = metric;
                   
+=======
+                const response = await serviceFunction(axiosInstance, {
+                  startDate,
+                  endDate,
+                  period: presetId,
+                  signal: abortControllerRef.current.signal
+                });
+
+                if (response && response.success) {
+                  const { serviceConfig } = metric;
+                  const metricData = response.data;
+                  
+                  // Console log para ver qué devuelve cada consulta del backend
+                  console.log(`🔍 RESPUESTA BACKEND - ${metric.id}:`, {
+                    endpoint: metric.endpoint,
+                    serviceConfig: metric.serviceConfig,
+                    response: response,
+                    metricData: metricData,
+                    timestamp: new Date().toISOString()
+                  });
+                  
+                  const formattedValue = serviceConfig.valueFormatter ? 
+                    serviceConfig.valueFormatter(metricData) : 
+                    (metricData.value?.toString() || '0');
+                    
+                  const formattedChange = serviceConfig.changeFormatter ? 
+                    serviceConfig.changeFormatter(metricData) : 
+                    metricData.change;
+                    
+                  const mappedStatus = serviceConfig.statusMapper ? 
+                    serviceConfig.statusMapper(metricData.changeStatus) : 
+                    metricData.changeStatus;
+
+>>>>>>> Stashed changes
                   return {
                     ...metric,
                     value: serviceConfig.valueFormatter ? serviceConfig.valueFormatter(response.data) : response.data.value,
@@ -226,10 +264,43 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     changeStatus: 'neutral'
                   };
                 }
+<<<<<<< Updated upstream
               } else {
                 throw new Error('Servicio no disponible');
               }
             } catch (serviceError) {
+=======
+                
+                // Console log cuando la respuesta no es exitosa
+                console.log(`❌ RESPUESTA NO EXITOSA - ${metric.id}:`, {
+                  endpoint: metric.endpoint,
+                  response: response,
+                  success: response?.success,
+                  data: response?.data,
+                  timestamp: new Date().toISOString()
+                });
+                
+                throw new Error('Respuesta inválida del servidor');
+              }
+            } catch (error) {
+              if (error.name === 'AbortError') {
+                throw error; // Re-throw para que Promise.all se cancele
+              }
+              
+              // Console log para errores de servicios
+              console.log(`🚨 ERROR DE SERVICIO - ${metric.id}:`, {
+                endpoint: metric.endpoint,
+                serviceName: metric.serviceConfig?.serviceName,
+                error: {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack
+                },
+                params: { startDate, endDate, period: presetId },
+                timestamp: new Date().toISOString()
+              });
+              
+>>>>>>> Stashed changes
               return {
                 ...metric,
                 loading: false,
@@ -242,7 +313,10 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
               };
             }
           }
+<<<<<<< Updated upstream
           
+=======
+>>>>>>> Stashed changes
           return {
             ...metric,
             loading: false,
@@ -253,9 +327,16 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       );
 
       setMetrics(metricsWithData);
+<<<<<<< Updated upstream
     } catch (globalError) {
       console.error('❌ REFETCH: Error global:', globalError);
       setError('Error cargando métricas');
+=======
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        setError('Error cargando métricas');
+      }
+>>>>>>> Stashed changes
     } finally {
       setLoading(false);
     }
@@ -282,6 +363,7 @@ export const useModuleMetrics = (module, dateRange) => {
   return useMetrics(moduleMetricIds, dateParams);
 };
 
+<<<<<<< Updated upstream
 // Hook para métricas personalizadas del dashboard
 export const useDashboardMetrics = (dateRange) => {
   const [selectedMetricIds, setSelectedMetricIds] = useState([]);
@@ -315,3 +397,37 @@ export const useDashboardMetrics = (dateRange) => {
     updateSelectedMetrics 
   };
 };
+=======
+// Hook específico para métricas del dashboard
+export const useDashboardMetrics = ({ startDate, endDate, preset }) => {
+  // Estado para métricas seleccionadas por el usuario
+  const [selectedMetricIds, setSelectedMetricIds] = useState(() => {
+    // Cargar desde localStorage o usar métricas por defecto
+    const saved = localStorage.getItem('dashboard-selected-metrics');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error parsing saved metrics:', error);
+      }
+    }
+    // Métricas por defecto si no hay guardadas
+    return ['core-processing-time', 'catalog-new-providers', 'app-requests-created', 'payments-success-rate'];
+  });
+
+  // Función para actualizar métricas seleccionadas
+  const updateSelectedMetrics = useCallback((newMetricIds) => {
+    setSelectedMetricIds(newMetricIds);
+    localStorage.setItem('dashboard-selected-metrics', JSON.stringify(newMetricIds));
+  }, []);
+
+  // Usar las métricas seleccionadas en lugar de todas las del dashboard
+  const metricsResult = useMetrics(selectedMetricIds, { startDate, endDate, presetId: preset });
+
+  return {
+    ...metricsResult,
+    selectedMetricIds,
+    updateSelectedMetrics
+  };
+};
+>>>>>>> Stashed changes

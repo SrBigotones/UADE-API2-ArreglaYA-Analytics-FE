@@ -254,9 +254,24 @@ export const METRICS_REGISTRY = {
     value: '94.1%',
     change: '+3.2%',
     changeStatus: 'positive',
+<<<<<<< Updated upstream
     description: 'Tasa de roles asignados',
     endpoint: '/api/metrics/users/role-assignment',
     category: 'management'
+=======
+    description: 'Tasa de roles asignados correctamente a usuarios',
+    endpoint: '/api/metrica/usuarios/roles',
+    category: 'management',
+    hasRealService: false, // Deshabilitado temporalmente - sin endpoint disponible
+    // Datos hardcodeados mientras no hay endpoint
+    mockData: {
+      value: 94.1,
+      change: 3.2,
+      changeType: 'porcentaje',
+      changeStatus: 'positivo',
+      lastUpdated: new Date().toISOString()
+    }
+>>>>>>> Stashed changes
   },
 
   // === MATCHING ===
