@@ -237,8 +237,9 @@ export const METRICS_REGISTRY = {
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);
+        if (value === 0) return '0';
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({

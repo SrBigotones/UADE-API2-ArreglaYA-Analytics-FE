@@ -1,4 +1,16 @@
 // Servicio para métricas de usuarios
+
+// Mapeo de períodos del frontend al backend
+const mapPeriodToBackend = (frontendPeriod) => {
+  const periodMap = {
+    'today': 'hoy',
+    'last7': 'ultimos_7_dias',
+    'last30': 'ultimos_30_dias',
+    'lastYear': 'ultimo_ano',
+    'custom': 'personalizado'
+  };
+  return periodMap[frontendPeriod] || 'personalizado';
+};
 export const getUsersByDateRange = async (axiosInstance, { startDate, endDate }) => {
   try {
     const response = await axiosInstance.get('/api/users/metrics', {
@@ -32,5 +44,60 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate })
   } catch (error) {
     console.error('Error fetching user growth trends:', error);
     throw error;
+  }
+};
+
+export const getUsersCreatedMetrics = async (axiosInstance, { startDate, endDate, period }) => {
+  try {
+    const mappedPeriod = mapPeriodToBackend(period);
+    console.log('📊 Solicitando nuevos usuarios registrados:', {
+      url: '/api/metrica/usuarios/creados',
+      params: { startDate, endDate, period: mappedPeriod },
+      baseURL: axiosInstance.defaults.baseURL
+    });
+
+    const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
+      params: { startDate, endDate, period: mappedPeriod }
+    });
+
+    console.log('✅ Respuesta de usuarios creados:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
+
+    return {
+      success: true,
+      data: {
+        value: response.data.value || 0,
+        change: response.data.change || 0,
+        changeStatus: response.data.changeStatus || 'neutro',
+        changeType: response.data.changeType || 'absoluto',
+        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('❌ Error en usuarios creados:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        headers: error.config?.headers,
+        params: error.config?.params
+      }
+    });
+    
+    // En lugar de hacer throw, devolvemos un error controlado
+    return {
+      success: false,
+      error: {
+        message: error.response?.data?.message || error.message || 'Servicio no disponible',
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      }
+    };
   }
 };

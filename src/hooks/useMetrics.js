@@ -79,7 +79,24 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     console.log(`✅ SERVICIO REAL: ${metric.id} cargado exitosamente`);
                     return formattedMetric;
                   } else {
-                    throw new Error('Respuesta inválida del servidor');
+                    // Manejar errores controlados del servicio
+                    const errorMessage = response.error?.message || 'Servicio no disponible';
+                    console.warn(`⚠️ SERVICIO REAL: Error controlado en ${metric.id}:`, response.error);
+                    
+                    return {
+                      ...metric,
+                      loading: false,
+                      error: errorMessage,
+                      isRealData: false,
+                      value: 'Servicio no disponible',
+                      change: '',
+                      changeStatus: 'neutral',
+                      _debug: {
+                        timestamp: new Date().toISOString(),
+                        serviceError: response.error,
+                        serviceResponse: response
+                      }
+                    };
                   }
                 } else {
                   throw new Error('Servicio no disponible');
@@ -200,7 +217,19 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     lastUpdated: response.data.lastUpdated
                   };
                 } else {
-                  throw new Error('Respuesta inválida del servidor');
+                  // Manejar errores controlados del servicio en refetch
+                  const errorMessage = response.error?.message || 'Servicio no disponible';
+                  console.warn(`⚠️ REFETCH: Error controlado en ${metric.id}:`, response.error);
+                  
+                  return {
+                    ...metric,
+                    loading: false,
+                    error: errorMessage,
+                    isRealData: false,
+                    value: 'Servicio no disponible',
+                    change: '',
+                    changeStatus: 'neutral'
+                  };
                 }
               } else {
                 throw new Error('Servicio no disponible');

@@ -89,7 +89,16 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDa
         params: error.config?.params
       }
     });
-    throw error;
+    
+    // En lugar de hacer throw, devolvemos un error controlado
+    return {
+      success: false,
+      error: {
+        message: error.response?.data?.message || error.message || 'Servicio no disponible',
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      }
+    };
   }
 };
 
@@ -114,5 +123,115 @@ export const getPaymentTrends = async (axiosInstance, { startDate, endDate }) =>
   } catch (error) {
     console.error('Error fetching payment trends:', error);
     throw error;
+  }
+};
+
+export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate, endDate, period }) => {
+  try {
+    const mappedPeriod = mapPeriodToBackend(period);
+    console.log('📊 Solicitando tiempo de procesamiento de pagos:', {
+      url: '/api/metrica/pagos/tiempoProcesamiento',
+      params: { startDate, endDate, period: mappedPeriod },
+      baseURL: axiosInstance.defaults.baseURL
+    });
+
+    const response = await axiosInstance.get('/api/metrica/pagos/tiempoProcesamiento', {
+      params: { startDate, endDate, period: mappedPeriod }
+    });
+
+    console.log('✅ Respuesta de tiempo de procesamiento:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
+
+    return {
+      success: true,
+      data: {
+        value: response.data.processingTime || 0,
+        change: response.data.changeValue || 0,
+        changeStatus: response.data.trend || 'neutral',
+        changeType: response.data.changeType || 'absolute',
+        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('❌ Error en tiempo de procesamiento de pagos:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        headers: error.config?.headers,
+        params: error.config?.params
+      }
+    });
+    
+    // En lugar de hacer throw, devolvemos un error controlado
+    return {
+      success: false,
+      error: {
+        message: error.response?.data?.message || error.message || 'Servicio no disponible',
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      }
+    };
+  }
+};
+
+export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, endDate, period }) => {
+  try {
+    const mappedPeriod = mapPeriodToBackend(period);
+    console.log('📊 Solicitando distribución de eventos de pago:', {
+      url: '/api/metrica/pagos/distribucion',
+      params: { startDate, endDate, period: mappedPeriod },
+      baseURL: axiosInstance.defaults.baseURL
+    });
+
+    const response = await axiosInstance.get('/api/metrica/pagos/distribucion', {
+      params: { startDate, endDate, period: mappedPeriod }
+    });
+
+    console.log('✅ Respuesta de distribución de eventos:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
+
+    return {
+      success: true,
+      data: {
+        chartData: response.data.distribution || [],
+        total: response.data.total || 0,
+        change: response.data.changeValue || 0,
+        changeStatus: response.data.trend || 'neutral',
+        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('❌ Error en distribución de eventos de pago:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        headers: error.config?.headers,
+        params: error.config?.params
+      }
+    });
+    
+    // En lugar de hacer throw, devolvemos un error controlado
+    return {
+      success: false,
+      error: {
+        message: error.response?.data?.message || error.message || 'Servicio no disponible',
+        status: error.response?.status,
+        timestamp: new Date().toISOString()
+      }
+    };
   }
 };
