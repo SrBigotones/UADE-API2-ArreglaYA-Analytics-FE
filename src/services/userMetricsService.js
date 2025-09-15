@@ -45,14 +45,16 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
       data: response.data
     });
 
-    // Asegurar el formato correcto de la respuesta
+    // Asegurar el formato correcto de la respuesta y manejar la estructura anidada
+    const responseData = response.data.data || response.data;
     return {
       success: true,
       data: {
-        value: response.data.value || 0,
-        change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'neutral',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+        value: responseData.value || 0,
+        change: responseData.change || 0,
+        changeType: responseData.changeType || 'valor',
+        changeStatus: responseData.changeStatus || 'neutral',
+        lastUpdated: responseData.lastUpdated || new Date().toISOString()
       }
     };
   } catch (error) {
@@ -276,24 +278,24 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
       throw new Error('Respuesta sin datos');
     }
 
+    // Extraer los datos correctamente de la estructura anidada
+    const responseData = response.data.data || response.data;
+    
     // Log de éxito
     console.log('✅ Datos de nuevos registros procesados:', {
       timestamp: new Date().toISOString(),
       metrics: {
-        value: response.data.value,
-        change: response.data.change,
+        value: responseData.value,
+        change: responseData.change,
+        changeType: responseData.changeType,
+        changeStatus: responseData.changeStatus,
         period
       }
     });
 
     return {
       success: true,
-      data: {
-        value: response.data.value || 0,
-        change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'neutral',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
-      }
+      data: responseData  // Pasar los datos tal cual vienen del servidor
     };
   } catch (error) {
     // Log detallado del error

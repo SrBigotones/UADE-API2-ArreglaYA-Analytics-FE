@@ -110,11 +110,43 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
 
                 if (response.success) {
                   const { serviceConfig } = metric;
+                  console.log(`✨ Procesando métrica ${metric.id}:`, {
+                    rawData: response.data,
+                    config: serviceConfig
+                  });
+
+                  // Aplicar formatters
+                  console.log('🔍 Respuesta del servicio:', response);
+
+                  // Los datos vienen directamente del servicio sin necesidad de más transformaciones
+                  const metricData = response.data;
+                  
+                  console.log('📈 Datos a procesar:', metricData);
+                  
+                  const formattedValue = serviceConfig.valueFormatter ? 
+                    serviceConfig.valueFormatter(metricData) : 
+                    (metricData.value?.toString() || '0');
+                  console.log('🔢 Valor formateado:', formattedValue);
+                    
+                  const formattedChange = serviceConfig.changeFormatter ? 
+                    serviceConfig.changeFormatter(metricData) : 
+                    metricData.change;
+                    
+                  const mappedStatus = serviceConfig.statusMapper ? 
+                    serviceConfig.statusMapper(metricData.changeStatus) : 
+                    metricData.changeStatus;
+
+                  console.log(`📊 Valores formateados para ${metric.id}:`, {
+                    value: formattedValue,
+                    change: formattedChange,
+                    status: mappedStatus
+                  });
+
                   return {
                     ...metric,
-                    value: serviceConfig.valueFormatter ? serviceConfig.valueFormatter(response.data) : response.data.value,
-                    change: serviceConfig.changeFormatter ? serviceConfig.changeFormatter(response.data) : response.data.change,
-                    changeStatus: serviceConfig.statusMapper ? serviceConfig.statusMapper(response.data.changeStatus) : response.data.changeStatus,
+                    value: formattedValue,
+                    change: formattedChange,
+                    changeStatus: mappedStatus,
                     loading: false,
                     error: null,
                     ...(serviceConfig.chartDataFormatter && {
