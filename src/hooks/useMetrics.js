@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { METRICS_REGISTRY } from '../data/metricsRegistry';
 import { useAxios } from './useAxios';
 
@@ -271,9 +271,11 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
 
 // Hook para métricas de un módulo específico
 export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
-  const moduleMetricIds = Object.values(METRICS_REGISTRY)
-    .filter(metric => metric.module === module)
-    .map(metric => metric.id);
+  const moduleMetricIds = useMemo(() => {
+    return Object.values(METRICS_REGISTRY)
+      .filter(metric => metric.module === module)
+      .map(metric => metric.id);
+  }, [module]);
   
   return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
 };
