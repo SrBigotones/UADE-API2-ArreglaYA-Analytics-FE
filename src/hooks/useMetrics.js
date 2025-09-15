@@ -173,7 +173,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds, startDate, endDate, presetId]);
+  }, [metricIds, startDate, endDate, presetId, axiosInstance]);
 
   const refetch = async () => {
     if (!axiosInstance) return;
@@ -270,12 +270,15 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
 };
 
 // Hook para métricas de un módulo específico
-export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
+export const useModuleMetrics = (module, dateRange) => {
   const moduleMetricIds = useMemo(() => {
     return Object.values(METRICS_REGISTRY)
       .filter(metric => metric.module === module)
       .map(metric => metric.id);
   }, [module]);
+  
+  // Extraer startDate, endDate y preset del dateRange
+  const { startDate, endDate, preset } = dateRange || {};
   
   return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
 };

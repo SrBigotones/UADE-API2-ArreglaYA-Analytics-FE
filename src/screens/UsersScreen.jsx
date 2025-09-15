@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
 import MetricRenderer from '../components/MetricRenderer';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
@@ -6,6 +6,15 @@ import { useModuleMetrics } from '../hooks/useMetrics';
 
 const UsersScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  
+  // Asegurar que dateRange tenga startDate y endDate cuando sea necesario
+  useEffect(() => {
+    if (dateRange.preset && !dateRange.startDate && !dateRange.endDate) {
+      // Si solo tenemos preset, no necesitamos startDate/endDate para el servicio
+      // El servicio manejará el preset internamente
+      console.log('📅 Usando preset para métricas de usuarios:', dateRange.preset);
+    }
+  }, [dateRange]);
   
   // Obtener métricas específicas del módulo de usuarios desde el hook híbrido
   const { metrics: usersMetrics, loading, error, refetch } = useModuleMetrics('users', dateRange);

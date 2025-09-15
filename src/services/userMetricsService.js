@@ -13,8 +13,12 @@ const mapPeriodToBackend = (frontendPeriod) => {
 };
 export const getUsersByDateRange = async (axiosInstance, { startDate, endDate }) => {
   try {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     const response = await axiosInstance.get('/api/users/metrics', {
-      params: { startDate, endDate }
+      params
     });
     return response.data;
   } catch (error) {
@@ -25,8 +29,12 @@ export const getUsersByDateRange = async (axiosInstance, { startDate, endDate })
 
 export const getUserActivityDistribution = async (axiosInstance, { startDate, endDate }) => {
   try {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     const response = await axiosInstance.get('/api/users/activity/distribution', {
-      params: { startDate, endDate }
+      params
     });
     return response.data;
   } catch (error) {
@@ -37,8 +45,12 @@ export const getUserActivityDistribution = async (axiosInstance, { startDate, en
 
 export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate }) => {
   try {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     const response = await axiosInstance.get('/api/users/growth', {
-      params: { startDate, endDate }
+      params
     });
     return response.data;
   } catch (error) {
@@ -50,14 +62,20 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate })
 export const getUsersCreatedMetrics = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
+    
+    // Construir parámetros solo con los valores definidos
+    const params = { period: mappedPeriod };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     console.log('📊 Solicitando nuevos usuarios registrados:', {
       url: '/api/metrica/usuarios/creados',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       baseURL: axiosInstance.defaults.baseURL
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
-      params: { startDate, endDate, period: mappedPeriod }
+      params
     });
 
     console.log('✅ Respuesta de usuarios creados:', {
