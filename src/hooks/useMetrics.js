@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-
 import { METRICS_REGISTRY } from '../data/metricsRegistry';
 import { useAxios } from './useAxios';
 import { debounce } from '../utils/debounce';
@@ -8,7 +7,7 @@ import { debounce } from '../utils/debounce';
 const serviceCache = {};
 
 // Importar servicios dinámicamente con caché
-const importService = async (serviceModule, serviceName) => {
+const importService = async (serviceModule, serviceName, serviceCache) => {
   const cacheKey = `${serviceModule}.${serviceName}`;
   
   if (serviceCache[cacheKey]) {
@@ -34,7 +33,7 @@ const importService = async (serviceModule, serviceName) => {
   }
 };
 
-// Cache de resultados de métricas
+// Cache de resultados de métricas para evitar solicitudes duplicadas
 const metricsResultsCache = new Map();
 
 // Hook personalizado para manejar métricas desde el backend
@@ -45,6 +44,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
   const axiosInstance = useAxios();
   const abortControllerRef = useRef(null);
   
+  // Memorizar las configuraciones base de las métricas
   const baseMetrics = useMemo(() => 
     metricIds
       .map(id => METRICS_REGISTRY[id])
@@ -52,37 +52,89 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     [metricIds]
   );
 
+  // Generar clave de cache basada en los parámetros actuales
   const cacheKey = useMemo(() => {
-    return JSON.stringify({ metricIds, startDate, endDate, presetId });
+    return JSON.stringify({
+      metricIds,
+      startDate,
+      endDate,
+      presetId
+    });
   }, [metricIds, startDate, endDate, presetId]);
 
+  // Función principal para obtener métricas
   const fetchMetrics = useCallback(async () => {
     if (!axiosInstance) return;
+
+    // Verificar cache
+    const cached = metricsResultsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 5000) { // Cache por 5 segundos
+      setMetrics(cached.data);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Crear nuevo controlador
+    abortControllerRef.current = new AbortController();
+
     try {
+
       const metricsWithData = await Promise.all(
         baseMetrics.map(async (metric) => {
           if (metric.hasRealService && metric.serviceConfig) {
             try {
               const serviceFunction = await importService(
                 metric.serviceConfig.serviceModule,
-                metric.serviceConfig.serviceName
+                metric.serviceConfig.serviceName,
+                serviceCache
               );
               
               if (serviceFunction) {
-                const response = await serviceFunction(axiosInstance, { startDate, endDate, period: presetId });
-                
-                if (response.success) {
+                const response = await serviceFunction(axiosInstance, {
+                  startDate,
+                  endDate,
+                  period: presetId,
+                  signal: abortControllerRef.current.signal
+                });
+
+                if (response && response.success) {
                   const { serviceConfig } = metric;
+                  const metricData = response.data;
                   
+                  // Console log para ver qué devuelve cada consulta del backend
+                  console.log(`🔍 RESPUESTA BACKEND - ${metric.id}:`, {
+                    endpoint: metric.endpoint,
+                    serviceConfig: metric.serviceConfig,
+                    response: response,
+                    metricData: metricData,
+                    timestamp: new Date().toISOString()
+                  });
+                  
+                  const formattedValue = serviceConfig.valueFormatter ? 
+                    serviceConfig.valueFormatter(metricData) : 
+                    (metricData.value?.toString() || '0');
+                    
+                  const formattedChange = serviceConfig.changeFormatter ? 
+                    serviceConfig.changeFormatter(metricData) : 
+                    metricData.change;
+                    
+                  const mappedStatus = serviceConfig.statusMapper ? 
+                    serviceConfig.statusMapper(metricData.changeStatus) : 
+                    metricData.changeStatus;
+
                   return {
                     ...metric,
-                    value: serviceConfig.valueFormatter ? serviceConfig.valueFormatter(response.data) : response.data.value,
-                    change: serviceConfig.changeFormatter ? serviceConfig.changeFormatter(response.data) : response.data.change,
-                    changeStatus: serviceConfig.statusMapper ? serviceConfig.statusMapper(response.data.changeStatus) : response.data.changeStatus,
+                    value: formattedValue,
+                    change: formattedChange,
+                    changeStatus: mappedStatus,
                     loading: false,
                     error: null,
                     ...(serviceConfig.chartDataFormatter && {
@@ -91,70 +143,45 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     isRealData: true,
                     lastUpdated: response.data.lastUpdated
                   };
-                } else {
-                  const errorMessage = response.error?.message || 'Servicio no disponible';
-                  console.warn(`⚠️ SERVICIO REAL: Error controlado en ${metric.id}:`, response.error);
-                  
-                  return {
-                    ...metric,
-                    loading: false,
-                    error: errorMessage,
-                    isRealData: false,
-                    value: 'Servicio no disponible',
-                    change: '',
-                    changeStatus: 'neutral',
-                    _debug: {
-                      timestamp: new Date().toISOString(),
-                      serviceError: response.error,
-                      serviceResponse: response
-                    }
-                  };
                 }
-              } else {
-                throw new Error('Servicio no disponible');
+                
+                // Console log cuando la respuesta no es exitosa
+                console.log(`❌ RESPUESTA NO EXITOSA - ${metric.id}:`, {
+                  endpoint: metric.endpoint,
+                  response: response,
+                  success: response?.success,
+                  data: response?.data,
+                  timestamp: new Date().toISOString()
+                });
+                
+                throw new Error('Respuesta inválida del servidor');
               }
-            } catch (serviceError) {
-              console.error(`❌ SERVICIO REAL: Error en ${metric.id}:`, {
-                error: serviceError,
-                message: serviceError.message,
-                stack: serviceError.stack,
-                response: serviceError.response?.data,
-                status: serviceError.response?.status,
-                config: {
-                  url: serviceError.config?.url,
-                  method: serviceError.config?.method,
-                  baseURL: serviceError.config?.baseURL,
-                  headers: serviceError.config?.headers
-                }
+            } catch (error) {
+              if (error.name === 'AbortError') {
+                throw error; // Re-throw para que Promise.all se cancele
+              }
+              
+              // Console log para errores de servicios
+              console.log(`🚨 ERROR DE SERVICIO - ${metric.id}:`, {
+                endpoint: metric.endpoint,
+                serviceName: metric.serviceConfig?.serviceName,
+                error: {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack
+                },
+                params: { startDate, endDate, period: presetId },
+                timestamp: new Date().toISOString()
               });
               
-              let errorMessage = 'Error desconocido';
-              if (serviceError.response) {
-                errorMessage = `Error ${serviceError.response.status}: ${serviceError.response.data?.message || 'Error del servidor'}`;
-              } else if (serviceError.request) {
-                errorMessage = 'No se pudo conectar con el servidor';
-              } else if (serviceError.message) {
-                errorMessage = serviceError.message;
-              }
-
               return {
                 ...metric,
                 loading: false,
-                error: errorMessage,
-                isRealData: false,
-                value: 'Error',
-                change: '',
-                changeStatus: 'neutral',
-                _debug: {
-                  timestamp: new Date().toISOString(),
-                  requestConfig: serviceError.config,
-                  responseStatus: serviceError.response?.status,
-                  responseData: serviceError.response?.data
-                }
+                error: error.message,
+                isRealData: true
               };
             }
           }
-          
           return {
             ...metric,
             loading: false,
@@ -164,17 +191,29 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
         })
       );
 
+      // Guardar en cache
+      metricsResultsCache.set(cacheKey, {
+        timestamp: Date.now(),
+        data: metricsWithData
+      });
+
       setMetrics(metricsWithData);
-    } catch (globalError) {
-      console.error('❌ SISTEMA HÍBRIDO: Error global:', globalError);
-      setError('Error cargando métricas');
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        setError('Error cargando métricas');
+      }
     } finally {
       setLoading(false);
     }
-  }, [axiosInstance, baseMetrics, startDate, endDate, presetId]);
+  }, [axiosInstance, baseMetrics, cacheKey, startDate, endDate, presetId]);
 
-  const debouncedFetch = useMemo(() => debounce(fetchMetrics, 300), [fetchMetrics]);
+  // Versión debounced de fetchMetrics
+  const debouncedFetch = useMemo(() => 
+    debounce(fetchMetrics, 300),
+    [fetchMetrics]
+  );
 
+  // Efecto principal
   useEffect(() => {
     if (metricIds.length > 0) {
       debouncedFetch();
@@ -200,52 +239,43 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
 };
 
 // Hook para métricas de un módulo específico
-export const useModuleMetrics = (module, dateRange) => {
-  const moduleMetricIds = useMemo(() => {
-    return Object.values(METRICS_REGISTRY)
-      .filter(metric => metric.module === module)
-      .map(metric => metric.id);
-  }, [module]);
+export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
+  const moduleMetricIds = Object.values(METRICS_REGISTRY)
+    .filter(metric => metric.module === module)
+    .map(metric => metric.id);
   
-  const dateParams = useMemo(() => ({
-    startDate: dateRange?.startDate,
-    endDate: dateRange?.endDate,
-    presetId: dateRange?.preset
-  }), [dateRange?.startDate, dateRange?.endDate, dateRange?.preset]);
-  
-  return useMetrics(moduleMetricIds, dateParams);
+  return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
 };
 
-// Hook para métricas personalizadas del dashboard
-export const useDashboardMetrics = (dateRange) => {
-  const [selectedMetricIds, setSelectedMetricIds] = useState([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('dashboard-metrics');
+// Hook específico para métricas del dashboard
+export const useDashboardMetrics = ({ startDate, endDate, preset }) => {
+  // Estado para métricas seleccionadas por el usuario
+  const [selectedMetricIds, setSelectedMetricIds] = useState(() => {
+    // Cargar desde localStorage o usar métricas por defecto
+    const saved = localStorage.getItem('dashboard-selected-metrics');
     if (saved) {
-      setSelectedMetricIds(JSON.parse(saved));
-    } else {
-      setSelectedMetricIds(['core-processing-time', 'catalog-new-providers', 'app-requests-created', 'payments-success-rate']);
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error parsing saved metrics:', error);
+      }
     }
-  }, []);
-
-  const { metrics, loading, error, refetch } = useMetrics(selectedMetricIds, { 
-    startDate: dateRange.startDate, 
-    endDate: dateRange.endDate, 
-    presetId: dateRange.preset 
+    // Métricas por defecto si no hay guardadas
+    return ['core-processing-time', 'catalog-new-providers', 'app-requests-created', 'payments-success-rate'];
   });
 
-  const updateSelectedMetrics = (newMetricIds) => {
+  // Función para actualizar métricas seleccionadas
+  const updateSelectedMetrics = useCallback((newMetricIds) => {
     setSelectedMetricIds(newMetricIds);
-    localStorage.setItem('dashboard-metrics', JSON.stringify(newMetricIds));
-  };
+    localStorage.setItem('dashboard-selected-metrics', JSON.stringify(newMetricIds));
+  }, []);
 
-  return { 
-    metrics, 
-    loading, 
-    error, 
-    refetch, 
+  // Usar las métricas seleccionadas en lugar de todas las del dashboard
+  const metricsResult = useMetrics(selectedMetricIds, { startDate, endDate, presetId: preset });
+
+  return {
+    ...metricsResult,
     selectedMetricIds,
-    updateSelectedMetrics 
+    updateSelectedMetrics
   };
 };
