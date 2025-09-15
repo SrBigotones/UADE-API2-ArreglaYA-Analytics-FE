@@ -233,7 +233,7 @@ export const METRICS_REGISTRY = {
     // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getUsersCreatedMetrics',
+      serviceName: 'getUserNewRegistrations',
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
@@ -257,8 +257,24 @@ export const METRICS_REGISTRY = {
     change: '+3.2%',
     changeStatus: 'positive',
     description: 'Tasa de roles asignados',
-    endpoint: '/api/metrics/users/role-assignment',
-    category: 'management'
+    endpoint: '/api/metrica/usuarios/roles',
+    category: 'management',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserRoleAssignments',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   },
 
   // === MATCHING ===

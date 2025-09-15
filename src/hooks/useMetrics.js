@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { METRICS_REGISTRY } from '../data/metricsRegistry';
 import { useAxios } from './useAxios';
+import { debounce } from '../utils/debounce';
 
-// Importar servicios dinámicamente
-const importService = async (serviceModule, serviceName) => {
+// Importar servicios dinámicamente con caché
+const importService = async (serviceModule, serviceName, serviceCache) => {
+  const cacheKey = `${serviceModule}.${serviceName}`;
+  
+  // Verificar si ya está en caché
+  if (serviceCache[cacheKey]) {
+    return serviceCache[cacheKey];
+  }
+  
   try {
     let module;
     if (serviceModule === 'paymentMetricsService') {
@@ -11,7 +19,12 @@ const importService = async (serviceModule, serviceName) => {
     } else if (serviceModule === 'userMetricsService') {
       module = await import('../services/userMetricsService');
     }
-    return module?.[serviceName];
+    
+    const service = module?.[serviceName];
+    if (service) {
+      serviceCache[cacheKey] = service;
+    }
+    return service;
   } catch (error) {
     console.error(`Error importing service ${serviceName} from ${serviceModule}:`, error);
     return null;
@@ -25,7 +38,29 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
   const [error, setError] = useState(null);
   const axiosInstance = useAxios();
 
+  // Memorizar los IDs de métricas y sus configuraciones base para evitar re-renders innecesarios
+  const metricIdsString = useMemo(() => metricIds.join(','), [metricIds]);
+  
+  // Memorizar las configuraciones base de las métricas
+  const baseMetrics = useMemo(() => 
+    metricIds
+      .map(id => METRICS_REGISTRY[id])
+      .filter(Boolean),
+    [metricIdsString]
+  );
+  
+  // Cache para los servicios importados
+  const serviceCache = useMemo(() => ({}), []);
+  
+  // Crear una versión debounced de fetchMetrics
+  const debouncedFetch = useCallback(
+    debounce((fetchFn) => fetchFn(), 300),
+    []
+  );
+
   useEffect(() => {
+    let isMounted = true;
+    let abortController = new AbortController();
     const fetchMetrics = async () => {
       if (!axiosInstance) return; // Esperar a que axios esté listo
       
@@ -33,11 +68,8 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       setError(null);
 
       try {
-        // Obtener las definiciones base del registro
-        const baseMetrics = metricIds
-          .map(id => METRICS_REGISTRY[id])
-          .filter(Boolean);
-
+        if (!isMounted) return;
+        
         console.log('🔄 SISTEMA HÍBRIDO: Procesando métricas:', baseMetrics.map(m => m.id));
 
         // Procesar métricas en paralelo
@@ -50,11 +82,17 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                 // Importar y ejecutar el servicio real
                 const serviceFunction = await importService(
                   metric.serviceConfig.serviceModule,
-                  metric.serviceConfig.serviceName
+                  metric.serviceConfig.serviceName,
+                  serviceCache
                 );
                 
                 if (serviceFunction) {
-                  const response = await serviceFunction(axiosInstance, { startDate, endDate, period: presetId });
+                  const response = await serviceFunction(axiosInstance, { 
+                  startDate, 
+                  endDate, 
+                  period: presetId,
+                  signal: abortController.signal 
+                });
                   
                   if (response.success) {
                     const { serviceConfig } = metric;
@@ -141,22 +179,33 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
           })
         );
 
-        setMetrics(metricsWithData);
+        if (isMounted) {
+          setMetrics(metricsWithData);
+        }
       } catch (globalError) {
         console.error('❌ SISTEMA HÍBRIDO: Error global:', globalError);
-        setError('Error cargando métricas');
+        if (isMounted) {
+          setError('Error cargando métricas');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (metricIds.length > 0) {
-      fetchMetrics();
+      debouncedFetch(() => fetchMetrics());
     } else {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds, startDate, endDate, presetId, axiosInstance]);
+
+    return () => {
+      isMounted = false;
+      abortController.abort(); // Abortar cualquier solicitud pendiente
+    };
+  }, [metricIdsString, startDate, endDate, presetId, axiosInstance]);
 
   const refetch = async () => {
     if (!axiosInstance) return;
