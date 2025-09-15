@@ -143,8 +143,9 @@ export const METRICS_REGISTRY = {
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative'
-      }[status] || 'positive')
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
     }
   },
   'payments-processing-time': {
@@ -171,8 +172,9 @@ export const METRICS_REGISTRY = {
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative'
-      }[status] || 'positive')
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
     }
   },
   'payments-refunds-completed': {
@@ -235,15 +237,15 @@ export const METRICS_REGISTRY = {
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
-        const value = Math.abs(data.change || 0);
-        if (value === 0) return '0';
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative'
-      }[status] || 'positive')
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
     }
   },
   'users-role-assignment': {
@@ -254,9 +256,18 @@ export const METRICS_REGISTRY = {
     value: '94.1%',
     change: '+3.2%',
     changeStatus: 'positive',
-    description: 'Tasa de roles asignados',
-    endpoint: '/api/metrics/users/role-assignment',
-    category: 'management'
+    description: 'Tasa de roles asignados correctamente a usuarios',
+    endpoint: '/api/metrica/usuarios/roles',
+    category: 'management',
+    hasRealService: false, // Deshabilitado temporalmente - sin endpoint disponible
+    // Datos hardcodeados mientras no hay endpoint
+    mockData: {
+      value: 94.1,
+      change: 3.2,
+      changeType: 'porcentaje',
+      changeStatus: 'positivo',
+      lastUpdated: new Date().toISOString()
+    }
   },
 
   // === MATCHING ===
@@ -287,17 +298,22 @@ export const MODULE_METRICS = {
 // Configuración por defecto del dashboard
 export const DEFAULT_DASHBOARD_METRICS = [
   'core-processing-time',
-  'catalog-new-providers',
+  'catalog-new-providers', 
   'app-requests-created',
   'payments-success-rate'
 ];
 
-// Helper: métricas por módulo
-export const getMetricsByModule = (module) =>
-  MODULE_METRICS[module]?.map(id => METRICS_REGISTRY[id]).filter(Boolean) || [];
+// Función helper para obtener métricas por módulo
+export const getMetricsByModule = (module) => {
+  return MODULE_METRICS[module]?.map(id => METRICS_REGISTRY[id]).filter(Boolean) || [];
+};
 
-// Helper: obtener una métrica
-export const getMetric = (id) => METRICS_REGISTRY[id];
+// Función helper para obtener una métrica específica
+export const getMetric = (id) => {
+  return METRICS_REGISTRY[id];
+};
 
-// Helper: obtener múltiples métricas
-export const getMetrics = (ids) => ids.map(id => METRICS_REGISTRY[id]).filter(Boolean);
+// Función helper para obtener múltiples métricas
+export const getMetrics = (ids) => {
+  return ids.map(id => METRICS_REGISTRY[id]).filter(Boolean);
+};
