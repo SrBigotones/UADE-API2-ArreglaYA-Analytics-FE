@@ -231,6 +231,9 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
 
     // Convertir el nuevo formato a chartData
     const distributionData = response.data.data; // Acceder a response.data.data
+    
+    console.log('🔍 DEBUG - distributionData:', distributionData);
+    console.log('🔍 DEBUG - Object.entries(distributionData):', Object.entries(distributionData));
     // Asignar colores específicos por categoría
     const colorMap = {
       'APROBADO': '#22c55e',   // Verde - exitoso
@@ -239,15 +242,25 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
       'PENDIENTE': '#0ea5e9'   // Azul - en proceso
     };
 
-    const chartData = Object.entries(distributionData).map(([name, value]) => ({
+    let chartData = Object.entries(distributionData).map(([name, value]) => ({
       name: name.charAt(0) + name.slice(1).toLowerCase(), // "APROBADO" → "Aprobado"
       value: Number(value),
       color: colorMap[name] || '#6b7280' // Color por defecto si no se encuentra
     }));
 
     const total = Object.values(distributionData).reduce((sum, val) => sum + Number(val), 0);
+    
+    // Si todos los valores son 0, mostrar un mensaje especial o datos por defecto
+    if (total === 0) {
+      chartData = [
+        { name: 'Sin datos', value: 1, color: '#e5e7eb' } // Gris claro para indicar "sin datos"
+      ];
+    }
+    
+    console.log('🔍 DEBUG - chartData final:', chartData);
+    console.log('🔍 DEBUG - total:', total);
 
-    return {
+    const finalResult = {
       success: true,
       data: {
         chartData,
@@ -258,6 +271,10 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
         lastUpdated: new Date().toISOString()
       }
     };
+    
+    console.log('🔍 DEBUG - Resultado final que se retorna:', finalResult);
+    
+    return finalResult;
   } catch (error) {
     console.error('❌ Error en distribución de eventos de pago:', {
       message: error.message,
