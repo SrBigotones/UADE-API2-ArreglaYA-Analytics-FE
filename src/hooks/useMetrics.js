@@ -173,7 +173,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds, startDate, endDate, presetId, axiosInstance]);
+  }, [metricIds, startDate, endDate, presetId]);
 
   const refetch = async () => {
     if (!axiosInstance) return;
