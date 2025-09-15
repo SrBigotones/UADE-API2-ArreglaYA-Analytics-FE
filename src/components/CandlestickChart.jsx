@@ -13,7 +13,6 @@ import {
 
 const CandlestickChart = ({
   data = [],
-  dataKey = 'value',
   nameKey = 'name',
   openKey = 'open',
   closeKey = 'close',

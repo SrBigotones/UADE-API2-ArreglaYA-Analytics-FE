@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const HomeScreen = () => {
-  const [activeCategory, setActiveCategory] = useState('core');
+  const [activeCategory] = useState('core');
 
   const metrics = {
     core: {

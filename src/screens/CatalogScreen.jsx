@@ -6,28 +6,6 @@ import AreaResponsiveContainer from '../components/AreaResponsiveContainer';
 
 const CatalogScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
-  const metrics = [
-    { name: "Nuevos prestadores registrados", value: "47", change: "+23%", status: "positive" },
-    { name: "Perfiles completados", value: "89.3%", change: "+4.7%", status: "positive" },
-    { name: "Actualizaciones de prestadores", value: "156", change: "+18%", status: "positive" },
-    { name: "Servicios activos", value: "2,847", change: "+12%", status: "positive" },
-    { name: "Categorías disponibles", value: "24", change: "+2", status: "positive" }
-  ];
-
-  const pieData = [
-    { name: 'Alta', value: 45 },
-    { name: 'Media', value: 30 },
-    { name: 'Baja', value: 25 }
-  ];
-
-  const areaData = [
-    { name: 'Ene', value: 30 },
-    { name: 'Feb', value: 45 },
-    { name: 'Mar', value: 40 },
-    { name: 'Abr', value: 55 },
-    { name: 'May', value: 50 },
-    { name: 'Jun', value: 62 }
-  ];
 
   return (
     <>

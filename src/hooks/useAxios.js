@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useContext, useEffect, useRef } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContextCore';
 import { getToken } from '../utils/tokenStorage';
 import config from '../config/api.js';
 

@@ -137,7 +137,7 @@ const CoreScreen = ({ isDarkMode }) => {
             {/* Contenido scrolleable */}
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
-                {Object.entries(Object.entries(METRICS_REGISTRY).reduce((acc, [key, metric]) => {
+                {Object.entries(Object.entries(METRICS_REGISTRY).reduce((acc, [, metric]) => {
                   if (!acc[metric.module]) acc[metric.module] = [];
                   acc[metric.module].push(metric);
                   return acc;

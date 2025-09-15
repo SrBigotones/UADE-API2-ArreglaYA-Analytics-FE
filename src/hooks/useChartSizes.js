@@ -70,18 +70,14 @@ export const useChartSizes = () => {
         return 'col-span-1 md:col-span-1 lg:col-span-1 row-span-2';
       case 'area':
       case 'line':
-      case 'candlestick':
-        let colClass;
-        if (cols === 3) {
-          colClass = 'col-span-1 md:col-span-3 lg:col-span-3';
-        } else if (cols === 2) {
-          colClass = 'col-span-1 md:col-span-2 lg:col-span-2';
-        } else {
-          colClass = 'col-span-1 md:col-span-1 lg:col-span-1';
-        }
+      case 'candlestick': {
+        const colClass = cols === 3 ? 'col-span-1 md:col-span-3 lg:col-span-3'
+          : cols === 2 ? 'col-span-1 md:col-span-2 lg:col-span-2'
+          : 'col-span-1 md:col-span-1 lg:col-span-1';
         
         const rowClass = rows === 1 ? 'row-span-1' : 'row-span-2';
         return `${colClass} ${rowClass}`;
+      }
       default:
         return 'col-span-1 row-span-1';
     }

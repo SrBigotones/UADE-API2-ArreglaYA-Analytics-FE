@@ -7,8 +7,6 @@ const SimpleResizeHandles = ({
   isDarkMode 
 }) => {
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeDirection, setResizeDirection] = useState(null);
-  
   // Validar que currentSize sea válido
   const validCurrentSize = typeof currentSize === 'object' && currentSize 
     ? { cols: currentSize.cols || 2, rows: currentSize.rows || 2 }

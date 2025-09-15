@@ -181,7 +181,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
               );
               
               if (serviceFunction) {
-                const response = await serviceFunction(axiosInstance, dateRange);
+                const response = await serviceFunction(axiosInstance, { startDate, endDate, presetId });
                 
                 if (response.success) {
                   const { serviceConfig } = metric;

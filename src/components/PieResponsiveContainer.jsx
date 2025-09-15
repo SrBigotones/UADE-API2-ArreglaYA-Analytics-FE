@@ -23,7 +23,7 @@ const PieResponsiveContainer = ({
   title
 }) => {
   // Tooltip personalizado para modo oscuro
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
