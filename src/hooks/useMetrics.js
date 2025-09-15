@@ -86,7 +86,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     abortControllerRef.current = new AbortController();
 
     try {
-      console.log('🔄 SISTEMA HÍBRIDO: Procesando métricas:', baseMetrics.map(m => m.id));
 
       const metricsWithData = await Promise.all(
         baseMetrics.map(async (metric) => {
@@ -99,8 +98,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
               );
               
               if (serviceFunction) {
-                console.log(`📡 SERVICIO REAL: Cargando ${metric.id} desde ${metric.serviceConfig.serviceName}`);
-                
                 const response = await serviceFunction(axiosInstance, {
                   startDate,
                   endDate,
@@ -108,25 +105,22 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   signal: abortControllerRef.current.signal
                 });
 
-                if (response.success) {
+                if (response && response.success) {
                   const { serviceConfig } = metric;
-                  console.log(`✨ Procesando métrica ${metric.id}:`, {
-                    rawData: response.data,
-                    config: serviceConfig
-                  });
-
-                  // Aplicar formatters
-                  console.log('🔍 Respuesta del servicio:', response);
-
-                  // Los datos vienen directamente del servicio sin necesidad de más transformaciones
                   const metricData = response.data;
                   
-                  console.log('📈 Datos a procesar:', metricData);
+                  // Console log para ver qué devuelve cada consulta del backend
+                  console.log(`🔍 RESPUESTA BACKEND - ${metric.id}:`, {
+                    endpoint: metric.endpoint,
+                    serviceConfig: metric.serviceConfig,
+                    response: response,
+                    metricData: metricData,
+                    timestamp: new Date().toISOString()
+                  });
                   
                   const formattedValue = serviceConfig.valueFormatter ? 
                     serviceConfig.valueFormatter(metricData) : 
                     (metricData.value?.toString() || '0');
-                  console.log('🔢 Valor formateado:', formattedValue);
                     
                   const formattedChange = serviceConfig.changeFormatter ? 
                     serviceConfig.changeFormatter(metricData) : 
@@ -135,12 +129,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   const mappedStatus = serviceConfig.statusMapper ? 
                     serviceConfig.statusMapper(metricData.changeStatus) : 
                     metricData.changeStatus;
-
-                  console.log(`📊 Valores formateados para ${metric.id}:`, {
-                    value: formattedValue,
-                    change: formattedChange,
-                    status: mappedStatus
-                  });
 
                   return {
                     ...metric,
@@ -157,15 +145,35 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   };
                 }
                 
+                // Console log cuando la respuesta no es exitosa
+                console.log(`❌ RESPUESTA NO EXITOSA - ${metric.id}:`, {
+                  endpoint: metric.endpoint,
+                  response: response,
+                  success: response?.success,
+                  data: response?.data,
+                  timestamp: new Date().toISOString()
+                });
+                
                 throw new Error('Respuesta inválida del servidor');
               }
             } catch (error) {
               if (error.name === 'AbortError') {
-                console.log(`🛑 Petición cancelada para ${metric.id}`);
                 throw error; // Re-throw para que Promise.all se cancele
               }
               
-              console.error(`❌ SERVICIO REAL: Error en ${metric.id}:`, error);
+              // Console log para errores de servicios
+              console.log(`🚨 ERROR DE SERVICIO - ${metric.id}:`, {
+                endpoint: metric.endpoint,
+                serviceName: metric.serviceConfig?.serviceName,
+                error: {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack
+                },
+                params: { startDate, endDate, period: presetId },
+                timestamp: new Date().toISOString()
+              });
+              
               return {
                 ...metric,
                 loading: false,
@@ -174,8 +182,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
               };
             }
           }
-          
-          console.log(`📊 DATOS ESTÁTICOS: Usando mock para ${metric.id}`);
           return {
             ...metric,
             loading: false,
@@ -194,7 +200,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       setMetrics(metricsWithData);
     } catch (error) {
       if (error.name !== 'AbortError') {
-        console.error('❌ SISTEMA HÍBRIDO: Error global:', error);
         setError('Error cargando métricas');
       }
     } finally {
@@ -244,10 +249,33 @@ export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
 
 // Hook específico para métricas del dashboard
 export const useDashboardMetrics = ({ startDate, endDate, preset }) => {
-  // Filtrar métricas que pertenecen al dashboard/core
-  const dashboardMetricIds = Object.values(METRICS_REGISTRY)
-    .filter(metric => metric.module === 'core' || metric.showInDashboard)
-    .map(metric => metric.id);
+  // Estado para métricas seleccionadas por el usuario
+  const [selectedMetricIds, setSelectedMetricIds] = useState(() => {
+    // Cargar desde localStorage o usar métricas por defecto
+    const saved = localStorage.getItem('dashboard-selected-metrics');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error parsing saved metrics:', error);
+      }
+    }
+    // Métricas por defecto si no hay guardadas
+    return ['core-processing-time', 'catalog-new-providers', 'app-requests-created', 'payments-success-rate'];
+  });
 
-  return useMetrics(dashboardMetricIds, { startDate, endDate, presetId: preset });
+  // Función para actualizar métricas seleccionadas
+  const updateSelectedMetrics = useCallback((newMetricIds) => {
+    setSelectedMetricIds(newMetricIds);
+    localStorage.setItem('dashboard-selected-metrics', JSON.stringify(newMetricIds));
+  }, []);
+
+  // Usar las métricas seleccionadas en lugar de todas las del dashboard
+  const metricsResult = useMetrics(selectedMetricIds, { startDate, endDate, presetId: preset });
+
+  return {
+    ...metricsResult,
+    selectedMetricIds,
+    updateSelectedMetrics
+  };
 };

@@ -5,30 +5,10 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
   }
 
   try {
-    console.log('📊 Solicitando métricas de usuarios:', {
-      url: '/api/metrica/usuarios/creados',
-      params: { startDate, endDate, period },
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
       params: { startDate, endDate, period },
       signal,
       validateStatus: status => status < 500
-    });
-
-    // Log detallado de la respuesta
-    console.log('🔍 Respuesta del servidor (usuarios):', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      headers: response.headers,
-      config: {
-        url: response.config?.url,
-        baseURL: response.config?.baseURL,
-        method: response.config?.method,
-        params: response.config?.params
-      }
     });
 
     // Validar la respuesta
@@ -40,10 +20,6 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
       throw new Error('Respuesta sin datos');
     }
 
-    console.log('✅ Respuesta recibida:', {
-      status: response.status,
-      data: response.data
-    });
 
     // Asegurar el formato correcto de la respuesta y manejar la estructura anidada
     const responseData = response.data.data || response.data;
@@ -60,7 +36,6 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
   } catch (error) {
     // Ignorar errores de cancelación
     if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
-      console.log('📊 Solicitud de métricas cancelada');
       return {
         success: false,
         error: 'Solicitud cancelada'
@@ -154,7 +129,6 @@ export const getUserActivityDistribution = async (axiosInstance, { startDate, en
     };
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('📊 Solicitud de distribución cancelada');
       return {
         success: false,
         error: 'Solicitud cancelada'
@@ -191,7 +165,6 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate, s
     };
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('📊 Solicitud de tendencias cancelada');
       return {
         success: false,
         error: 'Solicitud cancelada'
@@ -213,62 +186,43 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
   }
 
   try {
-    // Mapeo de períodos al formato del backend
+    // Mapeo de períodos al formato del backend (igual que en paymentMetricsService)
     const periodMappings = {
+      'today': 'hoy',
       'last7': 'ultimos_7_dias',
       'last30': 'ultimos_30_dias',
-      'last90': 'ultimos_90_dias',
-      'last365': 'ultimo_anio'
+      'lastYear': 'ultimo_ano',
+      'custom': 'personalizado'
     };
 
     // Mapear el período al formato esperado por el backend
     const mappedPeriod = periodMappings[period] || period;
 
-    // Log detallado de la solicitud
-    const requestConfig = {
-      method: 'GET',
-      url: '/api/metrica/usuarios/creados',
+    // Console log de la consulta que se envía al backend
+    console.log(`📤 ENVIANDO AL BACKEND - nuevos usuarios:`, {
+      endpoint: '/api/metrica/usuarios/creados',
       params: { startDate, endDate, period: mappedPeriod },
-      baseURL: axiosInstance.defaults.baseURL,
-      headers: axiosInstance.defaults.headers,
-      timeout: axiosInstance.defaults.timeout
-    };
-
-    console.log('📊 Iniciando solicitud de nuevos registros:', {
-      request: {
-        ...requestConfig,
-        originalPeriod: period,
-        mappedPeriod,
-        fullUrl: `${axiosInstance.defaults.baseURL}${requestConfig.url}?period=${mappedPeriod}`,
-      },
-      timestamp: new Date().toISOString(),
-      requestId: Math.random().toString(36).substring(7)
+      originalPeriod: period,
+      mappedPeriod,
+      timestamp: new Date().toISOString()
     });
 
-    const response = await axiosInstance.request({
-      ...requestConfig,
+    const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
+      params: { startDate, endDate, period: mappedPeriod },
       signal,
       validateStatus: status => status < 500
     });
 
-    // Log detallado de la respuesta
-    console.log('🔍 Respuesta detallada (nuevos registros):', {
-      timestamp: new Date().toISOString(),
-      request: {
-        url: response.config.url,
-        method: response.config.method,
-        baseURL: response.config.baseURL,
-        params: response.config.params,
-        headers: response.config.headers
-      },
-      response: {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        data: response.data,
-        size: JSON.stringify(response.data).length
-      }
+    // Console log de la respuesta raw del backend
+    console.log(`📥 RESPUESTA RAW BACKEND - nuevos usuarios:`, {
+      endpoint: '/api/metrica/usuarios/creados',
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      headers: response.headers,
+      timestamp: new Date().toISOString()
     });
+
 
     if (response.status !== 200) {
       throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
@@ -281,57 +235,14 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
     // Extraer los datos correctamente de la estructura anidada
     const responseData = response.data.data || response.data;
     
-    // Log de éxito
-    console.log('✅ Datos de nuevos registros procesados:', {
-      timestamp: new Date().toISOString(),
-      metrics: {
-        value: responseData.value,
-        change: responseData.change,
-        changeType: responseData.changeType,
-        changeStatus: responseData.changeStatus,
-        period
-      }
-    });
 
     return {
       success: true,
       data: responseData  // Pasar los datos tal cual vienen del servidor
     };
   } catch (error) {
-    // Log detallado del error
-    console.error('❌ Error detallado en nuevos registros:', {
-      timestamp: new Date().toISOString(),
-      error: {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      },
-      request: error.config && {
-        method: error.config.method,
-        url: error.config.url,
-        baseURL: error.config.baseURL,
-        params: error.config.params,
-        headers: error.config.headers,
-        timeout: error.config.timeout
-      },
-      response: error.response && {
-        status: error.response.status,
-        statusText: error.response.statusText,
-        headers: error.response.headers,
-        data: error.response.data
-      },
-      network: {
-        online: navigator.onLine,
-        connection: navigator.connection ? {
-          type: navigator.connection.effectiveType,
-          downlink: navigator.connection.downlink
-        } : null
-      }
-    });
 
     if (error.name === 'AbortError') {
-      console.log('📊 Solicitud de nuevos registros cancelada');
       return {
         success: false,
         error: 'Solicitud cancelada',
@@ -391,10 +302,6 @@ export const getUserRoleAssignments = async (axiosInstance, { startDate, endDate
   }
 
   try {
-    console.log('📊 Solicitando métricas de asignación de roles:', {
-      url: '/api/metrica/usuarios/roles',
-      params: { startDate, endDate, period }
-    });
 
     const response = await axiosInstance.get('/api/metrics/users/roles', {
       params: { startDate, endDate, period },
@@ -421,7 +328,6 @@ export const getUserRoleAssignments = async (axiosInstance, { startDate, endDate
     };
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('📊 Solicitud de roles cancelada');
       return {
         success: false,
         error: 'Solicitud cancelada'

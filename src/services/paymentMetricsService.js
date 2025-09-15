@@ -52,24 +52,41 @@ const getStatusColor = (status) => {
 };
 
 // Función base mejorada para métricas de pagos con manejo de errores detallado
-const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description) => {
+const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate } = {}) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
-    console.log(`� Solicitando ${description}:`, {
-      url: endpoint,
-      period,
-      mappedPeriod
+    
+    // Preparar parámetros base
+    const params = { period: mappedPeriod };
+    
+    // Agregar fechas si es período personalizado
+    if (mappedPeriod === 'personalizado' && startDate && endDate) {
+      // Formatear fechas como strings YYYY-MM-DD
+      params.startDate = startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate;
+      params.endDate = endDate instanceof Date ? endDate.toISOString().split('T')[0] : endDate;
+    }
+
+    // Console log de la consulta que se envía al backend
+    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
+      endpoint,
+      params,
+      originalPeriod: period,
+      mappedPeriod,
+      timestamp: new Date().toISOString()
     });
 
     const response = await axiosInstance.get(endpoint, {
-      params: { period: mappedPeriod }
+      params
     });
 
-    console.log('📥 Respuesta CRUDA:', {
-      status: response?.status,
-      statusText: response?.statusText,
-      data: response?.data,
-      error: response?.data?.error
+    // Console log de la respuesta raw del backend
+    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
+      endpoint,
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      headers: response.headers,
+      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -81,31 +98,25 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
     }
 
     const processedData = extractResponseData(response, endpoint);
-    console.log(`✨ Datos procesados de ${description}:`, processedData);
 
     return {
       success: true,
       data: processedData
     };
   } catch (error) {
-    console.error(`❌ Error en ${description}:`, {
-      error: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-
     return {
       success: false,
-      error: error.message || 'Error desconocido',
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500,
       details: {
         timestamp: new Date().toISOString(),
-        type: error.response ? 'response' : error.request ? 'request' : 'unknown',
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        network: {
-          online: navigator.onLine,
-          connection: navigator.connection?.effectiveType
+        endpoint,
+        period,
+        error: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
         }
       }
     };
@@ -113,13 +124,13 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
 };
 
 // Servicio para tasa de éxito de pagos
-export const getPaymentSuccessMetrics = (axiosInstance, { period }) => 
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/exitosos', period, 'tasa de éxito de pagos');
+export const getPaymentSuccessMetrics = (axiosInstance, { period, startDate, endDate }) => 
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/exitosos', period, 'tasa de éxito de pagos', { startDate, endDate });
 
 // Servicio para tiempo de procesamiento de pagos
-export const getPaymentProcessingTimeMetrics = (axiosInstance, { period }) =>
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/tiempoprocesamiento', period, 'tiempo de procesamiento');
+export const getPaymentProcessingTimeMetrics = (axiosInstance, { period, startDate, endDate }) =>
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/tiempoprocesamiento', period, 'tiempo de procesamiento', { startDate, endDate });
 
 // Servicio para distribución de eventos de pago
-export const getPaymentDistributionMetrics = (axiosInstance, { period }) =>
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/distribucion', period, 'distribución de pagos');
+export const getPaymentDistributionMetrics = (axiosInstance, { period, startDate, endDate }) =>
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/distribucion', period, 'distribución de pagos', { startDate, endDate });
