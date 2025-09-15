@@ -143,9 +143,8 @@ export const METRICS_REGISTRY = {
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
+        'negativo': 'negative'
+      }[status] || 'positive')
     }
   },
   'payments-processing-time': {
@@ -172,9 +171,8 @@ export const METRICS_REGISTRY = {
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
+        'negativo': 'negative'
+      }[status] || 'positive')
     }
   },
   'payments-refunds-completed': {
@@ -244,9 +242,8 @@ export const METRICS_REGISTRY = {
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
+        'negativo': 'negative'
+      }[status] || 'positive')
     }
   },
   'users-role-assignment': {

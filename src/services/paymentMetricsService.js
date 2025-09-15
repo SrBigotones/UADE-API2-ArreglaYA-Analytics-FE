@@ -70,9 +70,10 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDa
     return {
       success: true,
       data: {
-        value: response.data.successRate || 0,
-        change: response.data.changePercentage || 0,
-        changeStatus: response.data.trend || 'neutral',
+        value: response.data.value || 0,
+        change: response.data.change || 0,
+        changeStatus: response.data.changeStatus || 'positivo',
+        changeType: response.data.changeType || 'porcentaje',
         lastUpdated: response.data.lastUpdated || new Date().toISOString()
       }
     };
@@ -148,10 +149,10 @@ export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate
     return {
       success: true,
       data: {
-        value: response.data.processingTime || 0,
-        change: response.data.changeValue || 0,
-        changeStatus: response.data.trend || 'neutral',
-        changeType: response.data.changeType || 'absolute',
+        value: response.data.value || 0,
+        change: response.data.change || 0,
+        changeStatus: response.data.changeStatus || 'positivo',
+        changeType: response.data.changeType || 'absoluto',
         lastUpdated: response.data.lastUpdated || new Date().toISOString()
       }
     };
@@ -200,14 +201,24 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
       data: response.data
     });
 
+    // Convertir el nuevo formato a chartData
+    const chartData = Object.entries(response.data).map(([name, value], index) => ({
+      name: name.charAt(0) + name.slice(1).toLowerCase(), // Capitalizar
+      value: Number(value),
+      color: ['#22c55e', '#ef4444', '#f59e0b', '#0ea5e9'][index] || '#6b7280'
+    }));
+
+    const total = Object.values(response.data).reduce((sum, val) => sum + Number(val), 0);
+
     return {
       success: true,
       data: {
-        chartData: response.data.distribution || [],
-        total: response.data.total || 0,
-        change: response.data.changeValue || 0,
-        changeStatus: response.data.trend || 'neutral',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+        chartData,
+        total,
+        value: total.toString(),
+        change: 0, // El endpoint no devuelve cambio para gráficos
+        changeStatus: 'positivo',
+        lastUpdated: new Date().toISOString()
       }
     };
   } catch (error) {

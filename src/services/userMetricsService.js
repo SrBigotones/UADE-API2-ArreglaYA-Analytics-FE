@@ -71,22 +71,29 @@ export const getUsersCreatedMetrics = async (axiosInstance, { startDate, endDate
       data: {
         value: response.data.value || 0,
         change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'neutro',
+        changeStatus: response.data.changeStatus || 'positivo',
         changeType: response.data.changeType || 'absoluto',
         lastUpdated: response.data.lastUpdated || new Date().toISOString()
       }
     };
   } catch (error) {
-    console.error('❌ Error en usuarios creados:', {
+    console.error('❌ Error DETALLADO en usuarios creados:', {
       message: error.message,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data,
       config: {
         url: error.config?.url,
+        fullURL: `${error.config?.baseURL}${error.config?.url}`,
         method: error.config?.method,
         baseURL: error.config?.baseURL,
         headers: error.config?.headers,
         params: error.config?.params
+      },
+      request: {
+        readyState: error.request?.readyState,
+        status: error.request?.status,
+        responseURL: error.request?.responseURL
       }
     });
     
