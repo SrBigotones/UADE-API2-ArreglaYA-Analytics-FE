@@ -18,8 +18,7 @@ const MetricCard = ({
   icon = null,
   className,
   onClick,
-  compact = false,
-  isRealData = false
+  compact = false
 }) => {
   return (
     <div
