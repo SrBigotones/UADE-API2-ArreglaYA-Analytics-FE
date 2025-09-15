@@ -15,9 +15,40 @@ const mapPeriodToBackend = (frontendPeriod) => {
   return periodMap[frontendPeriod] || 'personalizado';
 };
 
-// Función helper para extraer datos de la respuesta
-const extractResponseData = (response) => {
-  return response.data.data || response.data;
+// Función helper para extraer y transformar datos de la respuesta
+const extractResponseData = (response, endpoint) => {
+  const rawData = response.data.data || response.data;
+  
+  // Si es la métrica de distribución, transformar a formato para gráfico de torta
+  if (endpoint.includes('/distribucion')) {
+    const chartData = Object.entries(rawData).map(([name, value]) => ({
+      name,
+      value,
+      color: getStatusColor(name)
+    }));
+
+    // Calcular el total para la métrica
+    const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+    return {
+      chartData,
+      total,
+      success: true
+    };
+  }
+  
+  return rawData;
+};
+
+// Helper para asignar colores según el estado
+const getStatusColor = (status) => {
+  const colors = {
+    APROBADO: '#22c55e',   // Verde
+    RECHAZADO: '#ef4444',  // Rojo
+    PENDIENTE: '#f59e0b',  // Amarillo
+    EXPIRADO: '#6b7280'    // Gris
+  };
+  return colors[status] || '#0ea5e9'; // Color por defecto
 };
 
 // Función base mejorada para métricas de pagos con manejo de errores detallado
@@ -49,7 +80,7 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
       throw new Error('Respuesta sin datos');
     }
 
-    const processedData = extractResponseData(response);
+    const processedData = extractResponseData(response, endpoint);
     console.log(`✨ Datos procesados de ${description}:`, processedData);
 
     return {
