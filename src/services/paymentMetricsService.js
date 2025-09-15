@@ -1,28 +1,171 @@
+/*
+ * Servicios para métricas de pagos
+ * (rama: feature/avances)
+ * Cada servicio usa una función base con manejo de errores y mapeo de períodos/fechas.
+ */
+
 // Mapeo de períodos del frontend al backend
 const mapPeriodToBackend = (frontendPeriod) => {
   const periodMap = {
-    'today': 'hoy',
-    'last7': 'ultimos_7_dias',
-    'last30': 'ultimos_30_dias',
-    'lastYear': 'ultimo_ano',
-    'custom': 'personalizado'
+    today: 'hoy',
+    last7: 'ultimos_7_dias',
+    last30: 'ultimos_30_dias',
+    lastYear: 'ultimo_ano',
+    custom: 'personalizado',
   };
   return periodMap[frontendPeriod] || 'personalizado';
 };
 
-<<<<<<< Updated upstream
-// Servicio para métricas de pagos
+// Helper: color por estado de pago
+const getStatusColor = (status) => {
+  const colors = {
+    APROBADO: '#22c55e',   // Verde
+    RECHAZADO: '#ef4444',  // Rojo
+    PENDIENTE: '#f59e0b',  // Amarillo
+    EXPIRADO: '#6b7280',   // Gris
+  };
+  return colors[status] || '#0ea5e9'; // Por defecto: azul
+};
+
+// Helper: extraer/transformar datos según endpoint
+const extractResponseData = (response, endpoint) => {
+  const rawData = response.data?.data || response.data;
+
+  // Para distribución (torta)
+  if (endpoint.includes('/distribucion')) {
+    const chartData = Object.entries(rawData).map(([name, value]) => ({
+      name,
+      value: Number(value),
+      color: getStatusColor(name),
+    }));
+
+    const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+    return {
+      chartData,
+      total,
+      success: true,
+    };
+  }
+
+  // Para métricas "simples" (valor/cambio/estado)
+  return rawData;
+};
+
+// Base: request con mapeo de período y fechas + manejo de errores
+const fetchMetricsWithErrorHandling = async (
+  axiosInstance,
+  endpoint,
+  period,
+  description,
+  { startDate, endDate } = {}
+) => {
+  try {
+    const mappedPeriod = mapPeriodToBackend(period);
+
+    // Params base
+    const params = { period: mappedPeriod };
+
+    // Si es personalizado y hay fechas, formatear YYYY-MM-DD
+    if (mappedPeriod === 'personalizado' && startDate && endDate) {
+      params.startDate =
+        startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate;
+      params.endDate =
+        endDate instanceof Date ? endDate.toISOString().split('T')[0] : endDate;
+    }
+
+    // Log de salida
+    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
+      endpoint,
+      params,
+      originalPeriod: period,
+      mappedPeriod,
+      timestamp: new Date().toISOString(),
+    });
+
+    const response = await axiosInstance.get(endpoint, { params });
+
+    // Log de entrada
+    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
+      endpoint,
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      headers: response.headers,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+    }
+    if (!response.data) {
+      throw new Error('Respuesta sin datos');
+    }
+
+    const processedData = extractResponseData(response, endpoint);
+
+    console.log(`✨ Datos procesados de ${description}:`, processedData);
+
+    return {
+      success: true,
+      data: processedData,
+    };
+  } catch (error) {
+    console.error(`❌ Error en ${description}:`, {
+      error: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+
+    // Abort/cancelación
+    if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+      return {
+        success: false,
+        error: 'Solicitud cancelada',
+        details: { timestamp: new Date().toISOString(), type: 'abort' },
+      };
+    }
+
+    return {
+      success: false,
+      error: error.message || 'Error desconocido',
+      details: {
+        timestamp: new Date().toISOString(),
+        type: error.response ? 'response' : error.request ? 'request' : 'unknown',
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        network: {
+          online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+          connection:
+            typeof navigator !== 'undefined' ? navigator.connection?.effectiveType : undefined,
+        },
+      },
+    };
+  }
+};
+
+/* ===========================
+ * Servicios expuestos (avances)
+ * ===========================
+ */
+
+// Agregado genérico por rango para listados/agrupados
 export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
-    
     const params = { period: mappedPeriod };
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/payments/metrics', {
-      params
-    });
+
+    if (mappedPeriod === 'personalizado') {
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+    }
+
+    const response = await axiosInstance.get('/api/payments/metrics', { params });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
 
     return response.data;
   } catch (error) {
@@ -30,334 +173,37 @@ export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
-      }
-=======
-// Función helper para extraer y transformar datos de la respuesta
-const extractResponseData = (response, endpoint) => {
-  const rawData = response.data.data || response.data;
-  
-  // Si es la métrica de distribución, transformar a formato para gráfico de torta
-  if (endpoint.includes('/distribucion')) {
-    const chartData = Object.entries(rawData).map(([name, value]) => ({
-      name,
-      value,
-      color: getStatusColor(name)
-    }));
-
-    // Calcular el total para la métrica
-    const total = chartData.reduce((sum, item) => sum + item.value, 0);
-
-    return {
-      chartData,
-      total,
-      success: true
-    };
-  }
-  
-  return rawData;
-};
-
-// Helper para asignar colores según el estado
-const getStatusColor = (status) => {
-  const colors = {
-    APROBADO: '#22c55e',   // Verde
-    RECHAZADO: '#ef4444',  // Rojo
-    PENDIENTE: '#f59e0b',  // Amarillo
-    EXPIRADO: '#6b7280'    // Gris
-  };
-  return colors[status] || '#0ea5e9'; // Color por defecto
-};
-
-// Función base mejorada para métricas de pagos con manejo de errores detallado
-const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate } = {}) => {
-  try {
-    const mappedPeriod = mapPeriodToBackend(period);
-    
-    // Preparar parámetros base
-    const params = { period: mappedPeriod };
-    
-    // Agregar fechas si es período personalizado
-    if (mappedPeriod === 'personalizado' && startDate && endDate) {
-      // Formatear fechas como strings YYYY-MM-DD
-      params.startDate = startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate;
-      params.endDate = endDate instanceof Date ? endDate.toISOString().split('T')[0] : endDate;
-    }
-
-    // Console log de la consulta que se envía al backend
-    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      timestamp: new Date().toISOString()
     });
-
-    const response = await axiosInstance.get(endpoint, {
-      params
->>>>>>> Stashed changes
-    });
-    throw error;
+    return { success: false, error: error.message || 'Error desconocido' };
   }
 };
 
-<<<<<<< Updated upstream
-export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDate, period }) => {
-  try {
-    const mappedPeriod = mapPeriodToBackend(period);
-    
-    const params = { period: mappedPeriod };
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/metrica/pagos/exitosos', {
-      params
-    });
+// Tasa de éxito de pagos (card)
+export const getPaymentSuccessMetrics = (axiosInstance, { period, startDate, endDate }) =>
+  fetchMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/pagos/exitosos',
+    period,
+    'tasa de éxito de pagos',
+    { startDate, endDate }
+  );
 
-=======
-    // Console log de la respuesta raw del backend
-    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
-      endpoint,
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      headers: response.headers,
-      timestamp: new Date().toISOString()
-    });
-
-    if (response.status !== 200) {
-      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
-    }
-
-    if (!response.data) {
-      throw new Error('Respuesta sin datos');
-    }
-
-    const processedData = extractResponseData(response, endpoint);
-
->>>>>>> Stashed changes
-    return {
-      success: true,
-      data: {
-        value: response.data.value || 0,
-        change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'positivo',
-        changeType: response.data.changeType || 'porcentaje',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
-      }
-    };
-  } catch (error) {
-<<<<<<< Updated upstream
-    console.error('❌ Error en tasa de éxito de pagos:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
-      }
-    });
-    
-    // En lugar de hacer throw, devolvemos un error controlado
-    return {
-      success: false,
-      error: {
-        message: error.response?.data?.message || error.message || 'Servicio no disponible',
-        status: error.response?.status,
-        timestamp: new Date().toISOString()
-=======
-    return {
-      success: false,
-      message: error.response?.data?.message || error.message,
-      error: error.response?.data?.error || error.message,
-      status: error.response?.status || 500,
-      details: {
-        timestamp: new Date().toISOString(),
-        endpoint,
-        period,
-        error: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        }
->>>>>>> Stashed changes
-      }
-    };
-  }
-};
-
-<<<<<<< Updated upstream
-export const getPaymentMethodDistribution = async (axiosInstance, { startDate, endDate }) => {
-  try {
-    const params = {};
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/payments/methods/distribution', {
-      params
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching payment methods distribution:', error);
-    throw error;
-  }
-};
-
-export const getPaymentTrends = async (axiosInstance, { startDate, endDate }) => {
-  try {
-    const params = {};
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/payments/trends', {
-      params
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching payment trends:', error);
-    throw error;
-  }
-};
-
-export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate, endDate, period }) => {
-  try {
-    const mappedPeriod = mapPeriodToBackend(period);
-    
-    const params = { period: mappedPeriod };
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/metrica/pagos/tiempoProcesamiento', {
-      params
-    });
-
-    return {
-      success: true,
-      data: {
-        value: response.data.value || 0,
-        change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'positivo',
-        changeType: response.data.changeType || 'absoluto',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
-      }
-    };
-  } catch (error) {
-    console.error('❌ Error en tiempo de procesamiento de pagos:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
-      }
-    });
-    
-    // En lugar de hacer throw, devolvemos un error controlado
-    return {
-      success: false,
-      error: {
-        message: error.response?.data?.message || error.message || 'Servicio no disponible',
-        status: error.response?.status,
-        timestamp: new Date().toISOString()
-      }
-    };
-  }
-};
-
-export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, endDate, period }) => {
-  try {
-    const mappedPeriod = mapPeriodToBackend(period);
-    
-    const params = { period: mappedPeriod };
-    if (startDate) params.startDate = startDate;
-    if (endDate) params.endDate = endDate;
-    
-    const response = await axiosInstance.get('/api/metrica/pagos/distribucion', {
-      params
-    });
-
-    // Convertir el nuevo formato a chartData
-    const distributionData = response.data.data; // Acceder a response.data.data
-    // Asignar colores específicos por categoría
-    const colorMap = {
-      'APROBADO': '#22c55e',   // Verde - exitoso
-      'RECHAZADO': '#ef4444',  // Rojo - error
-      'EXPIRADO': '#f59e0b',   // Amarillo - advertencia  
-      'PENDIENTE': '#0ea5e9'   // Azul - en proceso
-    };
-
-    let chartData = Object.entries(distributionData).map(([name, value]) => ({
-      name: name.charAt(0) + name.slice(1).toLowerCase(), // "APROBADO" → "Aprobado"
-      value: Number(value),
-      color: colorMap[name] || '#6b7280' // Color por defecto si no se encuentra
-    }));
-
-    const total = Object.values(distributionData).reduce((sum, val) => sum + Number(val), 0);
-    
-    // Si todos los valores son 0, mostrar un mensaje especial o datos por defecto
-    if (total === 0) {
-      chartData = [
-        { name: 'Sin datos', value: 1, color: '#e5e7eb' } // Gris claro para indicar "sin datos"
-      ];
-    }
-
-    return {
-      success: true,
-      data: {
-        chartData,
-        total,
-        value: total.toString(),
-        change: 0, // El endpoint no devuelve cambio para gráficos
-        changeStatus: 'positivo',
-        lastUpdated: new Date().toISOString()
-      }
-    };
-  } catch (error) {
-    console.error('❌ Error en distribución de eventos de pago:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
-      }
-    });
-    
-    // En lugar de hacer throw, devolvemos un error controlado
-    return {
-      success: false,
-      error: {
-        message: error.response?.data?.message || error.message || 'Servicio no disponible',
-        status: error.response?.status,
-        timestamp: new Date().toISOString()
-      }
-    };
-  }
-};
-=======
-// Servicio para tasa de éxito de pagos
-export const getPaymentSuccessMetrics = (axiosInstance, { period, startDate, endDate }) => 
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/exitosos', period, 'tasa de éxito de pagos', { startDate, endDate });
-
-// Servicio para tiempo de procesamiento de pagos
+// Tiempo de procesamiento de pagos (card)
 export const getPaymentProcessingTimeMetrics = (axiosInstance, { period, startDate, endDate }) =>
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/tiempoprocesamiento', period, 'tiempo de procesamiento', { startDate, endDate });
+  fetchMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/pagos/tiempoProcesamiento',
+    period,
+    'tiempo de procesamiento',
+    { startDate, endDate }
+  );
 
-// Servicio para distribución de eventos de pago
+// Distribución de eventos de pago (pie)
 export const getPaymentDistributionMetrics = (axiosInstance, { period, startDate, endDate }) =>
-  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/distribucion', period, 'distribución de pagos', { startDate, endDate });
->>>>>>> Stashed changes
+  fetchMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/pagos/distribucion',
+    period,
+    'distribución de pagos',
+    { startDate, endDate }
+  );

@@ -156,7 +156,7 @@ export const METRICS_REGISTRY = {
     change: '+0,2 s',
     changeStatus: 'negative',
     description: 'Tiempo promedio de procesamiento de pagos en minutos.',
-    endpoint: '/api/metrica/pagos/tiempoProcesamiento',
+    endpoint: '/metrics/payments/processing-time',
     category: 'performance',
     // Configuración para integración con servicio real
     hasRealService: true,
@@ -202,7 +202,7 @@ export const METRICS_REGISTRY = {
       { name: 'Expirado', value: 9, color: '#f59e0b' },
       { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
-    endpoint: '/api/metrica/pagos/distribucion',
+    endpoint: '/metrics/payments/distribution',
     category: 'distribution',
     // Configuración para integración con servicio real
     hasRealService: true,
@@ -231,7 +231,7 @@ export const METRICS_REGISTRY = {
     // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getUsersCreatedMetrics',
+      serviceName: 'getUserNewRegistrations',
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
@@ -254,24 +254,9 @@ export const METRICS_REGISTRY = {
     value: '94.1%',
     change: '+3.2%',
     changeStatus: 'positive',
-<<<<<<< Updated upstream
     description: 'Tasa de roles asignados',
     endpoint: '/api/metrics/users/role-assignment',
     category: 'management'
-=======
-    description: 'Tasa de roles asignados correctamente a usuarios',
-    endpoint: '/api/metrica/usuarios/roles',
-    category: 'management',
-    hasRealService: false, // Deshabilitado temporalmente - sin endpoint disponible
-    // Datos hardcodeados mientras no hay endpoint
-    mockData: {
-      value: 94.1,
-      change: 3.2,
-      changeType: 'porcentaje',
-      changeStatus: 'positivo',
-      lastUpdated: new Date().toISOString()
-    }
->>>>>>> Stashed changes
   },
 
   // === MATCHING ===
@@ -302,22 +287,17 @@ export const MODULE_METRICS = {
 // Configuración por defecto del dashboard
 export const DEFAULT_DASHBOARD_METRICS = [
   'core-processing-time',
-  'catalog-new-providers', 
+  'catalog-new-providers',
   'app-requests-created',
   'payments-success-rate'
 ];
 
-// Función helper para obtener métricas por módulo
-export const getMetricsByModule = (module) => {
-  return MODULE_METRICS[module]?.map(id => METRICS_REGISTRY[id]).filter(Boolean) || [];
-};
+// Helper: métricas por módulo
+export const getMetricsByModule = (module) =>
+  MODULE_METRICS[module]?.map(id => METRICS_REGISTRY[id]).filter(Boolean) || [];
 
-// Función helper para obtener una métrica específica
-export const getMetric = (id) => {
-  return METRICS_REGISTRY[id];
-};
+// Helper: obtener una métrica
+export const getMetric = (id) => METRICS_REGISTRY[id];
 
-// Función helper para obtener múltiples métricas
-export const getMetrics = (ids) => {
-  return ids.map(id => METRICS_REGISTRY[id]).filter(Boolean);
-};
+// Helper: obtener múltiples métricas
+export const getMetrics = (ids) => ids.map(id => METRICS_REGISTRY[id]).filter(Boolean);
