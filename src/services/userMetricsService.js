@@ -394,7 +394,7 @@ export const getUserRoleAssignments = async (axiosInstance, { startDate, endDate
       params: { startDate, endDate, period }
     });
 
-    const response = await axiosInstance.get('/api/metrica/usuarios/roles', {
+    const response = await axiosInstance.get('/api/metrics/users/roles', {
       params: { startDate, endDate, period },
       signal,
       validateStatus: status => status < 500

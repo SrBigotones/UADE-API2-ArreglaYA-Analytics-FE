@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Mock de ResizeObserver que no está disponible en el entorno de pruebas
+// eslint-disable-next-line no-undef
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),

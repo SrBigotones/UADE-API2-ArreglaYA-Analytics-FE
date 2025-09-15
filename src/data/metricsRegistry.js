@@ -157,7 +157,7 @@ export const METRICS_REGISTRY = {
     change: '+0,2 s',
     changeStatus: 'negative',
     description: 'Tiempo promedio de procesamiento de pagos en minutos.',
-    endpoint: '/api/metrica/pagos/tiempoProcesamiento',
+    endpoint: '/metrics/payments/processing-time',
     category: 'performance',
     // Configuración para integración con servicio real
     hasRealService: true,
@@ -204,7 +204,7 @@ export const METRICS_REGISTRY = {
       { name: 'Expirado', value: 9, color: '#f59e0b' },
       { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
-    endpoint: '/api/metrica/pagos/distribucion',
+    endpoint: '/metrics/payments/distribution',
     category: 'distribution',
     // Configuración para integración con servicio real
     hasRealService: true,
