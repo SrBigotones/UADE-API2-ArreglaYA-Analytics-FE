@@ -16,7 +16,6 @@ const SimpleResizeHandles = ({
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
-    setResizeDirection(direction);
     
     const startX = e.clientX;
     const startY = e.clientY;
@@ -67,7 +66,6 @@ const SimpleResizeHandles = ({
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      setResizeDirection(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };

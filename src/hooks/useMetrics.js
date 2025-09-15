@@ -156,7 +156,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds.join(','), startDate, endDate, presetId, axiosInstance]);
+  }, [metricIds, startDate, endDate, presetId, axiosInstance]);
 
   const refetch = async () => {
     if (!axiosInstance) return;
