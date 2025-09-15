@@ -14,14 +14,19 @@ const mapPeriodToBackend = (frontendPeriod) => {
 export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     console.log('📊 Solicitando métricas de pagos:', {
       url: '/api/payments/metrics',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       baseURL: axiosInstance.defaults.baseURL
     });
 
     const response = await axiosInstance.get('/api/payments/metrics', {
-      params: { startDate, endDate, period: mappedPeriod }
+      params
     });
 
     console.log('✅ Respuesta recibida:', {
@@ -51,14 +56,19 @@ export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate
 export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     console.log('📊 Solicitando tasa de éxito de pagos:', {
       url: '/api/metrica/pagos/exitosos',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       baseURL: axiosInstance.defaults.baseURL
     });
 
     const response = await axiosInstance.get('/api/metrica/pagos/exitosos', {
-      params: { startDate, endDate, period: mappedPeriod }
+      params
     });
 
     console.log('✅ Respuesta de tasa de éxito:', {
@@ -104,8 +114,12 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDa
 
 export const getPaymentMethodDistribution = async (axiosInstance, { startDate, endDate }) => {
   try {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     const response = await axiosInstance.get('/api/payments/methods/distribution', {
-      params: { startDate, endDate }
+      params
     });
     return response.data;
   } catch (error) {
@@ -116,8 +130,12 @@ export const getPaymentMethodDistribution = async (axiosInstance, { startDate, e
 
 export const getPaymentTrends = async (axiosInstance, { startDate, endDate }) => {
   try {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     const response = await axiosInstance.get('/api/payments/trends', {
-      params: { startDate, endDate }
+      params
     });
     return response.data;
   } catch (error) {
@@ -129,14 +147,19 @@ export const getPaymentTrends = async (axiosInstance, { startDate, endDate }) =>
 export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     console.log('📊 Solicitando tiempo de procesamiento de pagos:', {
       url: '/api/metrica/pagos/tiempoProcesamiento',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       baseURL: axiosInstance.defaults.baseURL
     });
 
     const response = await axiosInstance.get('/api/metrica/pagos/tiempoProcesamiento', {
-      params: { startDate, endDate, period: mappedPeriod }
+      params
     });
 
     console.log('✅ Respuesta de tiempo de procesamiento:', {
@@ -184,14 +207,19 @@ export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate
 export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, endDate, period }) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
     console.log('📊 Solicitando distribución de eventos de pago:', {
       url: '/api/metrica/pagos/distribucion',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       baseURL: axiosInstance.defaults.baseURL
     });
 
     const response = await axiosInstance.get('/api/metrica/pagos/distribucion', {
-      params: { startDate, endDate, period: mappedPeriod }
+      params
     });
 
     console.log('✅ Respuesta de distribución de eventos:', {
