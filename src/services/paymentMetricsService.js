@@ -1,3 +1,8 @@
+/* 
+ * Servicios para métricas de pagos
+ * Cada servicio utiliza la función base fetchMetrics para consistencia
+ */
+
 // Mapeo de períodos del frontend al backend
 const mapPeriodToBackend = (frontendPeriod) => {
   const periodMap = {
@@ -10,109 +15,111 @@ const mapPeriodToBackend = (frontendPeriod) => {
   return periodMap[frontendPeriod] || 'personalizado';
 };
 
-// Servicio para métricas de pagos
-export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate, period }) => {
-  try {
-    const mappedPeriod = mapPeriodToBackend(period);
-    console.log('📊 Solicitando métricas de pagos:', {
-      url: '/api/payments/metrics',
-      params: { startDate, endDate, period: mappedPeriod },
-      baseURL: axiosInstance.defaults.baseURL
-    });
+// Función helper para extraer y transformar datos de la respuesta
+const extractResponseData = (response, endpoint) => {
+  const rawData = response.data.data || response.data;
+  
+  // Si es la métrica de distribución, transformar a formato para gráfico de torta
+  if (endpoint.includes('/distribucion')) {
+    const chartData = Object.entries(rawData).map(([name, value]) => ({
+      name,
+      value,
+      color: getStatusColor(name)
+    }));
 
-    const response = await axiosInstance.get('/api/payments/metrics', {
-      params: { startDate, endDate, period: mappedPeriod }
-    });
+    // Calcular el total para la métrica
+    const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
-    console.log('✅ Respuesta recibida:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('❌ Error en métricas de pagos:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
-      }
-    });
-    throw error;
+    return {
+      chartData,
+      total,
+      success: true
+    };
   }
+  
+  return rawData;
 };
 
-export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDate, period }) => {
+// Helper para asignar colores según el estado
+const getStatusColor = (status) => {
+  const colors = {
+    APROBADO: '#22c55e',   // Verde
+    RECHAZADO: '#ef4444',  // Rojo
+    PENDIENTE: '#f59e0b',  // Amarillo
+    EXPIRADO: '#6b7280'    // Gris
+  };
+  return colors[status] || '#0ea5e9'; // Color por defecto
+};
+
+// Función base mejorada para métricas de pagos con manejo de errores detallado
+const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
-    console.log('📊 Solicitando tasa de éxito de pagos:', {
-      url: '/api/metrica/pagos/exitosos',
-      params: { startDate, endDate, period: mappedPeriod },
-      baseURL: axiosInstance.defaults.baseURL
+    console.log(`� Solicitando ${description}:`, {
+      url: endpoint,
+      period,
+      mappedPeriod
     });
 
-    const response = await axiosInstance.get('/api/metrica/pagos/exitosos', {
-      params: { startDate, endDate, period: mappedPeriod }
+    const response = await axiosInstance.get(endpoint, {
+      params: { period: mappedPeriod }
     });
 
-    console.log('✅ Respuesta de tasa de éxito:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
+    console.log('📥 Respuesta CRUDA:', {
+      status: response?.status,
+      statusText: response?.statusText,
+      data: response?.data,
+      error: response?.data?.error
     });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+    }
+
+    if (!response.data) {
+      throw new Error('Respuesta sin datos');
+    }
+
+    const processedData = extractResponseData(response, endpoint);
+    console.log(`✨ Datos procesados de ${description}:`, processedData);
 
     return {
       success: true,
-      data: {
-        value: response.data.successRate || 0,
-        change: response.data.changePercentage || 0,
-        changeStatus: response.data.trend || 'neutral',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
-      }
+      data: processedData
     };
   } catch (error) {
-    console.error('❌ Error en tasa de éxito de pagos:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        headers: error.config?.headers,
-        params: error.config?.params
+    console.error(`❌ Error en ${description}:`, {
+      error: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+
+    return {
+      success: false,
+      error: error.message || 'Error desconocido',
+      details: {
+        timestamp: new Date().toISOString(),
+        type: error.response ? 'response' : error.request ? 'request' : 'unknown',
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        network: {
+          online: navigator.onLine,
+          connection: navigator.connection?.effectiveType
+        }
       }
-    });
-    throw error;
+    };
   }
 };
 
-export const getPaymentMethodDistribution = async (axiosInstance, { startDate, endDate }) => {
-  try {
-    const response = await axiosInstance.get('/api/payments/methods/distribution', {
-      params: { startDate, endDate }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching payment methods distribution:', error);
-    throw error;
-  }
-};
+// Servicio para tasa de éxito de pagos
+export const getPaymentSuccessMetrics = (axiosInstance, { period }) => 
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/exitosos', period, 'tasa de éxito de pagos');
 
-export const getPaymentTrends = async (axiosInstance, { startDate, endDate }) => {
-  try {
-    const response = await axiosInstance.get('/api/payments/trends', {
-      params: { startDate, endDate }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching payment trends:', error);
-    throw error;
-  }
-};
+// Servicio para tiempo de procesamiento de pagos
+export const getPaymentProcessingTimeMetrics = (axiosInstance, { period }) =>
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/tiempoprocesamiento', period, 'tiempo de procesamiento');
+
+// Servicio para distribución de eventos de pago
+export const getPaymentDistributionMetrics = (axiosInstance, { period }) =>
+  fetchMetricsWithErrorHandling(axiosInstance, '/api/metrica/pagos/distribucion', period, 'distribución de pagos');
