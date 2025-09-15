@@ -230,13 +230,22 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
     });
 
     // Convertir el nuevo formato a chartData
-    const chartData = Object.entries(response.data).map(([name, value], index) => ({
-      name: name.charAt(0) + name.slice(1).toLowerCase(), // Capitalizar
+    const distributionData = response.data.data; // Acceder a response.data.data
+    // Asignar colores específicos por categoría
+    const colorMap = {
+      'APROBADO': '#22c55e',   // Verde - exitoso
+      'RECHAZADO': '#ef4444',  // Rojo - error
+      'EXPIRADO': '#f59e0b',   // Amarillo - advertencia  
+      'PENDIENTE': '#0ea5e9'   // Azul - en proceso
+    };
+
+    const chartData = Object.entries(distributionData).map(([name, value]) => ({
+      name: name.charAt(0) + name.slice(1).toLowerCase(), // "APROBADO" → "Aprobado"
       value: Number(value),
-      color: ['#22c55e', '#ef4444', '#f59e0b', '#0ea5e9'][index] || '#6b7280'
+      color: colorMap[name] || '#6b7280' // Color por defecto si no se encuentra
     }));
 
-    const total = Object.values(response.data).reduce((sum, val) => sum + Number(val), 0);
+    const total = Object.values(distributionData).reduce((sum, val) => sum + Number(val), 0);
 
     return {
       success: true,
