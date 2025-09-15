@@ -19,7 +19,7 @@ const importService = async (serviceModule, serviceName) => {
 };
 
 // Hook personalizado para manejar métricas desde el backend
-export const useMetrics = (metricIds, dateRange) => {
+export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +54,7 @@ export const useMetrics = (metricIds, dateRange) => {
                 );
                 
                 if (serviceFunction) {
-                  const response = await serviceFunction(axiosInstance, dateRange);
+                  const response = await serviceFunction(axiosInstance, { startDate, endDate, period: presetId });
                   
                   if (response.success) {
                     const { serviceConfig } = metric;
@@ -85,16 +85,47 @@ export const useMetrics = (metricIds, dateRange) => {
                   throw new Error('Servicio no disponible');
                 }
               } catch (serviceError) {
-                console.error(`❌ SERVICIO REAL: Error en ${metric.id}:`, serviceError);
+                // Log detallado del error
+                console.error(`❌ SERVICIO REAL: Error en ${metric.id}:`, {
+                  error: serviceError,
+                  message: serviceError.message,
+                  stack: serviceError.stack,
+                  response: serviceError.response?.data,
+                  status: serviceError.response?.status,
+                  config: {
+                    url: serviceError.config?.url,
+                    method: serviceError.config?.method,
+                    baseURL: serviceError.config?.baseURL,
+                    headers: serviceError.config?.headers
+                  }
+                });
+                
+                // Determinar mensaje de error más específico
+                let errorMessage = 'Error desconocido';
+                if (serviceError.response) {
+                  errorMessage = `Error ${serviceError.response.status}: ${serviceError.response.data?.message || 'Error del servidor'}`;
+                } else if (serviceError.request) {
+                  errorMessage = 'No se pudo conectar con el servidor';
+                } else if (serviceError.message) {
+                  errorMessage = serviceError.message;
+                }
+
                 return {
                   ...metric,
                   loading: false,
-                  error: `Error de conexión: ${serviceError.message}`,
+                  error: errorMessage,
                   isRealData: false,
                   // NO mostrar datos genéricos cuando falla el servicio real
                   value: 'Error',
                   change: '',
-                  changeStatus: 'neutral'
+                  changeStatus: 'neutral',
+                  // Información adicional para debugging
+                  _debug: {
+                    timestamp: new Date().toISOString(),
+                    requestConfig: serviceError.config,
+                    responseStatus: serviceError.response?.status,
+                    responseData: serviceError.response?.data
+                  }
                 };
               }
             }
@@ -125,7 +156,7 @@ export const useMetrics = (metricIds, dateRange) => {
       setMetrics([]);
       setLoading(false);
     }
-  }, [metricIds.join(','), JSON.stringify(dateRange), axiosInstance]);
+  }, [metricIds.join(','), startDate, endDate, presetId, axiosInstance]);
 
   const refetch = async () => {
     if (!axiosInstance) return;
@@ -210,12 +241,12 @@ export const useMetrics = (metricIds, dateRange) => {
 };
 
 // Hook para métricas de un módulo específico
-export const useModuleMetrics = (module, dateRange) => {
+export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
   const moduleMetricIds = Object.values(METRICS_REGISTRY)
     .filter(metric => metric.module === module)
     .map(metric => metric.id);
   
-  return useMetrics(moduleMetricIds, dateRange);
+  return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
 };
 
 // Hook para métricas personalizadas del dashboard
@@ -231,7 +262,11 @@ export const useDashboardMetrics = (dateRange) => {
     }
   }, []);
 
-  const { metrics, loading, error, refetch } = useMetrics(selectedMetricIds, dateRange);
+  const { metrics, loading, error, refetch } = useMetrics(selectedMetricIds, { 
+    startDate: dateRange.startDate, 
+    endDate: dateRange.endDate, 
+    presetId: dateRange.preset 
+  });
 
   const updateSelectedMetrics = (newMetricIds) => {
     setSelectedMetricIds(newMetricIds);
