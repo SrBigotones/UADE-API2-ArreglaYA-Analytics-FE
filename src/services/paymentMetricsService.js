@@ -19,20 +19,8 @@ export const getPaymentsByDateRange = async (axiosInstance, { startDate, endDate
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
     
-    console.log('📊 Solicitando métricas de pagos:', {
-      url: '/api/payments/metrics',
-      params,
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/payments/metrics', {
       params
-    });
-
-    console.log('✅ Respuesta recibida:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
     });
 
     return response.data;
@@ -61,20 +49,8 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { startDate, endDa
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
     
-    console.log('📊 Solicitando tasa de éxito de pagos:', {
-      url: '/api/metrica/pagos/exitosos',
-      params,
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/metrica/pagos/exitosos', {
       params
-    });
-
-    console.log('✅ Respuesta de tasa de éxito:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
     });
 
     return {
@@ -153,20 +129,8 @@ export const getPaymentProcessingTimeMetrics = async (axiosInstance, { startDate
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
     
-    console.log('📊 Solicitando tiempo de procesamiento de pagos:', {
-      url: '/api/metrica/pagos/tiempoProcesamiento',
-      params,
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/metrica/pagos/tiempoProcesamiento', {
       params
-    });
-
-    console.log('✅ Respuesta de tiempo de procesamiento:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
     });
 
     return {
@@ -213,27 +177,12 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
     
-    console.log('📊 Solicitando distribución de eventos de pago:', {
-      url: '/api/metrica/pagos/distribucion',
-      params,
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/metrica/pagos/distribucion', {
       params
     });
 
-    console.log('✅ Respuesta de distribución de eventos:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
-    });
-
     // Convertir el nuevo formato a chartData
     const distributionData = response.data.data; // Acceder a response.data.data
-    
-    console.log('🔍 DEBUG - distributionData:', distributionData);
-    console.log('🔍 DEBUG - Object.entries(distributionData):', Object.entries(distributionData));
     // Asignar colores específicos por categoría
     const colorMap = {
       'APROBADO': '#22c55e',   // Verde - exitoso
@@ -256,11 +205,8 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
         { name: 'Sin datos', value: 1, color: '#e5e7eb' } // Gris claro para indicar "sin datos"
       ];
     }
-    
-    console.log('🔍 DEBUG - chartData final:', chartData);
-    console.log('🔍 DEBUG - total:', total);
 
-    const finalResult = {
+    return {
       success: true,
       data: {
         chartData,
@@ -271,10 +217,6 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { startDate, 
         lastUpdated: new Date().toISOString()
       }
     };
-    
-    console.log('🔍 DEBUG - Resultado final que se retorna:', finalResult);
-    
-    return finalResult;
   } catch (error) {
     console.error('❌ Error en distribución de eventos de pago:', {
       message: error.message,

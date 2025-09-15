@@ -38,13 +38,11 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
           .map(id => METRICS_REGISTRY[id])
           .filter(Boolean);
 
-        console.log('🔄 SISTEMA HÍBRIDO: Procesando métricas:', baseMetrics.map(m => m.id));
 
         // Procesar métricas en paralelo
         const metricsWithData = await Promise.all(
           baseMetrics.map(async (metric) => {
             if (metric.hasRealService && metric.serviceConfig) {
-              console.log(`📡 SERVICIO REAL: Cargando ${metric.id} desde ${metric.serviceConfig.serviceName}`);
               
               try {
                 // Importar y ejecutar el servicio real
@@ -76,7 +74,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                       lastUpdated: response.data.lastUpdated
                     };
                     
-                    console.log(`✅ SERVICIO REAL: ${metric.id} cargado exitosamente`);
                     return formattedMetric;
                   } else {
                     // Manejar errores controlados del servicio
@@ -148,7 +145,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
             }
             
             // Usar datos estáticos para métricas sin servicio real
-            console.log(`📊 DATOS ESTÁTICOS: Usando mock para ${metric.id}`);
             return {
               ...metric,
               loading: false,
@@ -186,7 +182,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
         .map(id => METRICS_REGISTRY[id])
         .filter(Boolean);
 
-      console.log('🔄 REFETCH: Recargando métricas híbridas');
 
       const metricsWithData = await Promise.all(
         baseMetrics.map(async (metric) => {

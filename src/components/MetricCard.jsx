@@ -30,12 +30,6 @@ const MetricCard = ({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-700 dark:text-gray-300`}>{title}</h3>
-            {isRealData && (
-              <span 
-                className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"
-                title="Datos en tiempo real desde el backend"
-              ></span>
-            )}
           </div>
           {periodLabel && (
             <p className={`${compact ? 'text-[11px]' : 'text-xs'} text-gray-500 dark:text-gray-400 mt-1`}>{periodLabel}</p>

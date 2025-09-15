@@ -68,20 +68,8 @@ export const getUsersCreatedMetrics = async (axiosInstance, { startDate, endDate
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
     
-    console.log('📊 Solicitando nuevos usuarios registrados:', {
-      url: '/api/metrica/usuarios/creados',
-      params,
-      baseURL: axiosInstance.defaults.baseURL
-    });
-
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
       params
-    });
-
-    console.log('✅ Respuesta de usuarios creados:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
     });
 
     return {
