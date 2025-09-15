@@ -277,10 +277,14 @@ export const useModuleMetrics = (module, dateRange) => {
       .map(metric => metric.id);
   }, [module]);
   
-  // Extraer startDate, endDate y preset del dateRange
-  const { startDate, endDate, preset } = dateRange || {};
+  // Estabilizar los parámetros de fecha para evitar bucles
+  const dateParams = useMemo(() => ({
+    startDate: dateRange?.startDate,
+    endDate: dateRange?.endDate,
+    presetId: dateRange?.preset
+  }), [dateRange?.startDate, dateRange?.endDate, dateRange?.preset]);
   
-  return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
+  return useMetrics(moduleMetricIds, dateParams);
 };
 
 // Hook para métricas personalizadas del dashboard
