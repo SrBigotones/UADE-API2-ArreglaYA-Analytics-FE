@@ -9,6 +9,22 @@ import { useDashboardOrder } from '../hooks/useDashboardOrder';
 const CoreScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [selectedMetricIds, setSelectedMetricIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('dashboard-selected-metrics');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const updateSelectedMetrics = (ids) => {
+    const safeIds = Array.isArray(ids) ? ids : [];
+    setSelectedMetricIds(safeIds);
+    try {
+      localStorage.setItem('dashboard-selected-metrics', JSON.stringify(safeIds));
+    } catch (e) {}
+  };
 
   // Efecto para manejar el scroll del body cuando el modal está abierto
   useEffect(() => {
@@ -31,9 +47,7 @@ const CoreScreen = ({ isDarkMode }) => {
     metrics: dashboardMetrics, 
     loading, 
     error, 
-    refetch,
-    selectedMetricIds,
-    updateSelectedMetrics 
+    refetch
   } = useDashboardMetrics(dateRange);
 
   // Hook para manejar el orden de las métricas
@@ -105,7 +119,10 @@ const CoreScreen = ({ isDarkMode }) => {
             </div>
           ))
         ) : (
-          orderedMetrics.map((metric, index) => (
+          (selectedMetricIds && selectedMetricIds.length > 0
+            ? orderedMetrics.filter(m => selectedMetricIds.includes(m.id))
+            : orderedMetrics
+          ).map((metric, index) => (
             <DraggableMetricCard
               key={metric.id}
               metric={metric}
