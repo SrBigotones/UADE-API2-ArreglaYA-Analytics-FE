@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const storedUser = localStorage.getItem('arreglaya-user');
         setUser(storedUser ? JSON.parse(storedUser) : null);
-      } catch (_) {
+      } catch {
         setUser(null);
       }
     };
@@ -26,7 +26,9 @@ export const AuthProvider = ({ children }) => {
     if (nextUser) {
       try {
         localStorage.setItem('arreglaya-user', JSON.stringify(nextUser));
-      } catch (_) {}
+      } catch {
+        // ignore storage errors
+      }
       setUser(nextUser);
     }
   };
@@ -37,7 +39,9 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     try {
       localStorage.removeItem('arreglaya-user');
-    } catch (_) {}
+    } catch {
+      // ignore storage errors
+    }
   };
 
   return (

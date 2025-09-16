@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/authContextCore';
-import { loginRequest } from '../services/authService';
+// import { loginRequest } from '../services/authService'; // reservado para backend real
 // Logo se removió en Login para esta pantalla
 import Navbar from '../components/Navbar';
 import { loginRequestMock } from '../services/authService';
@@ -17,7 +17,7 @@ const LoginScreen = () => {
     try {
       const savedTheme = localStorage.getItem('arreglaya-dark-mode');
       setIsDarkMode(savedTheme ? JSON.parse(savedTheme) : false);
-    } catch (_) {
+    } catch {
       setIsDarkMode(false);
     }
   }, []);
@@ -27,7 +27,9 @@ const LoginScreen = () => {
     setIsDarkMode(next);
     try {
       localStorage.setItem('arreglaya-dark-mode', JSON.stringify(next));
-    } catch (_) {}
+    } catch {
+      // ignore storage errors
+    }
   };
 
   const handleSubmit = async (e) => {

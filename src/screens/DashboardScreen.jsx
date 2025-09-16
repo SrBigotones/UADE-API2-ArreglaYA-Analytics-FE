@@ -13,7 +13,8 @@ const CoreScreen = ({ isDarkMode }) => {
     try {
       const stored = localStorage.getItem('dashboard-selected-metrics');
       return stored ? JSON.parse(stored) : [];
-    } catch (e) {
+    } catch {
+      // ignore storage errors and fallback to empty selection
       return [];
     }
   });
@@ -23,7 +24,9 @@ const CoreScreen = ({ isDarkMode }) => {
     setSelectedMetricIds(safeIds);
     try {
       localStorage.setItem('dashboard-selected-metrics', JSON.stringify(safeIds));
-    } catch (e) {}
+    } catch {
+      // ignore storage errors
+    }
   };
 
   // Efecto para manejar el scroll del body cuando el modal está abierto
