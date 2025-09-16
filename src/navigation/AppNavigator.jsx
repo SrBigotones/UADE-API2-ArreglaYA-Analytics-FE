@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/authContextCore';
 import MainLayout from '../layouts/MainLayout';
+import LoginScreen from '../screens/LoginScreen';
 
 const AppNavigator = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -20,22 +21,19 @@ const AppNavigator = () => {
   return (
     <Routes>
       {isAuthenticated ? (
-        // Pantallas protegidas - usan MainLayout
         <>
           <Route path="/" element={<MainLayout />} />
           <Route path="/home" element={<MainLayout />} />
-          {/* Aquí puedes agregar más rutas protegidas que usen MainLayout */}
         </>
       ) : (
-        // Si no está autenticado, redirige a login (o muestra una pantalla de acceso denegado)
         <>
-          <Route path="/" element={<MainLayout />} />               // ! CAMBIAR LA REDIRECCION POR LA PANTALLA DE LOGIN
-          <Route path="/home" element={<MainLayout />} />
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/home" element={<Navigate to="/login" replace />} />
         </>
       )}
-      
-      {/* Redirección por defecto */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+
+      <Route path="*" element={<Navigate to={isAuthenticated ? '/' : '/login'} replace />} />
     </Routes>
   );
 };
