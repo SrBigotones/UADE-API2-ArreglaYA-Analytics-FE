@@ -65,23 +65,33 @@ export default function LeafletHeatMap({
           if (bounds) {
             try {
               map.fitBounds(bounds, { padding: [20, 20] })
-            } catch {}
+            } catch (e) {
+              console.warn('Leaflet fitBounds error:', e)
+            }
           }
           // Invalidate size al montar y tras pequeños retrasos (para modales)
           try {
             map.invalidateSize()
             setTimeout(() => map.invalidateSize(), 100)
             setTimeout(() => map.invalidateSize(), 300)
-          } catch {}
+          } catch (e) {
+            console.warn('Leaflet invalidateSize error:', e)
+          }
 
           // Observar cambios de tamaño del contenedor (ResizeObserver)
           try {
             const ro = new ResizeObserver(() => {
-              try { map.invalidateSize() } catch {}
+              try { 
+                map.invalidateSize() 
+              } catch (e) {
+                console.warn('Leaflet invalidateSize (observer) error:', e)
+              }
             })
             const node = containerRef.current
             if (node) ro.observe(node)
-          } catch {}
+          } catch (e) {
+            console.warn('ResizeObserver not available:', e)
+          }
         }}
       >
         <TileLayer attribution={tileAttribution} url={tileUrl} />
