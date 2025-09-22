@@ -144,7 +144,12 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     lastUpdated: response.data.lastUpdated
                   };
                 }
-                
+
+                // Si la respuesta indica cancelación, propagar como AbortError para tratarlo de forma silenciosa
+                if (response && response.success === false && response.error === 'Solicitud cancelada') {
+                  throw new DOMException('Solicitud cancelada', 'AbortError');
+                }
+
                 // Console log cuando la respuesta no es exitosa
                 console.log(`❌ RESPUESTA NO EXITOSA - ${metric.id}:`, {
                   endpoint: metric.endpoint,
@@ -153,7 +158,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   data: response?.data,
                   timestamp: new Date().toISOString()
                 });
-                
+
                 throw new Error('Respuesta inválida del servidor');
               }
             } catch (error) {
@@ -207,16 +212,24 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     }
   }, [axiosInstance, baseMetrics, cacheKey, startDate, endDate, presetId]);
 
-  // Versión debounced de fetchMetrics
-  const debouncedFetch = useMemo(() => 
-    debounce(fetchMetrics, 300),
-    [fetchMetrics]
-  );
+  // Mantener una referencia al fetchMetrics más reciente
+  const latestFetchRef = useRef(fetchMetrics);
+  useEffect(() => {
+    latestFetchRef.current = fetchMetrics;
+  }, [fetchMetrics]);
 
-  // Efecto principal
+  // Debounce estable (700ms) que siempre llama a la versión más reciente de fetchMetrics
+  const debouncedFetchRef = useRef(null);
+  if (!debouncedFetchRef.current) {
+    debouncedFetchRef.current = debounce(() => {
+      return latestFetchRef.current();
+    }, 700);
+  }
+
+  // Efecto principal: depende de cacheKey para evitar múltiples ejecuciones innecesarias
   useEffect(() => {
     if (metricIds.length > 0) {
-      debouncedFetch();
+      debouncedFetchRef.current();
     } else {
       setMetrics([]);
       setLoading(false);
@@ -228,7 +241,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
         abortControllerRef.current = null;
       }
     };
-  }, [metricIds.length, debouncedFetch]);
+  }, [cacheKey, metricIds.length]);
 
   return {
     metrics,
