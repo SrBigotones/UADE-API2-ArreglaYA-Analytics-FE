@@ -3,7 +3,7 @@ import MetricCard from '../components/MetricCard';
 import DateRangeSelector from '../components/DateRangeSelector';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
 import AreaResponsiveContainer from '../components/AreaResponsiveContainer';
-import LeafletHeatMap from '../components/LeafletHeatMap';
+import LeafletHeatMap from '../components/LeafletHeatMap.jsx';
 import { useAxios } from '../hooks/useAxios';
 import { getCatalogOrdersHeatmap, getCatalogProvidersRegistered } from '../services/catalogService';
 

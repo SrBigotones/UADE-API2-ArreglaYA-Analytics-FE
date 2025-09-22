@@ -49,18 +49,6 @@ export const METRICS_REGISTRY = {
   },
 
   // === CATÁLOGO ===
-  'catalog-new-providers': {
-    id: 'catalog-new-providers',
-    module: 'catalog',
-    type: 'card',
-    title: 'Nuevos prestadores registrados',
-    value: '47',
-    change: '+23%',
-    changeStatus: 'positive',
-    description: 'Nuevos prestadores registrados',
-    endpoint: '/api/metrica/prestadores/registrados',
-    category: 'growth'
-  },
   'catalog-providers-registered': {
     id: 'catalog-providers-registered',
     module: 'catalog',
