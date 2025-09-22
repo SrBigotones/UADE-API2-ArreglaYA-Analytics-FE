@@ -180,35 +180,85 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate, s
 };
 
 // Servicio para nuevos usuarios registrados
+// Helper para mapear periodos del frontend al backend (mismo criterio que pagos)
+const mapUserPeriodToBackend = (frontendPeriod) => {
+  const periodMap = {
+    'today': 'hoy',
+    'last7': 'ultimos_7_dias',
+    'last30': 'ultimos_30_dias',
+    'lastYear': 'ultimo_ano',
+    'custom': 'personalizado'
+  };
+  return periodMap[frontendPeriod] || 'personalizado';
+};
+
+// Helper para formatear fecha a YYYY-MM-DD
+const formatDateYmd = (date) => {
+  if (!date) return undefined;
+  if (date instanceof Date) return date.toISOString().split('T')[0];
+  // Si viene como string o similar, devolver tal cual
+  return date;
+};
+
+// Helper para obtener rango por preset (replica de DateRangeSelector)
+const getPresetRangeForUsers = (presetId) => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch (presetId) {
+    case 'today':
+      return { startDate: today, endDate: today };
+    case 'last7': {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 6);
+      return { startDate: start, endDate: today };
+    }
+    case 'last30': {
+      const start = new Date(today);
+      start.setDate(start.getDate() - 29);
+      return { startDate: start, endDate: today };
+    }
+    case 'lastYear': {
+      const start = new Date(today);
+      start.setFullYear(start.getFullYear() - 1);
+      start.setDate(start.getDate() + 1);
+      return { startDate: start, endDate: today };
+    }
+    default:
+      return { startDate: null, endDate: null };
+  }
+};
+
 export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period, signal }) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
 
   try {
-    // Mapeo de períodos al formato del backend (igual que en paymentMetricsService)
-    const periodMappings = {
-      'today': 'hoy',
-      'last7': 'ultimos_7_dias',
-      'last30': 'ultimos_30_dias',
-      'lastYear': 'ultimo_ano',
-      'custom': 'personalizado'
-    };
+    // Mapear el período al formato esperado por el backend (alineado con pagos)
+    const mappedPeriod = mapUserPeriodToBackend(period);
 
-    // Mapear el período al formato esperado por el backend
-    const mappedPeriod = periodMappings[period] || period;
+    // Construir params como en pagos: siempre period y fechas solo si es personalizado
+    const params = { period: mappedPeriod };
+    if (mappedPeriod === 'personalizado') {
+      const formattedStart = formatDateYmd(startDate);
+      const formattedEnd = formatDateYmd(endDate);
+      if (formattedStart && formattedEnd) {
+        params.startDate = formattedStart;
+        params.endDate = formattedEnd;
+      }
+    }
 
     // Console log de la consulta que se envía al backend
     console.log(`📤 ENVIANDO AL BACKEND - nuevos usuarios:`, {
       endpoint: '/api/metrica/usuarios/creados',
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       originalPeriod: period,
       mappedPeriod,
       timestamp: new Date().toISOString()
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
-      params: { startDate, endDate, period: mappedPeriod },
+      params,
       signal,
       validateStatus: status => status < 500
     });
@@ -242,7 +292,8 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
     };
   } catch (error) {
 
-    if (error.name === 'AbortError') {
+    // Tratar correctamente cancelaciones de fetch y de Axios
+    if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
       return {
         success: false,
         error: 'Solicitud cancelada',
@@ -269,15 +320,59 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
         headers: error.response.headers
       };
     } else if (error.request) {
+      // Error de red/CORS: intentar un retry con fechas explícitas como personalizado
+      const retryRange = getPresetRangeForUsers(period);
+      if (retryRange.startDate && retryRange.endDate) {
+        const retryParams = {
+          period: 'personalizado',
+          startDate: formatDateYmd(retryRange.startDate),
+          endDate: formatDateYmd(retryRange.endDate)
+        };
+
+        console.log('🔁 Retry con fechas por error de red/CORS en usuarios:', {
+          endpoint: '/api/metrica/usuarios/creados',
+          originalPeriod: period,
+          retryParams,
+          timestamp: new Date().toISOString()
+        });
+
+        try {
+          const retryResponse = await axiosInstance.get('/api/metrica/usuarios/creados', {
+            params: retryParams,
+            signal,
+            validateStatus: status => status < 500
+          });
+
+          console.log('✅ Retry exitoso usuarios:', {
+            status: retryResponse.status,
+            data: retryResponse.data
+          });
+
+          if (retryResponse.status === 200 && retryResponse.data) {
+            const retryData = retryResponse.data.data || retryResponse.data;
+            return {
+              success: true,
+              data: retryData
+            };
+          }
+        } catch (retryErr) {
+          console.error('❌ Retry fallido usuarios:', {
+            name: retryErr.name,
+            message: retryErr.message,
+            code: retryErr.code
+          });
+        }
+      }
+
       errorMessage = 'No se pudo conectar con el servidor';
       errorDetails = {
         type: 'request',
-        method: error.config.method,
-        url: error.config.url,
-        params: error.config.params,
+        method: error.config?.method,
+        url: error.config?.url,
+        params: error.config?.params,
         network: {
-          online: navigator.onLine,
-          connection: navigator.connection?.effectiveType
+          online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+          connection: typeof navigator !== 'undefined' ? navigator.connection?.effectiveType : undefined
         }
       };
     }
