@@ -20,6 +20,8 @@ const importService = async (serviceModule, serviceName, serviceCache) => {
       module = await import('../services/paymentMetricsService');
     } else if (serviceModule === 'userMetricsService') {
       module = await import('../services/userMetricsService');
+    } else if (serviceModule === 'catalogService') {
+      module = await import('../services/catalogService');
     }
     
     const service = module?.[serviceName];
@@ -130,18 +132,34 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                     serviceConfig.statusMapper(metricData.changeStatus) : 
                     metricData.changeStatus;
 
-                  return {
+                  const nextMetricBase = {
                     ...metric,
                     value: formattedValue,
                     change: formattedChange,
                     changeStatus: mappedStatus,
                     loading: false,
                     error: null,
-                    ...(serviceConfig.chartDataFormatter && {
-                      chartData: serviceConfig.chartDataFormatter(response.data)
-                    }),
                     isRealData: true,
                     lastUpdated: response.data.lastUpdated
+                  };
+
+                  // Soporte para tipo mapa: llenar points
+                  if (metric.type === 'map') {
+                    const points = serviceConfig.pointsFormatter
+                      ? serviceConfig.pointsFormatter(response.data)
+                      : (response.data.points || (serviceConfig.chartDataFormatter ? serviceConfig.chartDataFormatter(response.data) : []));
+                    return {
+                      ...nextMetricBase,
+                      points
+                    };
+                  }
+
+                  // Soporte estándar para chart data
+                  return {
+                    ...nextMetricBase,
+                    ...(serviceConfig.chartDataFormatter && {
+                      chartData: serviceConfig.chartDataFormatter(response.data)
+                    })
                   };
                 }
 

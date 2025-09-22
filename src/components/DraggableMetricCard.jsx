@@ -59,23 +59,26 @@ const DraggableMetricCard = ({
     ? getChartGridClasses(metric.id, metric.type)
     : metric.type === 'pie' 
       ? 'col-span-1 md:col-span-1 lg:col-span-1 row-span-2'
-      : 'col-span-1 row-span-1';
+      : metric.type === 'map'
+        ? 'col-span-1 row-span-2'
+        : 'col-span-1 row-span-1';
   
   const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
+  const isDraggable = metric.type !== 'map';
 
   return (
     <div
       className={`metric-card-container ${gridClasses} ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'drag-over' : ''} ${className} relative group`}
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onMouseEnter={() => setShowResizeHandles(true)}
-      onMouseLeave={() => setShowResizeHandles(false)}
+      draggable={isDraggable}
+      onDragStart={isDraggable ? handleDragStart : undefined}
+      onDragEnd={isDraggable ? handleDragEnd : undefined}
+      onDragOver={isDraggable ? handleDragOver : undefined}
+      onDragLeave={isDraggable ? handleDragLeave : undefined}
+      onDrop={isDraggable ? handleDrop : undefined}
+      onMouseEnter={() => isResizableChart && setShowResizeHandles(true)}
+      onMouseLeave={() => isResizableChart && setShowResizeHandles(false)}
       style={{ 
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: isDraggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
         transition: 'all 0.2s ease'
       }}
     >

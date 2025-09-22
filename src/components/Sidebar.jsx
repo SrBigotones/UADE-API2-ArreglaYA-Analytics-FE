@@ -2,7 +2,7 @@ import React from 'react';
 
 const Sidebar = ({ activeCategory, setActiveCategory, isDarkMode, categories, isOpen, onClose }) => {
   return (
-    <div className={`w-64 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm min-h-screen fixed md:static inset-y-0 left-0 transform transition-transform z-40 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+    <div className={`w-64 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm min-h-screen fixed md:fixed inset-y-0 left-0 transform transition-transform z-40 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`} style={{ top: '56px' }}>
       <nav className="mt-2">
         {/* Botón cerrar en móvil */}
         <div className="md:hidden flex justify-end px-4">

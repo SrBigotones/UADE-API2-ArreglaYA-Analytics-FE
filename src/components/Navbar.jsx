@@ -20,7 +20,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar, h
   };
 
   return (
-    <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-sm border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+    <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-sm border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} fixed top-0 left-0 right-0 z-50`}>
       <div className="flex items-center justify-between px-6 py-2">
         <div className="flex items-center">
           {/* Hamburguesa (solo móvil) */}

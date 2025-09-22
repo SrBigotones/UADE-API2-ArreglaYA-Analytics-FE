@@ -98,7 +98,7 @@ const MainLayout = () => {
         onToggleSidebar={toggleSidebar}
       />
 
-      <div className="flex">
+      <div className="flex" style={{ paddingTop: 56 }}>
         {/* Sidebar - solo se muestra en dashboard */}
         {activeScreen === 'dashboard' && (
           <>
@@ -118,7 +118,7 @@ const MainLayout = () => {
         )}
 
         {/* Main Content */}
-        <div className={`p-4 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className={`p-4 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ marginLeft: activeScreen === 'dashboard' ? 256 : 0 }}>
           {renderActiveScreen()}
         </div>
       </div>
