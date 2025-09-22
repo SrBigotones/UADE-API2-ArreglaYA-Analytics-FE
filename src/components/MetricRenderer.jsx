@@ -3,6 +3,7 @@ import MetricCard from './MetricCard';
 import PieResponsiveContainer from './PieResponsiveContainer';
 import AreaResponsiveContainer from './AreaResponsiveContainer';
 import CandlestickChart from './CandlestickChart';
+import LeafletHeatMap from './LeafletHeatMap';
 
 const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize }) => {
   if (!metric) return null;
@@ -21,8 +22,10 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   // Calcular altura dinámica según el tamaño del chart
   const getChartHeight = () => {
-    if (!chartSize || !chartSize.rows) return 280;
-    return chartSize.rows === 1 ? 150 : 280; // Altura ajustada para content flexible
+    if (!chartSize || !chartSize.rows) return 290;
+    if (chartSize.rows === 1) return 160;
+    if (chartSize.rows >= 2) return 320; // un poco más alto para 2 filas
+    return 320;
   };
 
   switch (metric.type) {
@@ -142,6 +145,25 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           height={getChartHeight()}
           className={className}
         />
+      );
+    case 'map':
+      // Renderizar el mapa como tarjeta
+      return (
+        <div className={className}>
+          <div className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+              <h3 className="text-base font-medium">{metric.title}</h3>
+              {metric.description && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">{metric.description}</p>
+              )}
+            </div>
+            <LeafletHeatMap
+              points={metric.points || []}
+              height={metric.height || getChartHeight()}
+              heatOptions={metric.heatOptions || { radius: 28, blur: 16, minOpacity: 0.08 }}
+            />
+          </div>
+        </div>
       );
     
     default:

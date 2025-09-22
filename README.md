@@ -1,13 +1,36 @@
-# React + Vite
+# ArreglaYA Analytics FE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Mapa de calor con Leaflet
 
-Currently, two official plugins are available:
+Componente creado: `src/components/LeafletHeatMap.jsx`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Uso básico:
 
-## Expanding the ESLint configuration
+```jsx
+import LeafletHeatMap from './components/LeafletHeatMap'
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-##
+const puntos = [
+  { lat: -34.6037, lng: -58.3816, intensity: 0.8 }, // CABA
+  { lat: -31.4167, lng: -64.1833, intensity: 0.6 }, // Córdoba
+  { lat: -32.9442, lng: -60.6505, intensity: 0.5 }, // Rosario
+]
+
+export default function Demo() {
+  return (
+    <LeafletHeatMap points={puntos} height="500px" />
+  )
+}
+```
+
+Props principales:
+
+- `points`: arreglo de `{ lat, lng, intensity? }`.
+- `center`: coordenadas `[lat, lng]`, por defecto centro de Argentina.
+- `zoom`: por defecto `4`.
+- `height`: alto del contenedor, por defecto `400px`.
+- `heatOptions`: opciones para el heatlayer (`radius`, `blur`, `maxZoom`, `minOpacity`).
+
+Notas:
+
+- El CSS de Leaflet se importa en `src/main.jsx`.
+- Tiles por defecto: OpenStreetMap, configurable vía `tileUrl` y `tileAttribution`.

@@ -58,8 +58,54 @@ export const METRICS_REGISTRY = {
     change: '+23%',
     changeStatus: 'positive',
     description: 'Nuevos prestadores registrados',
-    endpoint: '/api/metrics/catalog/new-providers',
+    endpoint: '/api/metrica/prestadores/registrados',
     category: 'growth'
+  },
+  'catalog-providers-registered': {
+    id: 'catalog-providers-registered',
+    module: 'catalog',
+    type: 'card',
+    title: 'Nuevos prestadores registrados',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Prestadores registrados en el período',
+    endpoint: '/api/metrica/prestadores/registrados',
+    category: 'growth',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getCatalogProvidersRegistered',
+      serviceModule: 'catalogService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'catalog-orders-heatmap': {
+    id: 'catalog-orders-heatmap',
+    module: 'catalog',
+    type: 'map',
+    title: 'Mapa de calor de pedidos',
+    description: 'Distribución geográfica de pedidos',
+    endpoint: '/api/metrica/pedidos/mapa-calor',
+    category: 'distribution',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getCatalogOrdersHeatmap',
+      serviceModule: 'catalogService',
+      valueFormatter: () => '', // no aplica para mapa
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral',
+      pointsFormatter: (data) => data.points || []
+    }
   },
   'catalog-service-distribution': {
     id: 'catalog-service-distribution',
@@ -288,7 +334,7 @@ export const METRICS_REGISTRY = {
 // Configuraciones predefinidas por módulo
 export const MODULE_METRICS = {
   core: ['core-processing-time', 'core-retry-success', 'core-messages-flow'],
-  catalog: ['catalog-new-providers', 'catalog-service-distribution'],
+  catalog: ['catalog-providers-registered', 'catalog-service-distribution', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-conversion-rate', 'app-cancellation-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-refunds-completed', 'payments-event-distribution'],
   users: ['users-new-registrations', 'users-role-assignment'],

@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Asegurar que Leaflet no se superponga a modales (z-50) */
+.leaflet-container .leaflet-pane,
+.leaflet-container .leaflet-top,
+.leaflet-container .leaflet-bottom,
+.leaflet-container {
+	z-index: 0 !important;
+}
+
 /* Estilos para la funcionalidad de arrastrar y soltar con HTML5 Drag and Drop */
 .metric-card-container[draggable="true"]:hover {
   transform: translateY(-2px);
