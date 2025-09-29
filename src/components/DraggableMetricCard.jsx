@@ -64,7 +64,6 @@ const DraggableMetricCard = ({
         : 'col-span-1 row-span-1';
   
   const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
-  const isMap = metric.type === 'map';
   const isDraggable = true; // permitir mover todas las métricas
 
   return (
