@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
-import MetricRenderer from '../components/MetricRenderer';
+import DraggableMetricCard from '../components/DraggableMetricCard';
+import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
 import { useModuleMetrics } from '../hooks/useMetrics';
 
@@ -18,6 +19,7 @@ const UsersScreen = ({ isDarkMode }) => {
   
   // Obtener métricas específicas del módulo de usuarios desde el hook híbrido
   const { metrics: usersMetrics, loading, error, refetch } = useModuleMetrics('users', dateRange);
+  const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(usersMetrics, 'users-metrics-order');
 
   return (
     <>
@@ -60,13 +62,27 @@ const UsersScreen = ({ isDarkMode }) => {
             </div>
           ))
         ) : (
-          usersMetrics.map((metric) => (
-            <MetricRenderer
-              key={metric.id}
-              metric={metric}
-              dateRange={dateRange}
-              isDarkMode={isDarkMode}
-            />
+          (orderedMetrics && orderedMetrics.length ? orderedMetrics : usersMetrics).map((metric, index) => (
+            metric.type === 'card' ? (
+              <DraggableMetricCard
+                key={metric.id}
+                metric={metric}
+                index={index}
+                dateRange={dateRange}
+                isDarkMode={isDarkMode}
+                onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
+                allowToggleToChart={metric.allowToggleToChart ?? true}
+                chartKind={metric.toggleChartKind || 'line'}
+              />
+            ) : (
+              // Para tipos no "card" mantenemos el renderer directo
+              <MetricRenderer
+                key={metric.id}
+                metric={metric}
+                dateRange={dateRange}
+                isDarkMode={isDarkMode}
+              />
+            )
           ))
         )}
       </div>

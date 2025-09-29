@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet.heat'
@@ -21,17 +21,36 @@ function HeatLayer({ points, radius = 25, blur = 15, maxZoom = 17, minOpacity = 
 
   useEffect(() => {
     if (!map) return
-    // Crear capa de calor asegurando normalización con 'max'
-    const layer = L.heatLayer(heatPoints, {
-      radius,
-      blur,
-      maxZoom,
-      minOpacity,
-      max: maxIntensity
-    })
-    layer.addTo(map)
+    let layer
+    let cancelled = false
+    const mount = () => {
+      try {
+        const pane = map.getPane('overlayPane')
+        const container = map._container
+        if (!pane || !container) return
+        layer = L.heatLayer(heatPoints, {
+          radius,
+          blur,
+          maxZoom,
+          minOpacity,
+          max: maxIntensity
+        })
+        if (!cancelled) layer.addTo(map)
+      } catch {
+        if (!cancelled) requestAnimationFrame(mount)
+      }
+    }
+    // Esperar a que el mapa esté listo y al siguiente frame
+    try {
+      map.whenReady(() => requestAnimationFrame(mount))
+    } catch {
+      requestAnimationFrame(mount)
+    }
     return () => {
-      layer.remove()
+      cancelled = true
+      try { layer && layer.remove() } catch {
+        // Silently ignore removal errors
+      }
     }
   }, [map, heatPoints, maxIntensity, radius, blur, maxZoom, minOpacity])
 
@@ -50,14 +69,26 @@ export default function LeafletHeatMap({
   mapKey
 }) {
   const containerRef = useRef(null)
+  const resizeObserverRef = useRef(null)
+  const [deferredMount, setDeferredMount] = useState(false)
   const bounds = useMemo(() => {
     if (!points || points.length === 0) return null
     const latlngs = points.map(p => [p.lat, p.lng])
     return L.latLngBounds(latlngs)
   }, [points])
 
+  // Montar el mapa en el siguiente tick para evitar conflictos durante reordenamientos/navegación
+  useEffect(() => {
+    const t = setTimeout(() => setDeferredMount(true), 0)
+    return () => clearTimeout(t)
+  }, [mapKey])
+
+  if (!deferredMount) {
+    return <div style={{ width: '100%', height }} />
+  }
+
   return (
-    <div style={{ width: '100%', height, position: 'relative', zIndex: 0 }}>
+    <div key={mapKey} ref={containerRef} style={{ width: '100%', height, position: 'relative', zIndex: 0 }}>
       <MapContainer
         key={mapKey}
         center={center}
@@ -82,18 +113,12 @@ export default function LeafletHeatMap({
 
           // Observar cambios de tamaño del contenedor (ResizeObserver)
           try {
-            const ro = new ResizeObserver(() => {
-              try { 
-                map.invalidateSize() 
-              } catch (e) {
-                console.warn('Leaflet invalidateSize (observer) error:', e)
-              }
+            resizeObserverRef.current = new ResizeObserver(() => {
+              try { map.invalidateSize() } catch (e) { console.warn('Leaflet invalidateSize (observer) error:', e) }
             })
             const node = containerRef.current
-            if (node) ro.observe(node)
-          } catch (e) {
-            console.warn('ResizeObserver not available:', e)
-          }
+            if (node && resizeObserverRef.current) resizeObserverRef.current.observe(node)
+          } catch (e) { console.warn('ResizeObserver not available:', e) }
         }}
       >
         <TileLayer attribution={tileAttribution} url={tileUrl} />

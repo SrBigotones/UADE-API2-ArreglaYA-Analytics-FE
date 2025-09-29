@@ -30,26 +30,6 @@ export const METRICS_REGISTRY = {
     category: 'reliability',
     allowToggleToChart: false
   },
-  'core-messages-flow': {
-    id: 'core-messages-flow',
-    module: 'core',
-    type: 'area',
-    title: 'Mensajes por minuto',
-    value: '1,247',
-    change: '+12%',
-    changeStatus: 'positive',
-    description: 'Evolución de mensajes enviados por minuto',
-    chartData: [
-      { time: '00:00', value: 1200 },
-      { time: '04:00', value: 800 },
-      { time: '08:00', value: 1500 },
-      { time: '12:00', value: 1800 },
-      { time: '16:00', value: 1600 },
-      { time: '20:00', value: 1400 },
-    ],
-    endpoint: '/api/metrics/core/messages-per-minute',
-    category: 'traffic'
-  },
 
   // === CATÁLOGO ===
   'catalog-providers-registered': {
@@ -197,36 +177,6 @@ export const METRICS_REGISTRY = {
       serviceName: 'getPaymentSuccessMetrics',
       serviceModule: 'paymentMetricsService',
       valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
-  },
-  'payments-processing-time': {
-    id: 'payments-processing-time',
-    module: 'payments',
-    type: 'card',
-    title: 'Tiempo de procesamiento de pagos',
-    value: '3 s',
-    change: '+0,2 s',
-    changeStatus: 'negative',
-    description: 'Tiempo promedio de procesamiento de pagos en minutos.',
-    endpoint: '/metrics/payments/processing-time',
-    category: 'performance',
-    allowToggleToChart: false,
-    // Configuración para integración con servicio real
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getPaymentProcessingTimeMetrics',
-      serviceModule: 'paymentMetricsService',
-      valueFormatter: (data) => `${data.value} min`,
       changeFormatter: (data) => {
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);

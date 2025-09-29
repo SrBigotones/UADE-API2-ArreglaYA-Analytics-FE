@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Hook para manejar el orden de las métricas en el dashboard
-export const useDashboardOrder = (initialMetrics = []) => {
+export const useDashboardOrder = (initialMetrics = [], storageKey = 'dashboard-metrics-order') => {
   const [orderedMetrics, setOrderedMetrics] = useState(initialMetrics || []);
   const hasLoadedInitialOrder = useRef(false);
   const currentMetricIds = useRef(new Set());
@@ -15,7 +15,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
       // Si es la primera carga o cambió el conjunto de métricas disponibles
       if (!hasLoadedInitialOrder.current || !areSetsEqual(newMetricIds, previousMetricIds)) {
         // Intentar cargar el orden guardado primero
-        const savedOrder = localStorage.getItem('dashboard-metrics-order');
+        const savedOrder = localStorage.getItem(storageKey);
         if (savedOrder) {
           try {
             const savedIds = JSON.parse(savedOrder);
@@ -51,7 +51,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
         });
       }
     }
-  }, [initialMetrics]);
+  }, [initialMetrics, storageKey]);
 
   // Función auxiliar para comparar sets
   const areSetsEqual = (set1, set2) => {
@@ -83,12 +83,12 @@ export const useDashboardOrder = (initialMetrics = []) => {
     try {
       if (orderedMetrics && orderedMetrics.length > 0) {
         const metricIds = orderedMetrics.map(metric => metric.id);
-        localStorage.setItem('dashboard-metrics-order', JSON.stringify(metricIds));
+        localStorage.setItem(storageKey, JSON.stringify(metricIds));
       }
     } catch (error) {
       console.warn('Error saving dashboard order to storage:', error);
     }
-  }, [orderedMetrics]);
+  }, [orderedMetrics, storageKey]);
 
   // Auto-guardar cuando cambie el orden
   useEffect(() => {
@@ -104,7 +104,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
         return availableMetrics || [];
       }
 
-      const savedOrder = localStorage.getItem('dashboard-metrics-order');
+      const savedOrder = localStorage.getItem(storageKey);
       if (savedOrder) {
         const savedIds = JSON.parse(savedOrder);
         // Filtrar solo las métricas que están disponibles
