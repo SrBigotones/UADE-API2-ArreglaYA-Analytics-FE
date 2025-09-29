@@ -36,19 +36,19 @@ function HeatLayer({ points, radius = 25, blur = 15, maxZoom = 17, minOpacity = 
           max: maxIntensity
         })
         if (!cancelled) layer.addTo(map)
-      } catch (e) {
+      } catch {
         if (!cancelled) requestAnimationFrame(mount)
       }
     }
     // Esperar a que el mapa esté listo y al siguiente frame
     try {
       map.whenReady(() => requestAnimationFrame(mount))
-    } catch (_) {
+    } catch {
       requestAnimationFrame(mount)
     }
     return () => {
       cancelled = true
-      try { layer && layer.remove() } catch (_) {}
+      try { layer && layer.remove() } catch {}
     }
   }, [map, heatPoints, maxIntensity, radius, blur, maxZoom, minOpacity])
 

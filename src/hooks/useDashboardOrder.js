@@ -51,7 +51,7 @@ export const useDashboardOrder = (initialMetrics = [], storageKey = 'dashboard-m
         });
       }
     }
-  }, [initialMetrics]);
+  }, [initialMetrics, storageKey]);
 
   // Función auxiliar para comparar sets
   const areSetsEqual = (set1, set2) => {
