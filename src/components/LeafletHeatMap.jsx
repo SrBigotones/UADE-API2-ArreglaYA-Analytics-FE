@@ -48,7 +48,9 @@ function HeatLayer({ points, radius = 25, blur = 15, maxZoom = 17, minOpacity = 
     }
     return () => {
       cancelled = true
-      try { layer && layer.remove() } catch {}
+      try { layer && layer.remove() } catch {
+        // Silently ignore removal errors
+      }
     }
   }, [map, heatPoints, maxIntensity, radius, blur, maxZoom, minOpacity])
 
