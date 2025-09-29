@@ -11,7 +11,7 @@ const CatalogScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const axiosInstance = useAxios();
   const [heatPoints, setHeatPoints] = useState([]);
-  const [loadingMap, setLoadingMap] = useState(false);
+  const [setLoadingMap] = useState(false);
   const [errorMap, setErrorMap] = useState(null);
   const [providersMetric, setProvidersMetric] = useState({ value: '—', change: null, changeStatus: 'neutral', changeType: 'porcentaje' });
 

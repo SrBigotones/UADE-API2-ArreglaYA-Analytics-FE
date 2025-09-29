@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 // Hook para manejar el orden de las métricas en el dashboard
 export const useDashboardOrder = (initialMetrics = []) => {
@@ -79,7 +79,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
   };
 
   // Guardar el orden en localStorage
-  const saveOrderToStorage = () => {
+  const saveOrderToStorage = useCallback(() => {
     try {
       if (orderedMetrics && orderedMetrics.length > 0) {
         const metricIds = orderedMetrics.map(metric => metric.id);
@@ -88,7 +88,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
     } catch (error) {
       console.warn('Error saving dashboard order to storage:', error);
     }
-  };
+  }, [orderedMetrics]);
 
   // Auto-guardar cuando cambie el orden
   useEffect(() => {
