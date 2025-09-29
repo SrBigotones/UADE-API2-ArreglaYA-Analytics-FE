@@ -1,68 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import MetricCard from '../components/MetricCard';
+import React, { useState } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
-import PieResponsiveContainer from '../components/PieResponsiveContainer';
-import AreaResponsiveContainer from '../components/AreaResponsiveContainer';
 import MetricRenderer from '../components/MetricRenderer';
-import { useAxios } from '../hooks/useAxios';
-import { getCatalogOrdersHeatmap, getCatalogProvidersRegistered } from '../services/catalogService';
+import DraggableMetricCard from '../components/DraggableMetricCard';
+import { useModuleMetrics } from '../hooks/useMetrics';
+import { useDashboardOrder } from '../hooks/useDashboardOrder';
 
 const CatalogScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
-  const axiosInstance = useAxios();
-  const [heatPoints, setHeatPoints] = useState([]);
-  const [setLoadingMap] = useState(false);
-  const [errorMap, setErrorMap] = useState(null);
-  const [providersMetric, setProvidersMetric] = useState({ value: '—', change: null, changeStatus: 'neutral', changeType: 'porcentaje' });
-
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-
-    const load = async () => {
-      setLoadingMap(true);
-      setErrorMap(null);
-      try {
-        const { preset, startDate, endDate } = dateRange || {};
-        const period = preset || 'last7';
-        const [heatResp, providersResp] = await Promise.all([
-          getCatalogOrdersHeatmap(axiosInstance, {
-          period,
-          startDate,
-          endDate,
-          signal: controller.signal
-          }),
-          getCatalogProvidersRegistered(axiosInstance, {
-            period,
-            startDate,
-            endDate,
-            signal: controller.signal
-          })
-        ]);
-        if (!cancelled && heatResp?.success) {
-          setHeatPoints(heatResp.data.points || []);
-        }
-        if (!cancelled && providersResp?.success) {
-          setProvidersMetric({
-            value: providersResp.data.value?.toString() ?? '0',
-            change: providersResp.data.change,
-            changeType: providersResp.data.changeType,
-            changeStatus: providersResp.data.changeStatus === 'positivo' ? 'positive' : providersResp.data.changeStatus === 'negativo' ? 'negative' : 'neutral',
-          });
-        }
-      } catch (err) {
-        if (!cancelled) setErrorMap(err.message || 'Error cargando mapa de calor');
-      } finally {
-        if (!cancelled) setLoadingMap(false);
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [axiosInstance, dateRange]);
+  // Traer todas las métricas del módulo catálogo desde el registry (igual que dashboard/pagos)
+  const { metrics: catalogMetrics, loading, error, refetch } = useModuleMetrics('catalog', dateRange);
+  const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(catalogMetrics, 'catalog-metrics-order');
 
   return (
     <>
@@ -75,47 +22,42 @@ const CatalogScreen = ({ isDarkMode }) => {
       <div className="mb-4">
           <DateRangeSelector value={dateRange} onChange={setDateRange} />
       </div>
-      {/* Metrics Grid (incluye demo card) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-        {(() => {
-          const sign = providersMetric.changeStatus === 'positive' ? '+' : providersMetric.changeStatus === 'negative' ? '-' : '';
-          const numericChange = Number(providersMetric.change);
-          const valueAbs = Number.isFinite(numericChange) ? Math.abs(numericChange) : providersMetric.change;
-          const suffix = providersMetric.changeType === 'porcentaje' && Number.isFinite(numericChange) ? '%' : '';
-          const changeText = providersMetric.change != null ? `${sign}${valueAbs}${suffix}` : undefined;
-          return (
-            <MetricCard
-              title="Nuevos prestadores registrados"
-              value={providersMetric.value}
-              change={changeText}
-              changeStatus={providersMetric.changeStatus}
-              periodLabel={dateRange.preset === 'custom' ? 'Personalizado' : 'Últimos 7 días'}
-            />
-          );
-        })()}
+      {/* Estados de carga y error */}
+      {error && (
+        <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-600'} mb-6`}>
+          <div className="flex items-center justify-between">
+            <span>⚠️ {error}</span>
+            <button onClick={refetch} className="text-sm underline hover:no-underline">Reintentar</button>
+          </div>
+        </div>
+      )}
 
-        {/* Mapa de calor de servicios/prestadores por ubicación (idéntico al dashboard) */}
-        <div className="col-span-1 row-span-2">
-          {errorMap ? (
-            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}>
-              {errorMap}
+      {/* Metrics Grid por categoría (igual enfoque que otras pantallas) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className={`rounded-lg border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className="animate-pulse">
+                <div className={`h-4 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-8 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+                <div className={`h-3 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+              </div>
             </div>
-          ) : (
-            <MetricRenderer
-              metric={{
-                id: 'catalog-orders-heatmap',
-                type: 'map',
-                title: 'Mapa de calor de pedidos',
-                description: 'Distribución geográfica de pedidos',
-                points: heatPoints || [],
-                height: 290
-              }}
+          ))
+        ) : (
+          (orderedMetrics && orderedMetrics.length ? orderedMetrics : catalogMetrics).map((metric, index) => (
+            <DraggableMetricCard
+              key={metric.id}
+              metric={metric}
+              index={index}
               dateRange={dateRange}
               isDarkMode={isDarkMode}
-              metricKey={`catalog-orders-heatmap`}
+              onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
+              allowToggleToChart={metric.allowToggleToChart ?? (metric.type === 'card')}
+              chartKind={metric.toggleChartKind || 'line'}
             />
-          )}
-        </div>
+          ))
+        )}
       </div>
     </>
   );

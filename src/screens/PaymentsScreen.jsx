@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
-import MetricRenderer from '../components/MetricRenderer';
+import DraggableMetricCard from '../components/DraggableMetricCard';
+import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import { useModuleMetrics } from '../hooks/useMetrics';
 
 const PaymentsScreen = ({ isDarkMode }) => {
@@ -8,6 +9,7 @@ const PaymentsScreen = ({ isDarkMode }) => {
   
   // Obtener métricas específicas del módulo de pagos desde el hook híbrido
   const { metrics: paymentsMetrics, loading, error, refetch } = useModuleMetrics('payments', dateRange);
+  const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(paymentsMetrics, 'payments-metrics-order');
 
   return (
     <>
@@ -50,12 +52,16 @@ const PaymentsScreen = ({ isDarkMode }) => {
             </div>
           ))
         ) : (
-          paymentsMetrics.map((metric) => (
-            <MetricRenderer
+          (orderedMetrics && orderedMetrics.length ? orderedMetrics : paymentsMetrics).map((metric, index) => (
+            <DraggableMetricCard
               key={metric.id}
               metric={metric}
+              index={index}
               dateRange={dateRange}
               isDarkMode={isDarkMode}
+              onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
+              allowToggleToChart={metric.allowToggleToChart ?? (metric.type === 'card')}
+              chartKind={metric.toggleChartKind || 'line'}
             />
           ))
         )}
