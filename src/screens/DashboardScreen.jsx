@@ -47,10 +47,8 @@ const CoreScreen = ({ isDarkMode }) => {
   // Función para manejar el reordenamiento
   const handleReorder = (fromIndex, toIndex) => {
     reorderMetrics(fromIndex, toIndex);
-    // Guardar el nuevo orden después de un pequeño delay
-    setTimeout(() => {
-      saveOrderToStorage();
-    }, 100);
+    // Guardar inmediatamente
+    saveOrderToStorage();
   };
 
   return (
@@ -109,16 +107,22 @@ const CoreScreen = ({ isDarkMode }) => {
           (selectedMetricIds && selectedMetricIds.length > 0
             ? orderedMetrics.filter(m => selectedMetricIds.includes(m.id))
             : orderedMetrics
-          ).map((metric, index) => (
-            <DraggableMetricCard
-              key={metric.id}
-              metric={metric}
-              index={index}
-              dateRange={dateRange}
-              isDarkMode={isDarkMode}
-              onReorder={handleReorder}
-            />
-          ))
+          ).map((metric, index) => {
+            const allowToggle = metric.allowToggleToChart ?? (metric.type === 'card');
+            const preferredKind = metric.toggleChartKind || 'line';
+            return (
+              <DraggableMetricCard
+                key={metric.id}
+                metric={metric}
+                index={index}
+                dateRange={dateRange}
+                isDarkMode={isDarkMode}
+                onReorder={handleReorder}
+                allowToggleToChart={allowToggle}
+                chartKind={preferredKind}
+              />
+            );
+          })
         )}
       </div>
 

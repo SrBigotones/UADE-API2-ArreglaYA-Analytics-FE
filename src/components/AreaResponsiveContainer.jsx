@@ -14,7 +14,8 @@ const AreaResponsiveContainer = ({
   height = 300,
   className,
   asCard = false,
-  title
+  title,
+  onClick
 }) => {
   // Tooltip personalizado para modo oscuro
   const CustomTooltip = ({ active, payload, label }) => {
@@ -67,7 +68,10 @@ const AreaResponsiveContainer = ({
 
   if (asCard) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col">
+      <div 
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+        onClick={onClick}
+      >
         {title && (
           <div className="mb-2">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>

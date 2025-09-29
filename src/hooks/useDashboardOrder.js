@@ -90,6 +90,13 @@ export const useDashboardOrder = (initialMetrics = []) => {
     }
   };
 
+  // Auto-guardar cuando cambie el orden
+  useEffect(() => {
+    if (orderedMetrics && orderedMetrics.length > 0) {
+      saveOrderToStorage();
+    }
+  }, [orderedMetrics]);
+
   // Cargar el orden desde localStorage
   const loadOrderFromStorage = (availableMetrics) => {
     try {

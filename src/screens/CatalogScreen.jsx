@@ -3,7 +3,7 @@ import MetricCard from '../components/MetricCard';
 import DateRangeSelector from '../components/DateRangeSelector';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
 import AreaResponsiveContainer from '../components/AreaResponsiveContainer';
-import LeafletHeatMap from '../components/LeafletHeatMap.jsx';
+import MetricRenderer from '../components/MetricRenderer';
 import { useAxios } from '../hooks/useAxios';
 import { getCatalogOrdersHeatmap, getCatalogProvidersRegistered } from '../services/catalogService';
 
@@ -94,34 +94,27 @@ const CatalogScreen = ({ isDarkMode }) => {
           );
         })()}
 
-        {/* Mapa de calor de servicios/prestadores por ubicación */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-3">
-          <div className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-              <h3 className="text-lg font-semibold">Mapa de calor de actividad</h3>
-              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Densidad de servicios y prestadores por ubicación (demo)
-              </p>
+        {/* Mapa de calor de servicios/prestadores por ubicación (idéntico al dashboard) */}
+        <div className="col-span-1 row-span-2">
+          {errorMap ? (
+            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-red-900/20 border-red-800 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              {errorMap}
             </div>
-            {errorMap ? (
-              <div className={`p-4 ${isDarkMode ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700'}`}>
-                {errorMap}
-              </div>
-            ) : (
-              <div className="relative">
-                {loadingMap && (
-                  <div className={`absolute inset-0 flex items-center justify-center z-10 ${isDarkMode ? 'bg-gray-900/50' : 'bg-white/50'}`}>
-                    <span className="animate-pulse">Cargando mapa…</span>
-                  </div>
-                )}
-                <LeafletHeatMap
-                  points={heatPoints}
-                  height="420px"
-                  heatOptions={{ radius: 28, blur: 16, minOpacity: 0.08 }}
-                />
-              </div>
-            )}
-          </div>
+          ) : (
+            <MetricRenderer
+              metric={{
+                id: 'catalog-orders-heatmap',
+                type: 'map',
+                title: 'Mapa de calor de pedidos',
+                description: 'Distribución geográfica de pedidos',
+                points: heatPoints || [],
+                height: 290
+              }}
+              dateRange={dateRange}
+              isDarkMode={isDarkMode}
+              metricKey={`catalog-orders-heatmap`}
+            />
+          )}
         </div>
       </div>
     </>

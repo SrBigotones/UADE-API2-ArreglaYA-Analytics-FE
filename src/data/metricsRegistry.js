@@ -13,7 +13,9 @@ export const METRICS_REGISTRY = {
     changeStatus: 'positive',
     description: 'Tiempo promedio de procesamiento de mensajes',
     endpoint: '/api/metrics/core/processing-time',
-    category: 'performance'
+    category: 'performance',
+    allowToggleToChart: true,
+    toggleChartKind: 'line'
   },
   'core-retry-success': {
     id: 'core-retry-success',
@@ -25,7 +27,8 @@ export const METRICS_REGISTRY = {
     changeStatus: 'positive',
     description: 'Tasa de reintentos exitosos',
     endpoint: '/api/metrics/core/retry-success-rate',
-    category: 'reliability'
+    category: 'reliability',
+    allowToggleToChart: false
   },
   'core-messages-flow': {
     id: 'core-messages-flow',
@@ -60,6 +63,8 @@ export const METRICS_REGISTRY = {
     description: 'Prestadores registrados en el período',
     endpoint: '/api/metrica/prestadores/registrados',
     category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'candlestick',
     hasRealService: true,
     serviceConfig: {
       serviceName: 'getCatalogProvidersRegistered',
@@ -75,7 +80,22 @@ export const METRICS_REGISTRY = {
         'negativo': 'negative',
         'neutro': 'neutral'
       }[status] || 'neutral')
-    }
+    },
+    // Datos de prueba SOLO para el gráfico (velas)
+    chartData: [
+      { date: '2025-09-01', open: 98, close: 105, high: 108, low: 95 },
+      { date: '2025-09-02', open: 105, close: 101, high: 109, low: 99 },
+      { date: '2025-09-03', open: 101, close: 110, high: 113, low: 100 },
+      { date: '2025-09-04', open: 110, close: 108, high: 114, low: 106 },
+      { date: '2025-09-05', open: 108, close: 115, high: 118, low: 107 },
+      { date: '2025-09-06', open: 115, close: 112, high: 119, low: 111 },
+      { date: '2025-09-07', open: 112, close: 120, high: 122, low: 110 },
+      { date: '2025-09-08', open: 120, close: 119, high: 124, low: 117 },
+      { date: '2025-09-09', open: 119, close: 123, high: 125, low: 118 },
+      { date: '2025-09-10', open: 123, close: 121, high: 126, low: 120 },
+      { date: '2025-09-11', open: 121, close: 127, high: 129, low: 121 },
+      { date: '2025-09-12', open: 127, close: 126, high: 130, low: 124 }
+    ]
   },
   'catalog-orders-heatmap': {
     id: 'catalog-orders-heatmap',
@@ -125,7 +145,9 @@ export const METRICS_REGISTRY = {
     changeStatus: 'positive',
     description: 'Número de solicitudes de servicio creadas',
     endpoint: '/api/metrics/app/requests-created',
-    category: 'usage'
+    category: 'usage',
+    allowToggleToChart: true,
+    toggleChartKind: 'line'
   },
   'app-conversion-rate': {
     id: 'app-conversion-rate',
@@ -137,7 +159,8 @@ export const METRICS_REGISTRY = {
     changeStatus: 'positive',
     description: 'Tasa de conversión de búsqueda a solicitud',
     endpoint: '/api/metrics/app/conversion-rate',
-    category: 'conversion'
+    category: 'conversion',
+    allowToggleToChart: false
   },
   'app-cancellation-rate': {
     id: 'app-cancellation-rate',
@@ -149,7 +172,9 @@ export const METRICS_REGISTRY = {
     changeStatus: 'positive',
     description: 'Tasa/porcentaje de cancelación de solicitudes',
     endpoint: '/api/metrics/app/cancellation-rate',
-    category: 'retention'
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'candlestick'
   },
 
   // === PAGOS ===
@@ -164,6 +189,8 @@ export const METRICS_REGISTRY = {
     description: 'Porcentaje de pagos exitosos sobre el total de los mismos.',
     endpoint: '/api/metrica/pagos/exitosos',
     category: 'performance',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
@@ -193,6 +220,7 @@ export const METRICS_REGISTRY = {
     description: 'Tiempo promedio de procesamiento de pagos en minutos.',
     endpoint: '/metrics/payments/processing-time',
     category: 'performance',
+    allowToggleToChart: false,
     // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
@@ -221,7 +249,9 @@ export const METRICS_REGISTRY = {
     changeStatus: 'negative',
     description: 'Tiempo promedio de procesamiento de pagos en segundos.',
     endpoint: '/api/metrics/payments/refunds-completed',
-    category: 'refunds'
+    category: 'refunds',
+    allowToggleToChart: true,
+    toggleChartKind: 'candlestick'
   },
   'payments-event-distribution': {
     id: 'payments-event-distribution',
@@ -264,6 +294,8 @@ export const METRICS_REGISTRY = {
     description: 'Nuevos usuarios registrados',
     endpoint: '/api/metrica/usuarios/creados',
     category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
@@ -293,6 +325,7 @@ export const METRICS_REGISTRY = {
     description: 'Tasa de roles asignados correctamente a usuarios',
     endpoint: '/api/metrica/usuarios/roles',
     category: 'management',
+    allowToggleToChart: false,
     hasRealService: false, // Deshabilitado temporalmente - sin endpoint disponible
     // Datos hardcodeados mientras no hay endpoint
     mockData: {

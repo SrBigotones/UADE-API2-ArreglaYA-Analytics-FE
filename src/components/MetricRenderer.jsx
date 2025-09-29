@@ -30,9 +30,26 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   switch (metric.type) {
     case 'card':
-      // Si el usuario pidió ver la evolución temporal, renderizar área/linea
+      // Si el usuario pidió ver la evolución temporal, renderizar área/linea/velas
       if (metric.showTrend && Array.isArray(metric.chartData) && metric.chartData.length) {
         const xKey = metric.chartData?.[0]?.time ? 'time' : 'date';
+        if (metric.trendKind === 'candlestick') {
+          return (
+            <CandlestickChart
+              data={metric.chartData}
+              nameKey={xKey}
+              openKey="open"
+              closeKey="close"
+              highKey="high"
+              lowKey="low"
+              asCard={true}
+              title={metric.title}
+              height={getChartHeight()}
+              className={className}
+              onClick={onClick}
+            />
+          );
+        }
         if (metric.trendKind === 'bar') {
           // Fallback simple: usar AreaResponsiveContainer con stroke ancho simulando barras si no hay Bar contenedor
           return (
@@ -175,6 +192,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       return (
         <CandlestickChart
           data={metric.chartData}
+          nameKey={metric.chartData?.[0]?.time ? 'time' : 'date'}
           openKey="open"
           closeKey="close"
           highKey="high"
