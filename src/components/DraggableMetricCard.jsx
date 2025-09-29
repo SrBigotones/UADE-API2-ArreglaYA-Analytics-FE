@@ -64,7 +64,8 @@ const DraggableMetricCard = ({
         : 'col-span-1 row-span-1';
   
   const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
-  const isDraggable = metric.type !== 'map';
+  const isMap = metric.type === 'map';
+  const isDraggable = true; // permitir mover todas las métricas
 
   return (
     <div
@@ -82,6 +83,7 @@ const DraggableMetricCard = ({
         transition: 'all 0.2s ease'
       }}
     >
+      
       {/* Handles de redimensionamiento solo para line charts y candlestick */}
       {isResizableChart && showResizeHandles && !isDragging && (
         <SimpleResizeHandles
@@ -98,6 +100,7 @@ const DraggableMetricCard = ({
           dateRange={dateRange}
           isDarkMode={isDarkMode}
           chartSize={currentSize}
+          metricKey={`${metric.id}-${index}`}
         />
       </div>
     </div>

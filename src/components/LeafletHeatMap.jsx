@@ -47,6 +47,7 @@ export default function LeafletHeatMap({
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   heatOptions = {},
+  mapKey
 }) {
   const containerRef = useRef(null)
   const bounds = useMemo(() => {
@@ -58,6 +59,7 @@ export default function LeafletHeatMap({
   return (
     <div style={{ width: '100%', height, position: 'relative', zIndex: 0 }}>
       <MapContainer
+        key={mapKey}
         center={center}
         zoom={zoom}
         style={{ width: '100%', height: '100%' }}
