@@ -95,7 +95,7 @@ export const useDashboardOrder = (initialMetrics = []) => {
     if (orderedMetrics && orderedMetrics.length > 0) {
       saveOrderToStorage();
     }
-  }, [orderedMetrics]);
+  }, [orderedMetrics, saveOrderToStorage]);
 
   // Cargar el orden desde localStorage
   const loadOrderFromStorage = (availableMetrics) => {

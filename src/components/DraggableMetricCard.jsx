@@ -17,31 +17,27 @@ const DraggableMetricCard = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [showResizeHandles, setShowResizeHandles] = useState(false);
   const [showTrend, setShowTrend] = useState(() => {
-    try {
-      if (allowToggleToChart && metric?.type === 'card') {
-        const stored = localStorage.getItem(`dashboard-showTrend-${metric.id}`);
-        return stored ? JSON.parse(stored) === true : false;
-      }
-    } catch (_) {}
+    if (allowToggleToChart && metric?.type === 'card') {
+      const stored = localStorage.getItem(`dashboard-showTrend-${metric.id}`);
+      return stored ? JSON.parse(stored) === true : false;
+    }
     return false;
   });
 
   // Persistir estado de toggle por métrica
   useEffect(() => {
-    try {
-      if (allowToggleToChart && metric?.type === 'card') {
-        localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(showTrend));
-      }
-    } catch (_) {}
+    if (allowToggleToChart && metric?.type === 'card') {
+      localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(showTrend));
+    }
   }, [showTrend, allowToggleToChart, metric?.type, metric?.id]);
 
   // Si la feature se deshabilita dinámicamente, forzar volver a card y limpiar
   useEffect(() => {
     if (!allowToggleToChart && showTrend) {
       setShowTrend(false);
-      try { localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false)); } catch (_) {}
+      localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
     }
-  }, [allowToggleToChart]);
+  }, [allowToggleToChart, showTrend, metric?.id]);
   
   const { getChartSize, updateChartSize, getGridClasses: getChartGridClasses } = useChartSizes();
 
@@ -163,7 +159,7 @@ const DraggableMetricCard = ({
       <div className="metric-card-handle" onClick={() => { 
         if (allowToggleToChart && metric.type === 'card' && !showTrend) {
           setShowTrend(true);
-          try { localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true)); } catch (_) {}
+          localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true));
         }
       }}>
         <MetricRenderer
@@ -175,7 +171,7 @@ const DraggableMetricCard = ({
           onClick={() => { 
             if (allowToggleToChart && metric.type === 'card' && showTrend) {
               setShowTrend(false);
-              try { localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false)); } catch (_) {}
+              localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
             }
           }}
         />
