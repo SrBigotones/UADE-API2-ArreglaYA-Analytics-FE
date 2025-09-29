@@ -30,6 +30,45 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   switch (metric.type) {
     case 'card':
+      // Si el usuario pidió ver la evolución temporal, renderizar área/linea
+      if (metric.showTrend && Array.isArray(metric.chartData) && metric.chartData.length) {
+        const xKey = metric.chartData?.[0]?.time ? 'time' : 'date';
+        if (metric.trendKind === 'bar') {
+          // Fallback simple: usar AreaResponsiveContainer con stroke ancho simulando barras si no hay Bar contenedor
+          return (
+            <AreaResponsiveContainer
+              data={metric.chartData}
+              xKey={xKey}
+              areaKey="value"
+              color={metric.color || '#0ea5e9'}
+              asCard={true}
+              title={metric.title}
+              height={getChartHeight()}
+              comparisonData={metric.previousPeriodData}
+              comparisonLabel="Periodo anterior"
+              currentLabel="Periodo actual"
+              className={className}
+              onClick={onClick}
+            />
+          );
+        }
+        return (
+          <AreaResponsiveContainer
+            data={metric.chartData}
+            xKey={xKey}
+            areaKey="value"
+            color={metric.color || '#0ea5e9'}
+            asCard={true}
+            title={metric.title}
+            height={getChartHeight()}
+            comparisonData={metric.previousPeriodData}
+            comparisonLabel="Periodo anterior"
+            currentLabel="Periodo actual"
+            className={className}
+            onClick={onClick}
+          />
+        );
+      }
       return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;
     
     case 'pie':

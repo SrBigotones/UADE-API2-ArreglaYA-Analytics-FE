@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import MetricRenderer from './MetricRenderer';
 import SimpleResizeHandles from './SimpleResizeHandles';
 import { useChartSizes } from '../hooks/useChartSizes';
@@ -9,13 +9,32 @@ const DraggableMetricCard = ({
   dateRange, 
   isDarkMode, 
   onReorder,
-  className = ''
+  className = '',
+  allowToggleToChart = true,
+  chartKind = 'line'
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showResizeHandles, setShowResizeHandles] = useState(false);
+  const [showTrend, setShowTrend] = useState(false);
   
   const { getChartSize, updateChartSize, getGridClasses: getChartGridClasses } = useChartSizes();
+
+  // Preparar datos locales sin mutar la métrica original
+  const localChartData = useMemo(() => {
+    if (metric.chartData && metric.chartData.length) return metric.chartData;
+    // Generar 7 días con una leve variación alrededor del valor actual
+    const now = new Date();
+    const baseValue = Number(String(metric.value).replace(/[^0-9.]/g, '')) || 0;
+    return Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(now);
+      d.setDate(now.getDate() - (6 - i));
+      return {
+        date: d.toISOString().slice(0, 10),
+        value: Math.max(0, Math.round(baseValue + (Math.random() - 0.5) * (baseValue * 0.1 || 4)))
+      };
+    });
+  }, [metric.chartData, metric.value]);
 
   const handleDragStart = (e) => {
     setIsDragging(true);
@@ -61,7 +80,9 @@ const DraggableMetricCard = ({
       ? 'col-span-1 md:col-span-1 lg:col-span-1 row-span-2'
       : metric.type === 'map'
         ? 'col-span-1 row-span-2'
-        : 'col-span-1 row-span-1';
+        : (metric.type === 'card' && showTrend)
+          ? 'col-span-1 row-span-2'
+          : 'col-span-1 row-span-1';
   
   const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
   const isDraggable = true; // permitir mover todas las métricas
@@ -93,13 +114,14 @@ const DraggableMetricCard = ({
         />
       )}
       
-      <div className="metric-card-handle">
+      <div className="metric-card-handle" onClick={() => { if (allowToggleToChart && metric.type === 'card' && !showTrend) setShowTrend(true); }}>
         <MetricRenderer
-          metric={metric}
+          metric={metric.type === 'card' ? { ...metric, showTrend: allowToggleToChart && showTrend, chartData: localChartData, trendKind: chartKind } : metric}
           dateRange={dateRange}
           isDarkMode={isDarkMode}
           chartSize={currentSize}
           metricKey={`${metric.id}-${index}`}
+          onClick={() => { if (allowToggleToChart && metric.type === 'card' && showTrend) setShowTrend(false); }}
         />
       </div>
     </div>
