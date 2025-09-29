@@ -25,7 +25,8 @@ const CandlestickChart = ({
   asCard = false,
   title,
   className = '',
-  chartMargin = { top: 20, right: 30, left: 20, bottom: 5 }
+  chartMargin = { top: 20, right: 30, left: 20, bottom: 5 },
+  onClick
 }) => {
   // Función para el tooltip personalizado
   const CustomTooltip = ({ active, payload, label }) => {
@@ -117,7 +118,10 @@ const CandlestickChart = ({
 
   if (asCard) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col">
+      <div 
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow"
+        onClick={onClick}
+      >
         {title && (
           <div className="mb-2">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
