@@ -5,7 +5,7 @@ import AreaResponsiveContainer from './AreaResponsiveContainer';
 import CandlestickChart from './CandlestickChart';
 import LeafletHeatMap from './LeafletHeatMap';
 
-const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize }) => {
+const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey }) => {
   if (!metric) return null;
 
   const commonProps = {
@@ -30,7 +30,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   switch (metric.type) {
     case 'card':
-      return <MetricCard key={metric.id} {...commonProps} className={className} />;
+      return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;
     
     case 'pie':
       // Si hay error, mostrar componente de error en lugar del gráfico
@@ -158,6 +158,8 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               )}
             </div>
             <LeafletHeatMap
+              key={metricKey}
+              mapKey={metricKey}
               points={metric.points || []}
               height={metric.height || getChartHeight()}
               heatOptions={metric.heatOptions || { radius: 28, blur: 16, minOpacity: 0.08 }}
@@ -167,7 +169,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       );
     
     default:
-      return <MetricCard key={metric.id} {...commonProps} className={className} />;
+      return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;
   }
 };
 
