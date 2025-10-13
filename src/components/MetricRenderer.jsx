@@ -23,9 +23,24 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
   // Calcular altura dinámica según el tamaño del chart
   const getChartHeight = () => {
     if (!chartSize || !chartSize.rows) return 290;
-    if (chartSize.rows === 1) return 160;
-    if (chartSize.rows >= 2) return 320; // un poco más alto para 2 filas
-    return 320;
+    if (chartSize.rows === 1) return 180;
+    if (chartSize.rows === 2) return 300;
+    if (chartSize.rows === 3) return 490;
+    if (chartSize.rows === 4) return 670; // altura para 4 filas
+    if (chartSize.rows >= 5) return 780; // altura para 5 filas
+    return 350;
+  };
+
+  // Altura específica para tarjetas que se convierten en gráficos (mantener consistencia)
+  const getCardChartHeight = () => {
+    // Para tarjetas que se expanden, usar altura más compacta
+    if (!chartSize || !chartSize.rows) return 140; // altura más compacta
+    if (chartSize.rows === 1) return 140; // mantener altura compacta
+    if (chartSize.rows === 2) return 300; // altura para 2 filas
+    if (chartSize.rows === 3) return 490; // altura para 3 filas
+    if (chartSize.rows === 4) return 580; // altura para 4 filas
+    if (chartSize.rows >= 5) return 680; // altura para 5 filas
+    return 140;
   };
 
   switch (metric.type) {
@@ -44,7 +59,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               lowKey="low"
               asCard={true}
               title={metric.title}
-              height={getChartHeight()}
+              height={getCardChartHeight()}
               className={className}
               onClick={onClick}
             />
@@ -60,7 +75,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               color={metric.color || '#0ea5e9'}
               asCard={true}
               title={metric.title}
-              height={getChartHeight()}
+              height={getCardChartHeight()}
               comparisonData={metric.previousPeriodData}
               comparisonLabel="Periodo anterior"
               currentLabel="Periodo actual"
@@ -77,7 +92,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
             color={metric.color || '#0ea5e9'}
             asCard={true}
             title={metric.title}
-            height={getChartHeight()}
+            height={getCardChartHeight()}
             comparisonData={metric.previousPeriodData}
             comparisonLabel="Periodo anterior"
             currentLabel="Periodo actual"
@@ -121,7 +136,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           colors={metric.chartData?.map(item => item.color)}
           asCard={true}
           title={metric.title}
-          height={293}
+          height={getChartHeight()}
           className={className}
         />
       );
@@ -203,8 +218,9 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           className={className}
         />
       );
-    case 'map':
-      // Renderizar el mapa como tarjeta
+    case 'map': {
+      // Renderizar el mapa con altura dinámica según el tamaño
+      const mapHeight = getChartHeight();
       return (
         <div className={className}>
           <div className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -215,15 +231,16 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               )}
             </div>
             <LeafletHeatMap
-              key={metricKey}
-              mapKey={metricKey}
+              key={`${metricKey}-${chartSize?.cols || 1}x${chartSize?.rows || 2}`}
+              mapKey={`${metricKey}-${chartSize?.cols || 1}x${chartSize?.rows || 2}`}
               points={metric.points || []}
-              height={metric.height || getChartHeight()}
+              height={mapHeight}
               heatOptions={metric.heatOptions || { radius: 28, blur: 16, minOpacity: 0.08 }}
             />
           </div>
         </div>
       );
+    }
     
     default:
       return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;

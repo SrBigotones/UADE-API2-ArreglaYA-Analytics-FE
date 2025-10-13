@@ -79,6 +79,17 @@ const DraggableMetricCard = ({
   }, [metric.chartData, metric.value, chartKind]);
 
   const handleDragStart = (e) => {
+    // Evitar drag si es un mapa y el evento viene del área del mapa
+    if (metric.type === 'map') {
+      // Solo permitir drag desde el área del título, no desde el mapa
+      if (e.target.closest('.leaflet-container') || 
+          !e.target.closest('.metric-card-handle')) {
+        e.preventDefault();
+        return;
+      }
+    }
+    
+    console.log(`Iniciando drag de: ${metric.id} (${metric.type})`);
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', index.toString());
     e.dataTransfer.effectAllowed = 'move';
@@ -108,30 +119,23 @@ const DraggableMetricCard = ({
     const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
     
     if (draggedIndex !== index) {
+      console.log(`Reordenando: ${draggedIndex} -> ${index}, metric: ${metric.id}`);
       onReorder(draggedIndex, index);
     }
   };
 
-  // Determinar si la métrica es un gráfico que puede redimensionarse (solo line charts y candlestick)
-  const isResizableChart = ['area', 'line', 'candlestick'].includes(metric.type);
+  // Todos los tipos de contenedores ahora son redimensionables
+  const isResizableChart = true;
   
-  // Obtener las clases de grid (para gráficos redimensionables usa el hook, para otros usa valores fijos)
-  const gridClasses = isResizableChart 
-    ? getChartGridClasses(metric.id, metric.type)
-    : metric.type === 'pie' 
-      ? 'col-span-1 md:col-span-1 lg:col-span-1 row-span-2'
-      : metric.type === 'map'
-        ? 'col-span-1 row-span-2'
-        : (metric.type === 'card' && showTrend)
-          ? 'col-span-1 row-span-2'
-          : 'col-span-1 row-span-1';
+  // Usar el hook para obtener las clases de grid para todos los tipos
+  const gridClasses = getChartGridClasses(metric.id, metric.type);
   
   const currentSize = isResizableChart ? getChartSize(metric.id, metric.type) : null;
-  const isDraggable = true; // permitir mover todas las métricas
+  const isDraggable = metric.type !== 'map'; // deshabilitar drag para mapas
 
   return (
     <div
-      className={`metric-card-container ${gridClasses} ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'drag-over' : ''} ${className} relative group`}
+      className={`metric-card-container ${gridClasses} ${isDragging ? 'opacity-50 scale-95' : ''} ${isDragOver ? 'drag-over' : ''} ${className} relative group ${metric.type === 'map' ? 'map-container' : ''}`}
       draggable={isDraggable}
       onDragStart={isDraggable ? handleDragStart : undefined}
       onDragEnd={isDraggable ? handleDragEnd : undefined}
@@ -141,37 +145,81 @@ const DraggableMetricCard = ({
       onMouseEnter={() => isResizableChart && setShowResizeHandles(true)}
       onMouseLeave={() => isResizableChart && setShowResizeHandles(false)}
       style={{ 
-        cursor: isDraggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
-        transition: 'all 0.2s ease'
+        cursor: isDraggable && metric.type !== 'map' ? (isDragging ? 'grabbing' : 'grab') : 'default',
+        transition: metric.type !== 'map' ? 'all 0.2s ease' : 'none'
       }}
     >
       
-      {/* Handles de redimensionamiento solo para line charts y candlestick */}
-      {isResizableChart && showResizeHandles && !isDragging && (
+      {/* Handles de redimensionamiento para todos los tipos de contenedores */}
+      {isResizableChart && showResizeHandles && !isDragging && !isDragOver && (
         <SimpleResizeHandles
           metricId={metric.id}
           currentSize={currentSize}
-          onSizeChange={updateChartSize}
+          onSizeChange={(metricId, newSize) => {
+            // Evitar redimensionamiento accidental durante drag
+            if (!isDragging && !isDragOver) {
+              console.log(`Redimensionando manualmente: ${metricId}`, newSize);
+              updateChartSize(metricId, newSize);
+            }
+          }}
           isDarkMode={isDarkMode}
         />
       )}
       
-      <div className="metric-card-handle" onClick={() => { 
-        if (allowToggleToChart && metric.type === 'card' && !showTrend) {
-          setShowTrend(true);
-          localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true));
+      <div 
+        className="metric-card-handle" 
+        onClick={(e) => { 
+          // Solo activar toggle para cards, no para mapas u otros tipos
+          if (allowToggleToChart && metric.type === 'card' && !showTrend) {
+            setShowTrend(true);
+            localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true));
+          }
+          // Para mapas, evitar que el click se propague y cause selección
+          if (metric.type === 'map') {
+            e.stopPropagation();
+          }
+        }}
+        onKeyDown={(e) => {
+          // Manejar Enter y Space para accesibilidad
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            // Solo activar toggle para cards, no para mapas u otros tipos
+            if (allowToggleToChart && metric.type === 'card' && !showTrend) {
+              setShowTrend(true);
+              localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true));
+            }
+            // Para mapas, evitar que el evento se propague
+            if (metric.type === 'map') {
+              e.stopPropagation();
+            }
+          }
+        }}
+        tabIndex={0}
+        role="button"
+        aria-label={
+          metric.type === 'card' && allowToggleToChart && !showTrend 
+            ? `Expandir ${metric.title} para mostrar gráfico` 
+            : `Contenedor de ${metric.title}`
         }
-      }}>
+        draggable={metric.type === 'map'}
+        onDragStart={metric.type === 'map' ? handleDragStart : undefined}
+        onDragEnd={metric.type === 'map' ? handleDragEnd : undefined}
+        style={metric.type === 'map' ? { cursor: 'grab' } : {}}
+      >
         <MetricRenderer
           metric={metric.type === 'card' ? { ...metric, showTrend: allowToggleToChart && showTrend, chartData: localChartData, trendKind: chartKind } : metric}
           dateRange={dateRange}
           isDarkMode={isDarkMode}
           chartSize={currentSize}
           metricKey={`${metric.id}-${index}`}
-          onClick={() => { 
+          onClick={(e) => { 
             if (allowToggleToChart && metric.type === 'card' && showTrend) {
               setShowTrend(false);
               localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
+            }
+            // Para mapas, evitar interferencia con navegación
+            if (metric.type === 'map') {
+              e?.stopPropagation();
             }
           }}
         />

@@ -65,3 +65,65 @@
 .dark .dashboard-grid::before {
   color: #9ca3af;
 }
+
+/* Estilos específicos para contenedores de mapas */
+.map-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.map-container:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.map-container:active {
+  cursor: default !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+.map-container .leaflet-container {
+  cursor: grab !important;
+  pointer-events: auto;
+}
+
+.map-container .leaflet-container:active {
+  cursor: grabbing !important;
+}
+
+/* Evitar efectos de selección en mapas */
+.map-container * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.map-container .leaflet-container * {
+  pointer-events: auto;
+}
+
+/* Bloquear selección específicamente en el contenedor del mapa */
+.map-container {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+.map-container:focus {
+  outline: none;
+}
+
+.map-container .leaflet-container {
+  outline: none;
+}

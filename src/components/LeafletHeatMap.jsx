@@ -79,8 +79,20 @@ export default function LeafletHeatMap({
 
   // Montar el mapa en el siguiente tick para evitar conflictos durante reordenamientos/navegación
   useEffect(() => {
-    const t = setTimeout(() => setDeferredMount(true), 0)
-    return () => clearTimeout(t)
+    setDeferredMount(false) // Reset primero
+    const t = setTimeout(() => setDeferredMount(true), 100) // Delay más largo para redimensionamiento
+    return () => {
+      clearTimeout(t)
+      // Limpiar ResizeObserver si existe
+      if (resizeObserverRef.current) {
+        try {
+          resizeObserverRef.current.disconnect()
+          resizeObserverRef.current = null
+        } catch (e) {
+          console.warn('Error cleaning up ResizeObserver:', e)
+        }
+      }
+    }
   }, [mapKey])
 
   if (!deferredMount) {
@@ -88,7 +100,22 @@ export default function LeafletHeatMap({
   }
 
   return (
-    <div key={mapKey} ref={containerRef} style={{ width: '100%', height, position: 'relative', zIndex: 0 }}>
+    <div 
+      key={mapKey} 
+      ref={containerRef} 
+      style={{ width: '100%', height, position: 'relative', zIndex: 0 }}
+      onMouseDown={(e) => {
+        // Bloquear click izquierdo para evitar selección
+        if (e.button === 0) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+      onContextMenu={(e) => {
+        // Bloquear menú contextual
+        e.preventDefault();
+      }}
+    >
       <MapContainer
         key={mapKey}
         center={center}
@@ -114,7 +141,12 @@ export default function LeafletHeatMap({
           // Observar cambios de tamaño del contenedor (ResizeObserver)
           try {
             resizeObserverRef.current = new ResizeObserver(() => {
-              try { map.invalidateSize() } catch (e) { console.warn('Leaflet invalidateSize (observer) error:', e) }
+              try { 
+                // Invalidar tamaño con delays para asegurar que el DOM se actualice
+                setTimeout(() => map.invalidateSize(), 10)
+                setTimeout(() => map.invalidateSize(), 100)
+                setTimeout(() => map.invalidateSize(), 300)
+              } catch (e) { console.warn('Leaflet invalidateSize (observer) error:', e) }
             })
             const node = containerRef.current
             if (node && resizeObserverRef.current) resizeObserverRef.current.observe(node)
