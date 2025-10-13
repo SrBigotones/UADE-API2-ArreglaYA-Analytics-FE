@@ -218,7 +218,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           className={className}
         />
       );
-    case 'map':
+    case 'map': {
       // Renderizar el mapa con altura dinámica según el tamaño
       const mapHeight = getChartHeight();
       return (
@@ -240,6 +240,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           </div>
         </div>
       );
+    }
     
     default:
       return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;
