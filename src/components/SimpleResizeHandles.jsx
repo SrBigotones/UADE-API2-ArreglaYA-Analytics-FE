@@ -50,7 +50,7 @@ const SimpleResizeHandles = ({
         
         if (deltaY > 0) {
           // Arrastrando hacia abajo = aumentar altura
-          newSize.rows = Math.min(2, startSize.rows + sizeChange);
+          newSize.rows = Math.min(5, startSize.rows + sizeChange);
         } else {
           // Arrastrando hacia arriba = disminuir altura
           newSize.rows = Math.max(1, startSize.rows - sizeChange);
@@ -98,7 +98,7 @@ const SimpleResizeHandles = ({
       <div
         className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-transparent"
         onMouseDown={handleMouseDown('bottom')}
-        title="Arrastrar para cambiar altura (1-2 filas)"
+        title="Arrastrar para cambiar altura (1-5 filas)"
       >
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-transparent rounded-t"></div>
       </div>
