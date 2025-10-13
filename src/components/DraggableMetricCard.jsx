@@ -179,6 +179,28 @@ const DraggableMetricCard = ({
             e.stopPropagation();
           }
         }}
+        onKeyDown={(e) => {
+          // Manejar Enter y Space para accesibilidad
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            // Solo activar toggle para cards, no para mapas u otros tipos
+            if (allowToggleToChart && metric.type === 'card' && !showTrend) {
+              setShowTrend(true);
+              localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(true));
+            }
+            // Para mapas, evitar que el evento se propague
+            if (metric.type === 'map') {
+              e.stopPropagation();
+            }
+          }
+        }}
+        tabIndex={0}
+        role="button"
+        aria-label={
+          metric.type === 'card' && allowToggleToChart && !showTrend 
+            ? `Expandir ${metric.title} para mostrar gráfico` 
+            : `Contenedor de ${metric.title}`
+        }
         draggable={metric.type === 'map'}
         onDragStart={metric.type === 'map' ? handleDragStart : undefined}
         onDragEnd={metric.type === 'map' ? handleDragEnd : undefined}
