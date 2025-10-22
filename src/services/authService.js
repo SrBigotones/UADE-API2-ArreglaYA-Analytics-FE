@@ -1,17 +1,19 @@
 import axios from 'axios';
 import config from '../config/api.js';
 
-// Simple auth service for login
+// Auth service for login using our metrics backend
 export const loginRequest = async ({ usernameOrEmail, password }) => {
-  const url = `${config.API_BASE_URL}users/login`;
+  const url = `${config.API_BASE_URL}api/auth/login`;
+  
   const response = await axios.post(url, {
-    usernameOrEmail,
+    email: usernameOrEmail, // El backend espera 'email' no 'usernameOrEmail'
     password,
   }, {
     headers: { 'Content-Type': 'application/json' },
     timeout: 10000,
   });
-  return response.data; // expected to contain token/JWT
+  
+  return response.data; // expected to contain token/JWT and user info
 };
 
 // Mock login to use while backend is not ready

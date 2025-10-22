@@ -1,9 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/authContextCore';
-// import { loginRequest } from '../services/authService'; // reservado para backend real
+import { loginRequest } from '../services/authService';
 // Logo se removió en Login para esta pantalla
 import Navbar from '../components/Navbar';
-import { loginRequestMock } from '../services/authService';
 
 const LoginScreen = () => {
   const { login } = useContext(AuthContext);
@@ -43,8 +42,8 @@ const LoginScreen = () => {
 
     try {
       setIsSubmitting(true);
-      // Use mock for now; keep real request ready for later switch
-      const data = await loginRequestMock({ usernameOrEmail, password });
+      // Use real backend authentication
+      const data = await loginRequest({ usernameOrEmail, password });
       const token = data?.token || data?.jwt || data?.accessToken;
       if (!token) {
         setErrorMessage('Respuesta inválida del servidor.');
@@ -52,7 +51,7 @@ const LoginScreen = () => {
       }
       await login({ token, user: data?.user });
     } catch (err) {
-      const apiMessage = err?.response?.data?.message || 'Credenciales inválidas o error de conexión.';
+      const apiMessage = err?.response?.data?.message || err?.response?.data?.error || 'Credenciales inválidas o error de conexión.';
       setErrorMessage(apiMessage);
     } finally {
       setIsSubmitting(false);
