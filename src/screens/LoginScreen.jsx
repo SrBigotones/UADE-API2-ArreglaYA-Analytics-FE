@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/authContextCore';
 import { loginRequest } from '../services/authService'; // reservado para backend real
+import { saveToken } from '../utils/tokenStorage';
 // Logo se removió en Login para esta pantalla
 import Navbar from '../components/Navbar';
 
@@ -49,6 +50,7 @@ const LoginScreen = () => {
         setErrorMessage('Respuesta inválida del servidor.');
         return;
       }
+      await saveToken(token);
       await login({ token, user: data?.user });
     } catch (err) {
       const apiMessage = err?.response?.data?.message || 'Credenciales inválidas o error de conexión.';
