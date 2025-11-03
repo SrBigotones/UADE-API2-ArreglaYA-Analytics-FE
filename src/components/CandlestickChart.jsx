@@ -18,6 +18,7 @@ const CandlestickChart = ({
   closeKey = 'close',
   highKey = 'high',
   lowKey = 'low',
+  valueKey = 'value', // Nueva prop para datos simples
   colors = ['#10b981', '#ef4444'],
   height = 300,
   showGrid = true,
@@ -28,10 +29,57 @@ const CandlestickChart = ({
   chartMargin = { top: 20, right: 30, left: 20, bottom: 5 },
   onClick
 }) => {
+  // Detectar si los datos tienen formato simple (solo value) o completo (OHLC)
+  const hasSimpleData = data.length > 0 && data[0][valueKey] !== undefined && data[0][openKey] === undefined;
+  
+  // Transformar datos simples a formato OHLC
+  const transformedData = React.useMemo(() => {
+    if (!hasSimpleData) return data;
+    
+    return data.map((entry, index) => {
+      const value = entry[valueKey];
+      const prevValue = index > 0 ? data[index - 1][valueKey] : value;
+      
+      // Usar el valor como punto medio
+      // Generar open/close basándose en el valor anterior (simula cambio)
+      const open = index > 0 ? prevValue : value;
+      const close = value;
+      
+      // Generar high/low con una variación pequeña (3% del valor)
+      const variation = Math.abs(value * 0.03);
+      const high = Math.max(open, close) + variation;
+      const low = Math.min(open, close) - variation;
+      
+      return {
+        ...entry,
+        [openKey]: open,
+        [closeKey]: close,
+        [highKey]: high,
+        [lowKey]: low,
+        _originalValue: value // Guardar el valor original para el tooltip
+      };
+    });
+  }, [data, hasSimpleData, valueKey, openKey, closeKey, highKey, lowKey]);
+
   // Función para el tooltip personalizado
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      
+      // Si es dato simple, mostrar solo el valor; si es completo, mostrar OHLC
+      if (hasSimpleData && data._originalValue !== undefined) {
+        return (
+          <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <p className="font-semibold text-gray-900 dark:text-gray-100">{label}</p>
+            <div className="space-y-1 text-sm">
+              <p className="text-gray-600 dark:text-gray-300">
+                <span className="font-medium">Valor:</span> {data._originalValue}
+              </p>
+            </div>
+          </div>
+        );
+      }
+      
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
           <p className="font-semibold text-gray-900 dark:text-gray-100">{label}</p>
@@ -63,7 +111,7 @@ const CandlestickChart = ({
   const chartContent = (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart
-        data={data}
+        data={transformedData}
         margin={chartMargin}
         className={className}
       >
@@ -108,7 +156,7 @@ const CandlestickChart = ({
           dataKey={closeKey}
           radius={[2, 2, 0, 0]}
         >
-          {data.map((entry, index) => (
+          {transformedData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
           ))}
         </Bar>
