@@ -49,9 +49,6 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       if (metric.showTrend && Array.isArray(metric.chartData) && metric.chartData.length) {
         const xKey = metric.chartData?.[0]?.time ? 'time' : 'date';
         if (metric.trendKind === 'candlestick') {
-          // Detectar si los datos son simples (solo value) o completos (OHLC)
-          const hasSimpleData = metric.chartData[0]?.value !== undefined && metric.chartData[0]?.open === undefined;
-          
           return (
             <CandlestickChart
               data={metric.chartData}
@@ -60,7 +57,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               closeKey="close"
               highKey="high"
               lowKey="low"
-              valueKey="value" // Para datos simples
+              valueKey="value" // Para datos simples (el componente detecta automáticamente)
               asCard={true}
               title={metric.title}
               height={getCardChartHeight()}
