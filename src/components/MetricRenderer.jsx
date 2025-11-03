@@ -57,6 +57,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               closeKey="close"
               highKey="high"
               lowKey="low"
+              valueKey="value" // Para datos simples (el componente detecta automáticamente)
               asCard={true}
               title={metric.title}
               height={getCardChartHeight()}
@@ -212,6 +213,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           closeKey="close"
           highKey="high"
           lowKey="low"
+          valueKey="value" // Para datos simples
           asCard={true}
           title={metric.title}
           height={getChartHeight()}
