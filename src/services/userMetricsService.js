@@ -200,79 +200,37 @@ const formatDateYmd = (date) => {
   return date;
 };
 
-// Helper para obtener rango por preset (replica de DateRangeSelector)
-const getPresetRangeForUsers = (presetId) => {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  switch (presetId) {
-    case 'today':
-      return { startDate: today, endDate: today };
-    case 'last7': {
-      const start = new Date(today);
-      start.setDate(start.getDate() - 6);
-      return { startDate: start, endDate: today };
-    }
-    case 'last30': {
-      const start = new Date(today);
-      start.setDate(start.getDate() - 29);
-      return { startDate: start, endDate: today };
-    }
-    case 'lastYear': {
-      const start = new Date(today);
-      start.setFullYear(start.getFullYear() - 1);
-      start.setDate(start.getDate() + 1);
-      return { startDate: start, endDate: today };
-    }
-    default:
-      return { startDate: null, endDate: null };
-  }
-};
-
-export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period, signal }) => {
-  if (!axiosInstance) {
-    throw new Error('Cliente HTTP no inicializado');
-  }
-
+// Función base para servicios de usuarios
+const fetchUserMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate } = {}) => {
   try {
-    // Mapear el período al formato esperado por el backend (alineado con pagos)
     const mappedPeriod = mapUserPeriodToBackend(period);
-
-    // Construir params como en pagos: siempre period y fechas solo si es personalizado
+    
     const params = { period: mappedPeriod };
-    if (mappedPeriod === 'personalizado') {
-      const formattedStart = formatDateYmd(startDate);
-      const formattedEnd = formatDateYmd(endDate);
-      if (formattedStart && formattedEnd) {
-        params.startDate = formattedStart;
-        params.endDate = formattedEnd;
-      }
+    if (mappedPeriod === 'personalizado' && startDate && endDate) {
+      params.startDate = formatDateYmd(startDate);
+      params.endDate = formatDateYmd(endDate);
     }
 
-    // Console log de la consulta que se envía al backend
-    console.log(`📤 ENVIANDO AL BACKEND - nuevos usuarios:`, {
-      endpoint: '/api/metrica/usuarios/creados',
+    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
+      endpoint,
       params,
       originalPeriod: period,
       mappedPeriod,
       timestamp: new Date().toISOString()
     });
 
-    const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
+    const response = await axiosInstance.get(endpoint, {
       params,
-      signal,
       validateStatus: status => status < 500
     });
 
-    // Console log de la respuesta raw del backend
-    console.log(`📥 RESPUESTA RAW BACKEND - nuevos usuarios:`, {
-      endpoint: '/api/metrica/usuarios/creados',
+    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
+      endpoint,
       status: response.status,
       statusText: response.statusText,
       data: response.data,
-      headers: response.headers,
       timestamp: new Date().toISOString()
     });
-
 
     if (response.status !== 200) {
       throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
@@ -282,112 +240,198 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
       throw new Error('Respuesta sin datos');
     }
 
-    // Extraer los datos correctamente de la estructura anidada
-    const responseData = response.data.data || response.data;
-    
+    const rawData = response.data.data || response.data;
 
     return {
       success: true,
-      data: responseData  // Pasar los datos tal cual vienen del servidor
+      data: rawData
     };
   } catch (error) {
-
-    // Tratar correctamente cancelaciones de fetch y de Axios
-    if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+    if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
       return {
         success: false,
-        error: 'Solicitud cancelada',
-        details: {
-          timestamp: new Date().toISOString(),
-          type: 'abort'
-        }
-      };
-    }
-
-    let errorMessage = 'Error desconocido';
-    let errorDetails = {
-      timestamp: new Date().toISOString(),
-      type: 'unknown'
-    };
-
-    if (error.response) {
-      errorMessage = `Error ${error.response.status}: ${error.response.data?.message || error.response.statusText || 'Error del servidor'}`;
-      errorDetails = {
-        type: 'response',
-        status: error.response.status,
-        statusText: error.response.statusText,
-        data: error.response.data,
-        headers: error.response.headers
-      };
-    } else if (error.request) {
-      // Error de red/CORS: intentar un retry con fechas explícitas como personalizado
-      const retryRange = getPresetRangeForUsers(period);
-      if (retryRange.startDate && retryRange.endDate) {
-        const retryParams = {
-          period: 'personalizado',
-          startDate: formatDateYmd(retryRange.startDate),
-          endDate: formatDateYmd(retryRange.endDate)
-        };
-
-        console.log('🔁 Retry con fechas por error de red/CORS en usuarios:', {
-          endpoint: '/api/metrica/usuarios/creados',
-          originalPeriod: period,
-          retryParams,
-          timestamp: new Date().toISOString()
-        });
-
-        try {
-          const retryResponse = await axiosInstance.get('/api/metrica/usuarios/creados', {
-            params: retryParams,
-            signal,
-            validateStatus: status => status < 500
-          });
-
-          console.log('✅ Retry exitoso usuarios:', {
-            status: retryResponse.status,
-            data: retryResponse.data
-          });
-
-          if (retryResponse.status === 200 && retryResponse.data) {
-            const retryData = retryResponse.data.data || retryResponse.data;
-            return {
-              success: true,
-              data: retryData
-            };
-          }
-        } catch (retryErr) {
-          console.error('❌ Retry fallido usuarios:', {
-            name: retryErr.name,
-            message: retryErr.message,
-            code: retryErr.code
-          });
-        }
-      }
-
-      errorMessage = 'No se pudo conectar con el servidor';
-      errorDetails = {
-        type: 'request',
-        method: error.config?.method,
-        url: error.config?.url,
-        params: error.config?.params,
-        network: {
-          online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
-          connection: typeof navigator !== 'undefined' ? navigator.connection?.effectiveType : undefined
-        }
+        error: 'Solicitud cancelada'
       };
     }
 
     return {
       success: false,
-      error: errorMessage,
-      details: errorDetails,
-      originalError: {
-        name: error.name,
-        message: error.message,
-        code: error.code
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
+    };
+  }
+};
+
+export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/nuevos-clientes', // ✅ ACTUALIZADO: usar endpoint nuevo
+    period,
+    'nuevos usuarios registrados',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
+
+// Servicio para nuevos clientes registrados
+export const getUserNewCustomers = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/nuevos-clientes',
+    period,
+    'nuevos clientes',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
+
+// Servicio para nuevos prestadores usuarios registrados
+export const getUserNewProviders = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/nuevos-prestadores',
+    period,
+    'nuevos prestadores usuarios',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
+
+// Servicio para nuevos administradores registrados
+export const getUserNewAdmins = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/nuevos-administradores',
+    period,
+    'nuevos administradores',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
+
+// Servicio para tasa de roles activos
+export const getUserActiveRolesRate = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/tasa-roles-activos',
+    period,
+    'tasa de roles activos',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  
+  // El endpoint devuelve { tasaActivos: {...}, distribucionPorRol: {...} }
+  if (raw.tasaActivos) {
+    // Helper para colores por rol
+    const getRoleColor = (rol) => {
+      const colors = {
+        'customer': '#3b82f6',    // Azul
+        'prestador': '#10b981',   // Verde
+        'admin': '#f59e0b'        // Amarillo
+      };
+      return colors[rol?.toLowerCase()] || '#6b7280';
+    };
+
+    // Transformar distribución por rol a formato de gráfico para pie chart
+    let chartData = [];
+    if (raw.distribucionPorRol && typeof raw.distribucionPorRol === 'object') {
+      chartData = Object.entries(raw.distribucionPorRol).map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value: typeof value === 'number' ? value : 0,
+        color: getRoleColor(name)
+      }));
+    }
+
+    return {
+      success: true,
+      data: {
+        value: raw.tasaActivos.value ?? 0,
+        change: raw.tasaActivos.change ?? 0,
+        changeType: raw.tasaActivos.changeType || 'absoluto',
+        changeStatus: raw.tasaActivos.changeStatus || 'neutral',
+        // chartData vacío porque el backend no provee datos históricos para la tasa
+        // La distribución por rol va en chartData para que pueda ser usada por el pie chart
+        chartData: chartData, // Para pie chart (distribución), vacío para line chart (tasa histórica)
+        distribucionPorRol: raw.distribucionPorRol || {},
+        lastUpdated: new Date().toISOString()
       }
     };
   }
+
+  return {
+    success: false,
+    message: 'Respuesta del backend sin datos de tasa de roles activos'
+  };
 };
 
 // Servicio para asignación de roles de usuarios

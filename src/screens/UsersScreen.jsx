@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
 import DraggableMetricCard from '../components/DraggableMetricCard';
+import MetricRenderer from '../components/MetricRenderer';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
 import { useModuleMetrics } from '../hooks/useMetrics';
@@ -49,7 +50,7 @@ const UsersScreen = ({ isDarkMode }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 3 }).map((_, index) => (
@@ -63,26 +64,16 @@ const UsersScreen = ({ isDarkMode }) => {
           ))
         ) : (
           (orderedMetrics && orderedMetrics.length ? orderedMetrics : usersMetrics).map((metric, index) => (
-            metric.type === 'card' ? (
-              <DraggableMetricCard
-                key={metric.id}
-                metric={metric}
-                index={index}
-                dateRange={dateRange}
-                isDarkMode={isDarkMode}
-                onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
-                allowToggleToChart={metric.allowToggleToChart ?? true}
-                chartKind={metric.toggleChartKind || 'line'}
-              />
-            ) : (
-              // Para tipos no "card" mantenemos el renderer directo
-              <MetricRenderer
-                key={metric.id}
-                metric={metric}
-                dateRange={dateRange}
-                isDarkMode={isDarkMode}
-              />
-            )
+            <DraggableMetricCard
+              key={metric.id}
+              metric={metric}
+              index={index}
+              dateRange={dateRange}
+              isDarkMode={isDarkMode}
+              onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
+              allowToggleToChart={metric.allowToggleToChart ?? (metric.type === 'card')}
+              chartKind={metric.toggleChartKind || 'line'}
+            />
           ))
         )}
       </div>

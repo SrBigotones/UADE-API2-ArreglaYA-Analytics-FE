@@ -1,6 +1,6 @@
-// Servicio del módulo Catálogo: mapas de calor y métricas de prestadores
+// Servicio del módulo App de Búsqueda y Solicitudes
 
-// Mapeo de períodos del frontend al backend (consistente con pagos/usuarios)
+// Mapeo de períodos del frontend al backend (consistente con catálogo/pagos)
 const mapPeriodToBackend = (frontendPeriod) => {
   const periodMap = {
     'today': 'hoy',
@@ -18,12 +18,12 @@ const formatYmd = (value) => {
   return value instanceof Date ? value.toISOString().split('T')[0] : value;
 };
 
-// === Heatmap de pedidos ===
-export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+// === Métrica: Solicitudes creadas (Volumen de demanda) ===
+export const getAppRequestsCreated = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
-  const mappedPeriod = mapPeriodToBackend(period);
-  const params = { period: mappedPeriod };
+    const mappedPeriod = mapPeriodToBackend(period);
+    const params = { period: mappedPeriod };
   if (mappedPeriod === 'personalizado') {
     const start = formatYmd(startDate);
     const end = formatYmd(endDate);
@@ -33,51 +33,56 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
     }
   }
 
-  const endpoint = '/api/metrica/pedidos/mapa-calor';
+  const endpoint = '/api/metrica/solicitudes/volumen';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: mapa de calor de pedidos', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    timestamp: new Date().toISOString()
-  });
+  console.log('📤 ENVIANDO AL BACKEND - app: solicitudes creadas', {
+      endpoint,
+      params,
+      originalPeriod: period,
+      mappedPeriod,
+      startDatePassed: startDate,
+      endDatePassed: endDate,
+      startDateFormatted: params.startDate,
+      endDateFormatted: params.endDate,
+      timestamp: new Date().toISOString()
+    });
 
-  const response = await axiosInstance.get(endpoint, {
+    const response = await axiosInstance.get(endpoint, {
     params,
     signal,
     validateStatus: status => status < 500
-  });
+    });
 
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: mapa de calor de pedidos', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
+  console.log('📥 RESPUESTA RAW BACKEND - app: solicitudes creadas', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
 
-  if (response.status !== 200) {
+    if (response.status !== 200) {
     throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
-  }
+    }
   if (!response.data || typeof response.data === 'string') {
     throw new Error('Respuesta inválida o sin datos');
-  }
+    }
 
   const raw = response.data.data || response.data;
-  const points = (raw.data || []).map((p) => ({ lat: p.lat, lng: p.lon, intensity: p.intensity }));
-
-  return {
-    success: true,
+    return {
+      success: true,
     data: {
-      points,
-      totalPoints: raw.totalPoints ?? points.length,
-      period: raw.period
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
     }
   };
 };
 
-// === Métrica: Prestadores registrados ===
-export const getCatalogProvidersRegistered = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+// === Métrica: Tasa de cancelación ===
+export const getAppCancellationRate = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -91,9 +96,9 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
     }
   }
 
-  const endpoint = '/api/metrica/prestadores/nuevos-registrados';
+  const endpoint = '/api/metrica/solicitudes/tasa-cancelacion';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: nuevos prestadores registrados', {
+  console.log('📤 ENVIANDO AL BACKEND - app: tasa de cancelación', {
     endpoint,
     params,
     originalPeriod: period,
@@ -111,7 +116,7 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
     validateStatus: status => status < 500
   });
 
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: nuevos prestadores registrados', {
+  console.log('📥 RESPUESTA RAW BACKEND - app: tasa de cancelación', {
     status: response.status,
     statusText: response.statusText,
     data: response.data,
@@ -139,8 +144,9 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
   };
 };
 
-// === Métrica: Total de prestadores activos ===
-export const getCatalogTotalActiveProviders = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+// === Métrica: Tiempo a primera cotización ===
+// NOTA: El backend devuelve el valor en MINUTOS, pero se muestra en HORAS
+export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -154,9 +160,9 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
     }
   }
 
-  const endpoint = '/api/metrica/prestadores/total-activos';
+  const endpoint = '/api/metrica/solicitudes/tiempo-primera-cotizacion';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: total prestadores activos', {
+  console.log('📤 ENVIANDO AL BACKEND - app: tiempo a primera cotización', {
     endpoint,
     params,
     originalPeriod: period,
@@ -174,133 +180,7 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
     validateStatus: status => status < 500
   });
 
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: total prestadores activos', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
-
-  if (response.status !== 200) {
-    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
-  }
-  if (!response.data || typeof response.data === 'string') {
-    throw new Error('Respuesta inválida o sin datos');
-  }
-
-  const raw = response.data.data || response.data;
-  return {
-    success: true,
-    data: {
-      value: raw.value ?? 0,
-      change: raw.change ?? 0,
-      changeType: raw.changeType || 'porcentaje',
-      changeStatus: raw.changeStatus || 'neutral',
-      chartData: raw.chartData || [],
-      lastUpdated: new Date().toISOString()
-    }
-  };
-};
-
-// === Métrica: Win Rate por rubro ===
-export const getCatalogWinRateByCategory = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
-  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
-
-  const mappedPeriod = mapPeriodToBackend(period);
-  const params = { period: mappedPeriod };
-  if (mappedPeriod === 'personalizado') {
-    const start = formatYmd(startDate);
-    const end = formatYmd(endDate);
-    if (start && end) {
-      params.startDate = start;
-      params.endDate = end;
-    }
-  }
-
-  const endpoint = '/api/metrica/prestadores/win-rate-rubro';
-
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: win rate por rubro', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    timestamp: new Date().toISOString()
-  });
-
-  const response = await axiosInstance.get(endpoint, {
-    params,
-    signal,
-    validateStatus: status => status < 500
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: win rate por rubro', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
-
-  if (response.status !== 200) {
-    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
-  }
-  if (!response.data || typeof response.data === 'string') {
-    throw new Error('Respuesta inválida o sin datos');
-  }
-
-  const raw = response.data.data || response.data;
-  return {
-    success: true,
-    data: {
-      value: raw.value ?? 0,
-      change: raw.change ?? 0,
-      changeType: raw.changeType || 'porcentaje',
-      changeStatus: raw.changeStatus || 'neutral',
-      chartData: raw.chartData || [],
-      lastUpdated: new Date().toISOString()
-    }
-  };
-};
-
-// === Métrica: Distribución de servicios ===
-export const getCatalogServiceDistribution = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
-  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
-
-  const mappedPeriod = mapPeriodToBackend(period);
-  const params = { period: mappedPeriod };
-  if (mappedPeriod === 'personalizado') {
-    const start = formatYmd(startDate);
-    const end = formatYmd(endDate);
-    if (start && end) {
-      params.startDate = start;
-      params.endDate = end;
-    }
-  }
-
-  const endpoint = '/api/metrica/prestadores/servicios/distribucion';
-
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: distribución de servicios', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    timestamp: new Date().toISOString()
-  });
-
-  const response = await axiosInstance.get(endpoint, {
-    params,
-    signal,
-    validateStatus: status => status < 500
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: distribución de servicios', {
+  console.log('📥 RESPUESTA RAW BACKEND - app: tiempo a primera cotización', {
     status: response.status,
     statusText: response.statusText,
     data: response.data,
@@ -316,32 +196,93 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
 
   const raw = response.data.data || response.data;
   
-  // Convertir el objeto de distribución a formato de gráfico de torta
-  const chartData = [];
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0ea5e9', '#ef4444'];
-  let colorIndex = 0;
-  
-  for (const [name, value] of Object.entries(raw)) {
-    if (name !== 'total' && typeof value === 'number') {
-      chartData.push({
-        name,
-        value,
-        color: colors[colorIndex % colors.length]
-      });
-      colorIndex++;
-    }
-  }
-
-  const total = chartData.reduce((sum, item) => sum + item.value, 0);
-
-  return {
-    success: true,
-    data: {
-      chartData,
-      total,
+      // Convertir de minutos a horas
+  const valueInMinutes = raw.value ?? 0;
+  const changeInMinutes = raw.change ?? 0;
+      const valueInHours = (valueInMinutes / 60).toFixed(1);
+      const changeInHours = (changeInMinutes / 60).toFixed(1);
+      
+      // Convertir chartData de minutos a horas también
+      const chartDataInHours = (raw.chartData || []).map(point => ({
+        ...point,
+        value: point.value ? parseFloat((point.value / 60).toFixed(1)) : 0
+      }));
+      
+      return {
+        success: true,
+        data: {
+          value: parseFloat(valueInHours),
+          change: parseFloat(changeInHours),
+      changeType: raw.changeType || 'absoluto',
+      changeStatus: raw.changeStatus || 'neutral',
+          originalValueMinutes: valueInMinutes,
+      originalChangeMinutes: changeInMinutes,
+          chartData: chartDataInHours,
       lastUpdated: new Date().toISOString()
     }
   };
 };
 
+// === Métrica: Conversión a cotización aceptada ===
+export const getAppQuoteConversionRate = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
+
+  const mappedPeriod = mapPeriodToBackend(period);
+  const params = { period: mappedPeriod };
+  if (mappedPeriod === 'personalizado') {
+    const start = formatYmd(startDate);
+    const end = formatYmd(endDate);
+    if (start && end) {
+      params.startDate = start;
+      params.endDate = end;
+    }
+  }
+
+  const endpoint = '/api/metrica/matching/cotizaciones/conversion-aceptada';
+
+  console.log('📤 ENVIANDO AL BACKEND - app: conversión a cotización aceptada', {
+    endpoint,
+    params,
+    originalPeriod: period,
+    mappedPeriod,
+    startDatePassed: startDate,
+    endDatePassed: endDate,
+    startDateFormatted: params.startDate,
+    endDateFormatted: params.endDate,
+    timestamp: new Date().toISOString()
+  });
+
+  const response = await axiosInstance.get(endpoint, {
+    params,
+    signal,
+    validateStatus: status => status < 500
+  });
+
+  console.log('📥 RESPUESTA RAW BACKEND - app: conversión a cotización aceptada', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+    timestamp: new Date().toISOString()
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
+  }
+  if (!response.data || typeof response.data === 'string') {
+    throw new Error('Respuesta inválida o sin datos');
+  }
+
+  const raw = response.data.data || response.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
 

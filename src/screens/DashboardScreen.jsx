@@ -91,7 +91,7 @@ const CoreScreen = ({ isDarkMode }) => {
       )}
 
       {/* Metrics Grid */}
-      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min grid-flow-row-dense">
+      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-min grid-flow-row-dense">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 4 }).map((_, index) => (

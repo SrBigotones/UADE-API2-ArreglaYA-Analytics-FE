@@ -33,7 +33,7 @@ const CatalogScreen = ({ isDarkMode }) => {
       )}
 
       {/* Metrics Grid por categoría (igual enfoque que otras pantallas) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
         {loading ? (
           Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className={`rounded-lg border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>

@@ -22,6 +22,10 @@ const importService = async (serviceModule, serviceName, serviceCache) => {
       module = await import('../services/userMetricsService');
     } else if (serviceModule === 'catalogService') {
       module = await import('../services/catalogService');
+    } else if (serviceModule === 'appSearchsAndRequests') {
+      module = await import('../services/appSearchsAndRequests');
+    } else if (serviceModule === 'matchingMetricsService') {
+      module = await import('../services/matchingMetricsService');
     }
     
     const service = module?.[serviceName];
@@ -71,6 +75,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     // Verificar cache
     const cached = metricsResultsCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 5000) { // Cache por 5 segundos
+      console.log('⚡ USANDO DATOS CACHEADOS', { cacheKey, cached: cached.data });
       setMetrics(cached.data);
       setLoading(false);
       return;
@@ -155,10 +160,26 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   }
 
                   // Soporte estándar para chart data
+                  const chartDataFormatted = serviceConfig.chartDataFormatter 
+                    ? serviceConfig.chartDataFormatter(response.data)
+                    : undefined;
+                  
+                  // Si no hay formatter, usar chartData directamente de response.data
+                  const chartData = chartDataFormatted || (Array.isArray(response.data?.chartData) ? response.data.chartData : undefined);
+                  
+                  console.log(`📊 CHART DATA FORMATEADO - ${metric.id}:`, {
+                    hasChartDataFormatter: !!serviceConfig.chartDataFormatter,
+                    responseData: response.data,
+                    chartDataFormatted: chartDataFormatted,
+                    chartDataDirect: response.data?.chartData,
+                    chartDataFinal: chartData,
+                    chartDataLength: chartData?.length || 0
+                  });
+                  
                   return {
                     ...nextMetricBase,
-                    ...(serviceConfig.chartDataFormatter && {
-                      chartData: serviceConfig.chartDataFormatter(response.data)
+                    ...(chartData && {
+                      chartData: chartData
                     })
                   };
                 }

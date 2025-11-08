@@ -45,29 +45,49 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
 
   switch (metric.type) {
     case 'card':
-      // Si el usuario pidió ver la evolución temporal, renderizar área/linea/velas
-      if (metric.showTrend && Array.isArray(metric.chartData) && metric.chartData.length) {
-        const xKey = metric.chartData?.[0]?.time ? 'time' : 'date';
-        if (metric.trendKind === 'candlestick') {
-          return (
-            <CandlestickChart
-              data={metric.chartData}
-              nameKey={xKey}
-              openKey="open"
-              closeKey="close"
-              highKey="high"
-              lowKey="low"
-              valueKey="value" // Para datos simples (el componente detecta automáticamente)
-              asCard={true}
-              title={metric.title}
-              height={getCardChartHeight()}
-              className={className}
-              onClick={onClick}
-            />
-          );
-        }
-        if (metric.trendKind === 'bar') {
-          // Fallback simple: usar AreaResponsiveContainer con stroke ancho simulando barras si no hay Bar contenedor
+      // Si el usuario pidió ver la evolución temporal
+      if (metric.showTrend) {
+        // Mostrar el gráfico incluso si chartData está vacío o tiene valores en 0
+        // Solo mostrar mensaje de error si chartData es undefined/null
+        if (Array.isArray(metric.chartData)) {
+          const xKey = metric.chartData?.[0]?.time ? 'time' : 'date';
+          if (metric.trendKind === 'candlestick') {
+            return (
+              <CandlestickChart
+                data={metric.chartData}
+                nameKey={xKey}
+                openKey="open"
+                closeKey="close"
+                highKey="high"
+                lowKey="low"
+                valueKey="value" // Para datos simples (el componente detecta automáticamente)
+                asCard={true}
+                title={metric.title}
+                height={getCardChartHeight()}
+                className={className}
+                onClick={onClick}
+              />
+            );
+          }
+          if (metric.trendKind === 'bar') {
+            // Fallback simple: usar AreaResponsiveContainer con stroke ancho simulando barras si no hay Bar contenedor
+            return (
+              <AreaResponsiveContainer
+                data={metric.chartData}
+                xKey={xKey}
+                areaKey="value"
+                color={metric.color || '#0ea5e9'}
+                asCard={true}
+                title={metric.title}
+                height={getCardChartHeight()}
+                comparisonData={metric.previousPeriodData}
+                comparisonLabel="Periodo anterior"
+                currentLabel="Periodo actual"
+                className={className}
+                onClick={onClick}
+              />
+            );
+          }
           return (
             <AreaResponsiveContainer
               data={metric.chartData}
@@ -85,21 +105,36 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
             />
           );
         }
+        
+        // Si chartData es undefined/null (error o sin servicio), mostrar mensaje
         return (
-          <AreaResponsiveContainer
-            data={metric.chartData}
-            xKey={xKey}
-            areaKey="value"
-            color={metric.color || '#0ea5e9'}
-            asCard={true}
-            title={metric.title}
-            height={getCardChartHeight()}
-            comparisonData={metric.previousPeriodData}
-            comparisonLabel="Periodo anterior"
-            currentLabel="Periodo actual"
-            className={className}
+          <div 
+            className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'} w-full h-full min-h-[200px] flex flex-col ${className}`}
             onClick={onClick}
-          />
+            style={{ cursor: onClick ? 'pointer' : 'default' }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h3 className={`text-base font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {metric.title}
+              </h3>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <svg className={`w-16 h-16 mb-3 ${isDarkMode ? 'text-yellow-600' : 'text-yellow-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p className={`text-sm font-medium mb-1 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                No hay datos históricos disponibles
+              </p>
+              <p className={`text-xs ${isDarkMode ? 'text-yellow-500/80' : 'text-yellow-600/80'} max-w-xs`}>
+                No se encontraron datos para el período seleccionado. Intenta con otro rango de fechas o verifica que el backend tenga datos en la base.
+              </p>
+              {onClick && (
+                <p className={`text-xs mt-3 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                  Haz click para volver a la tarjeta
+                </p>
+              )}
+            </div>
+          </div>
         );
       }
       return <MetricCard key={metric.id} {...commonProps} className={className} onClick={onClick} />;
