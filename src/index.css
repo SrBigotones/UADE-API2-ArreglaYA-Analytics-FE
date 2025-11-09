@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos responsive para móviles */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Asegurar que Leaflet no se superponga a modales (z-50) */
 .leaflet-container .leaflet-pane,
 .leaflet-container .leaflet-top,

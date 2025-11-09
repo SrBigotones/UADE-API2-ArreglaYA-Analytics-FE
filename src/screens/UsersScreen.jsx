@@ -1,37 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
+import FilterSelector from '../components/FilterSelector';
 import DraggableMetricCard from '../components/DraggableMetricCard';
+import MetricRenderer from '../components/MetricRenderer';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import PieResponsiveContainer from '../components/PieResponsiveContainer';
 import { useModuleMetrics } from '../hooks/useMetrics';
+import { useFilters } from '../context/FilterContext';
 
 const UsersScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  const { getApiFilters, clearAllFilters } = useFilters();
   
-  // Asegurar que dateRange tenga startDate y endDate cuando sea necesario
+  // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
-    if (dateRange.preset && !dateRange.startDate && !dateRange.endDate) {
-      // Si solo tenemos preset, no necesitamos startDate/endDate para el servicio
-      // El servicio manejará el preset internamente
-      console.log('📅 Usando preset para métricas de usuarios:', dateRange.preset);
-    }
-  }, [dateRange]);
+    clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Memorizar los filtros para que se recalculen cuando activeFilters cambie
+  const filters = useMemo(() => getApiFilters(), [getApiFilters]);
   
   // Obtener métricas específicas del módulo de usuarios desde el hook híbrido
-  const { metrics: usersMetrics, loading, error, refetch } = useModuleMetrics('users', dateRange);
+  const { metrics: usersMetrics, loading, error, refetch } = useModuleMetrics('users', {
+    ...dateRange,
+    filters
+  });
   const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(usersMetrics, 'users-metrics-order');
 
   return (
     <>
-      <div className="mb-4">
-        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="mb-4 mt-2 sm:mt-0">
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Usuarios & Roles
         </h2>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas de usuarios y gestión de roles</p>
+        <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas de usuarios y gestión de roles</p>
       </div>
       
-      <div className="mb-4">
+      {/* Controles de Fecha y Filtros */}
+      <div className="mb-4 flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3 lg:gap-4">
         <DateRangeSelector value={dateRange} onChange={setDateRange} />
+        <FilterSelector module="users" />
       </div>
 
       {/* Estados de carga y error */}
@@ -49,7 +58,7 @@ const UsersScreen = ({ isDarkMode }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 3 }).map((_, index) => (
@@ -63,26 +72,16 @@ const UsersScreen = ({ isDarkMode }) => {
           ))
         ) : (
           (orderedMetrics && orderedMetrics.length ? orderedMetrics : usersMetrics).map((metric, index) => (
-            metric.type === 'card' ? (
-              <DraggableMetricCard
-                key={metric.id}
-                metric={metric}
-                index={index}
-                dateRange={dateRange}
-                isDarkMode={isDarkMode}
-                onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
-                allowToggleToChart={metric.allowToggleToChart ?? true}
-                chartKind={metric.toggleChartKind || 'line'}
-              />
-            ) : (
-              // Para tipos no "card" mantenemos el renderer directo
-              <MetricRenderer
-                key={metric.id}
-                metric={metric}
-                dateRange={dateRange}
-                isDarkMode={isDarkMode}
-              />
-            )
+            <DraggableMetricCard
+              key={metric.id}
+              metric={metric}
+              index={index}
+              dateRange={dateRange}
+              isDarkMode={isDarkMode}
+              onReorder={(from, to) => { reorderMetrics(from, to); saveOrderToStorage(); }}
+              allowToggleToChart={metric.allowToggleToChart ?? (metric.type === 'card')}
+              chartKind={metric.toggleChartKind || 'line'}
+            />
           ))
         )}
       </div>

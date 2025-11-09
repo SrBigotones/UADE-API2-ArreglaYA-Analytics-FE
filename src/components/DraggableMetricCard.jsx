@@ -43,40 +43,13 @@ const DraggableMetricCard = ({
 
   // Preparar datos locales sin mutar la métrica original
   const localChartData = useMemo(() => {
+    // Si hay datos reales del backend, usarlos
     if (metric.chartData && metric.chartData.length) return metric.chartData;
-    const now = new Date();
-    const numericBase = Number(String(metric.value).replace(/[^0-9.]/g, '')) || 100;
-    // Generar datos distintos si es velas
-    if (chartKind === 'candlestick') {
-      let lastClose = numericBase;
-      return Array.from({ length: 12 }).map((_, i) => {
-        const d = new Date(now);
-        d.setDate(now.getDate() - (11 - i));
-        const open = lastClose;
-        const change = (Math.random() - 0.5) * (numericBase * 0.06);
-        const close = Math.max(0, open + change);
-        const high = Math.max(open, close) + Math.random() * (numericBase * 0.03);
-        const low = Math.min(open, close) - Math.random() * (numericBase * 0.03);
-        lastClose = close;
-        return {
-          date: d.toISOString().slice(0, 10),
-          open: Math.round(open * 100) / 100,
-          close: Math.round(close * 100) / 100,
-          high: Math.round(high * 100) / 100,
-          low: Math.round(low * 100) / 100
-        };
-      });
-    }
-    // Generar 7 días con una leve variación alrededor del valor actual para líneas/áreas
-    return Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date(now);
-      d.setDate(now.getDate() - (6 - i));
-      return {
-        date: d.toISOString().slice(0, 10),
-        value: Math.max(0, Math.round(numericBase + (Math.random() - 0.5) * (numericBase * 0.1 || 4)))
-      };
-    });
-  }, [metric.chartData, metric.value, chartKind]);
+    
+    // Si no hay datos reales, retornar array vacío (no generar mock)
+    // El componente MetricRenderer mostrará un mensaje apropiado
+    return [];
+  }, [metric.chartData]);
 
   const handleDragStart = (e) => {
     // Evitar drag si es un mapa y el evento viene del área del mapa
@@ -89,7 +62,6 @@ const DraggableMetricCard = ({
       }
     }
     
-    console.log(`Iniciando drag de: ${metric.id} (${metric.type})`);
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', index.toString());
     e.dataTransfer.effectAllowed = 'move';
@@ -119,7 +91,6 @@ const DraggableMetricCard = ({
     const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
     
     if (draggedIndex !== index) {
-      console.log(`Reordenando: ${draggedIndex} -> ${index}, metric: ${metric.id}`);
       onReorder(draggedIndex, index);
     }
   };
@@ -158,7 +129,6 @@ const DraggableMetricCard = ({
           onSizeChange={(metricId, newSize) => {
             // Evitar redimensionamiento accidental durante drag
             if (!isDragging && !isDragOver) {
-              console.log(`Redimensionando manualmente: ${metricId}`, newSize);
               updateChartSize(metricId, newSize);
             }
           }}

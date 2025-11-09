@@ -32,24 +32,24 @@ export const METRICS_REGISTRY = {
   },
 
   // === CATÁLOGO ===
-  'catalog-providers-registered': {
-    id: 'catalog-providers-registered',
+  'catalog-win-rate': {
+    id: 'catalog-win-rate',
     module: 'catalog',
     type: 'card',
-    title: 'Nuevos prestadores registrados',
-    value: '0',
+    title: 'Win Rate',
+    value: '0%',
     change: '',
     changeStatus: 'neutral',
-    description: 'Prestadores registrados en el período',
-    endpoint: '/api/metrica/prestadores/registrados',
-    category: 'growth',
+    description: 'Porcentaje de cotizaciones aceptadas sobre emitidas',
+    endpoint: '/api/metrica/prestadores/win-rate-rubro',
+    category: 'conversion',
     allowToggleToChart: true,
-    toggleChartKind: 'candlestick',
+    toggleChartKind: 'line',
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getCatalogProvidersRegistered',
+      serviceName: 'getCatalogWinRateByCategory',
       serviceModule: 'catalogService',
-      valueFormatter: (data) => data.value?.toString() || '0',
+      valueFormatter: (data) => `${data.value}%`,
       changeFormatter: (data) => {
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);
@@ -59,23 +59,9 @@ export const METRICS_REGISTRY = {
         'positivo': 'positive',
         'negativo': 'negative',
         'neutro': 'neutral'
-      }[status] || 'neutral')
-    },
-    // Datos de prueba SOLO para el gráfico (velas)
-    chartData: [
-      { date: '2025-09-01', open: 98, close: 105, high: 108, low: 95 },
-      { date: '2025-09-02', open: 105, close: 101, high: 109, low: 99 },
-      { date: '2025-09-03', open: 101, close: 110, high: 113, low: 100 },
-      { date: '2025-09-04', open: 110, close: 108, high: 114, low: 106 },
-      { date: '2025-09-05', open: 108, close: 115, high: 118, low: 107 },
-      { date: '2025-09-06', open: 115, close: 112, high: 119, low: 111 },
-      { date: '2025-09-07', open: 112, close: 120, high: 122, low: 110 },
-      { date: '2025-09-08', open: 120, close: 119, high: 124, low: 117 },
-      { date: '2025-09-09', open: 119, close: 123, high: 125, low: 118 },
-      { date: '2025-09-10', open: 123, close: 121, high: 126, low: 120 },
-      { date: '2025-09-11', open: 121, close: 127, high: 129, low: 121 },
-      { date: '2025-09-12', open: 127, close: 126, high: 130, low: 124 }
-    ]
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
   },
   'catalog-orders-heatmap': {
     id: 'catalog-orders-heatmap',
@@ -83,7 +69,7 @@ export const METRICS_REGISTRY = {
     type: 'map',
     title: 'Mapa de calor de pedidos',
     description: 'Distribución geográfica de pedidos',
-    endpoint: '/api/metrica/pedidos/mapa-calor',
+    endpoint: '/api/metrica/solicitudes/mapa-calor',
     category: 'distribution',
     hasRealService: true,
     serviceConfig: {
@@ -100,18 +86,21 @@ export const METRICS_REGISTRY = {
     module: 'catalog',
     type: 'pie',
     title: 'Distribución de servicios',
-    value: '2,847',
-    change: '+12%',
-    changeStatus: 'positive',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
     description: 'Distribución por categoría de servicios',
-    chartData: [
-      { name: 'Plomería', value: 850, color: '#8884d8' },
-      { name: 'Electricidad', value: 720, color: '#82ca9d' },
-      { name: 'Limpieza', value: 650, color: '#ffc658' },
-      { name: 'Jardinería', value: 627, color: '#ff7300' },
-    ],
-    endpoint: '/api/metrics/catalog/service-distribution',
-    category: 'distribution'
+    endpoint: '/api/metrica/prestadores/servicios/distribucion',
+    category: 'distribution',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getCatalogServiceDistribution',
+      serviceModule: 'catalogService',
+      chartDataFormatter: (data) => data.chartData,
+      valueFormatter: (data) => data.total?.toString() || '0',
+      changeFormatter: () => '', // Los gráficos de torta no usan change
+      statusMapper: () => 'neutral'
+    }
   },
 
   // === APP ===
@@ -124,23 +113,27 @@ export const METRICS_REGISTRY = {
     change: '+31%',
     changeStatus: 'positive',
     description: 'Número de solicitudes de servicio creadas',
-    endpoint: '/api/metrics/app/requests-created',
+    endpoint: '/api/metrica/solicitudes/volumen',
     category: 'usage',
     allowToggleToChart: true,
-    toggleChartKind: 'line'
-  },
-  'app-conversion-rate': {
-    id: 'app-conversion-rate',
-    module: 'app',
-    type: 'card',
-    title: 'Conversión búsqueda → solicitud',
-    value: '67.4%',
-    change: '+5.2%',
-    changeStatus: 'positive',
-    description: 'Tasa de conversión de búsqueda a solicitud',
-    endpoint: '/api/metrics/app/conversion-rate',
-    category: 'conversion',
-    allowToggleToChart: false
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getAppRequestsCreated',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
   },
   'app-cancellation-rate': {
     id: 'app-cancellation-rate',
@@ -150,11 +143,90 @@ export const METRICS_REGISTRY = {
     value: '12.3%',
     change: '-2.1%',
     changeStatus: 'positive',
-    description: 'Tasa/porcentaje de cancelación de solicitudes',
-    endpoint: '/api/metrics/app/cancellation-rate',
+    description: 'Porcentaje de solicitudes canceladas sobre el total',
+    endpoint: '/api/metrica/solicitudes/tasa-cancelacion',
     category: 'retention',
     allowToggleToChart: true,
-    toggleChartKind: 'candlestick'
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getAppCancellationRate',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
+  'app-time-to-first-quote': {
+    id: 'app-time-to-first-quote',
+    module: 'app',
+    type: 'card',
+    title: 'Tiempo a primera cotización',
+    value: '2.1h',
+    change: '-0.3h',
+    changeStatus: 'positive',
+    description: 'Tiempo promedio desde solicitud creada hasta primera cotización (en horas)',
+    endpoint: '/api/metrica/solicitudes/tiempo-primera-cotizacion',
+    category: 'performance',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getAppTimeToFirstQuote',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => `${data.value}h`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return `${sign}${value}h`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
+  'app-quote-conversion-rate': {
+    id: 'app-quote-conversion-rate',
+    module: 'app',
+    type: 'card',
+    title: 'Conversión a cotización aceptada',
+    value: '68.5%',
+    change: '+12.3%',
+    changeStatus: 'positive',
+    description: 'Porcentaje de cotizaciones emitidas que fueron aceptadas',
+    endpoint: '/api/metrica/matching/cotizaciones/conversion-aceptada',
+    category: 'conversion',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getAppQuoteConversionRate',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
   },
 
   // === PAGOS ===
@@ -189,19 +261,36 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'payments-refunds-completed': {
-    id: 'payments-refunds-completed',
+  'payments-processing-time': {
+    id: 'payments-processing-time',
     module: 'payments',
     type: 'card',
-    title: 'Reembolsos completados',
-    value: '6',
-    change: '+20%',
-    changeStatus: 'negative',
-    description: 'Tiempo promedio de procesamiento de pagos en segundos.',
-    endpoint: '/api/metrics/payments/refunds-completed',
-    category: 'refunds',
+    title: 'Tiempo de procesamiento',
+    value: '2.3s',
+    change: '-12%',
+    changeStatus: 'positive',
+    description: 'Tiempo promedio de procesamiento de pagos en minutos.',
+    endpoint: '/api/metrica/pagos/tiempo-procesamiento',
+    category: 'performance',
     allowToggleToChart: true,
-    toggleChartKind: 'candlestick'
+    toggleChartKind: 'line',
+    // Configuración para integración con servicio real
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentProcessingTimeMetrics',
+      serviceModule: 'paymentMetricsService',
+      valueFormatter: (data) => `${data.value.toFixed(1)}m`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   },
   'payments-event-distribution': {
     id: 'payments-event-distribution',
@@ -218,7 +307,7 @@ export const METRICS_REGISTRY = {
       { name: 'Expirado', value: 9, color: '#f59e0b' },
       { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
-    endpoint: '/metrics/payments/distribution',
+    endpoint: '/api/metrica/pagos/distribucion-eventos',
     category: 'distribution',
     // Configuración para integración con servicio real
     hasRealService: true,
@@ -231,6 +320,87 @@ export const METRICS_REGISTRY = {
       statusMapper: () => 'neutral'
     }
   },
+  'payments-method-distribution': {
+    id: 'payments-method-distribution',
+    module: 'payments',
+    type: 'pie',
+    title: 'Distribución métodos de pago',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Distribución de pagos por método de pago',
+    endpoint: '/api/metrica/pagos/distribucion-metodos',
+    category: 'distribution',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentMethodDistributionMetrics',
+      serviceModule: 'paymentMetricsService',
+      chartDataFormatter: (data) => data.chartData,
+      valueFormatter: (data) => data.total?.toString() || '0',
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'payments-gross-revenue': {
+    id: 'payments-gross-revenue',
+    module: 'payments',
+    type: 'card',
+    title: 'Ingreso bruto',
+    value: '$0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Ingreso bruto total de pagos aprobados en ARS',
+    endpoint: '/api/metrica/pagos/ingreso-ticket',
+    category: 'revenue',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentGrossRevenueMetrics',
+      serviceModule: 'paymentMetricsService',
+      valueFormatter: (data) => `$${new Intl.NumberFormat('es-AR').format(Math.round(data.value))}`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}$${new Intl.NumberFormat('es-AR').format(Math.round(value))}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'payments-average-ticket': {
+    id: 'payments-average-ticket',
+    module: 'payments',
+    type: 'card',
+    title: 'Ticket medio',
+    value: '$0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Ticket medio de pagos aprobados en ARS',
+    endpoint: '/api/metrica/pagos/ingreso-ticket',
+    category: 'revenue',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getPaymentAverageTicketMetrics',
+      serviceModule: 'paymentMetricsService',
+      valueFormatter: (data) => `$${new Intl.NumberFormat('es-AR').format(Math.round(data.value))}`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}$${new Intl.NumberFormat('es-AR').format(Math.round(value))}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
 
   // === USUARIOS ===
   'users-new-registrations': {
@@ -241,12 +411,11 @@ export const METRICS_REGISTRY = {
     value: '234',
     change: '+28%',
     changeStatus: 'positive',
-    description: 'Nuevos usuarios registrados',
-    endpoint: '/api/metrica/usuarios/creados',
+    description: 'Nuevos usuarios registrados (todos los roles)',
+    endpoint: '/api/metrica/usuarios/nuevos-clientes',
     category: 'growth',
     allowToggleToChart: true,
     toggleChartKind: 'line',
-    // Configuración para integración con servicio real
     hasRealService: true,
     serviceConfig: {
       serviceName: 'getUserNewRegistrations',
@@ -264,58 +433,384 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'users-role-assignment': {
-    id: 'users-role-assignment',
+  'users-new-customers': {
+    id: 'users-new-customers',
     module: 'users',
     type: 'card',
-    title: 'Tasa de roles asignados',
-    value: '94.1%',
-    change: '+3.2%',
-    changeStatus: 'positive',
-    description: 'Tasa de roles asignados correctamente a usuarios',
-    endpoint: '/api/metrica/usuarios/roles',
+    title: 'Nuevos clientes',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos clientes registrados',
+    endpoint: '/api/metrica/usuarios/nuevos-clientes',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewCustomers',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-new-providers': {
+    id: 'users-new-providers',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos prestadores (usuarios)',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos prestadores registrados como usuarios',
+    endpoint: '/api/metrica/usuarios/nuevos-prestadores',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewProviders',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-inactive-rate': {
+    id: 'users-inactive-rate',
+    module: 'users',
+    type: 'card',
+    title: 'Tasa de usuarios inactivos',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de usuarios inactivos en el sistema',
+    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
     category: 'management',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserInactiveRate',
+      serviceModule: 'userMetricsService',
+      // Necesitamos extraer el changeStatus de data.tasaInactivos para que useMetrics lo use
+      changeStatusExtractor: (data) => data.tasaInactivos?.changeStatus || 'neutral',
+      valueFormatter: (data) => `${data.tasaInactivos?.value || 0}%`,
+      changeFormatter: (data) => {
+        const change = data.tasaInactivos?.change || 0;
+        const sign = data.tasaInactivos?.changeStatus === 'positivo' ? '+' : data.tasaInactivos?.changeStatus === 'negativo' ? '-' : '';
+        return `${sign}${Math.abs(change)}%`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.tasaInactivos?.chartData || []
+    }
+  },
+  'users-inactive-distribution': {
+    id: 'users-inactive-distribution',
+    module: 'users',
+    type: 'pie',
+    title: 'Distribución de inactivos por rol',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Distribución de usuarios inactivos por rol',
+    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
+    category: 'distribution',
     allowToggleToChart: false,
-    hasRealService: false, // Deshabilitado temporalmente - sin endpoint disponible
-    // Datos hardcodeados mientras no hay endpoint
-    mockData: {
-      value: 94.1,
-      change: 3.2,
-      changeType: 'porcentaje',
-      changeStatus: 'positivo',
-      lastUpdated: new Date().toISOString()
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserInactiveRate',
+      serviceModule: 'userMetricsService',
+      chartDataFormatter: (data) => {
+        // Convertir distribucionPorRol a array para el gráfico pie
+        if (!data.distribucionPorRol || typeof data.distribucionPorRol !== 'object') {
+          return [];
+        }
+        
+        // Helper para colores por rol
+        const getRoleColor = (rol) => {
+          const colors = {
+            'cliente': '#3b82f6',    // Azul
+            'prestador': '#10b981',   // Verde
+            'admin': '#f59e0b',       // Amarillo
+            'customer': '#3b82f6'     // Azul (alias)
+          };
+          return colors[rol?.toLowerCase()] || '#6b7280';
+        };
+        
+        return Object.entries(data.distribucionPorRol).map(([role, count]) => ({
+          name: role.charAt(0).toUpperCase() + role.slice(1),
+          value: typeof count === 'number' ? count : 0,
+          color: getRoleColor(role)
+        }));
+      },
+      valueFormatter: (data) => {
+        if (!data.distribucionPorRol) return '0';
+        const total = Object.values(data.distribucionPorRol).reduce((sum, count) => sum + (typeof count === 'number' ? count : 0), 0);
+        return total.toString();
+      },
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-role-distribution': {
+    id: 'users-role-distribution',
+    module: 'users',
+    type: 'pie',
+    title: 'Distribución por rol',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Distribución histórica total de usuarios por rol',
+    endpoint: '/api/metrica/usuarios/distribucion-por-rol',
+    category: 'distribution',
+    allowToggleToChart: false,
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserRoleDistribution',
+      serviceModule: 'userMetricsService',
+      chartDataFormatter: (data) => {
+        // Convertir objeto a array para el gráfico pie
+        return Object.entries(data).map(([role, count]) => ({
+          name: role,
+          value: count
+        }));
+      },
+      valueFormatter: (data) => {
+        const total = Object.values(data).reduce((sum, count) => sum + count, 0);
+        return total.toString();
+      },
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-total': {
+    id: 'users-total',
+    module: 'users',
+    type: 'card',
+    title: 'Total de usuarios',
+    value: '0',
+    change: '0',
+    changeStatus: 'neutral',
+    description: 'Cantidad total histórica de usuarios registrados',
+    endpoint: '/api/metrica/usuarios/totales',
+    category: 'overview',
+    allowToggleToChart: false,
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserTotal',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: () => '0',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-new-providers-registered': {
+    id: 'users-new-providers-registered',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos prestadores',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos prestadores registrados (con filtros de rubro y zona)',
+    endpoint: '/api/metrica/prestadores/nuevos-registrados',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getProviderNewRegistrations',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
     }
   },
 
   // === MATCHING ===
+  'matching-average-time': {
+    id: 'matching-average-time',
+    module: 'matching',
+    type: 'card',
+    title: 'Tiempo promedio de matching',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Tiempo promedio que toma realizar el matching',
+    endpoint: '/api/metrica/matching/tiempo-promedio',
+    category: 'performance',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getMatchingAverageTimeMetrics',
+      serviceModule: 'matchingMetricsService',
+      valueFormatter: (data) => {
+        // El backend devuelve tiempo en minutos, convertirlo a formato legible
+        const minutes = data.value || 0;
+        if (minutes < 60) {
+          return `${Math.round(minutes)}m`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const mins = Math.round(minutes % 60);
+        return `${hours}h ${mins}m`;
+      },
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative', // Menos tiempo es mejor
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
   'matching-pending-quotes': {
     id: 'matching-pending-quotes',
     module: 'matching',
     type: 'card',
     title: 'Cotizaciones pendientes',
-    value: '56',
-    change: '+12%',
-    changeStatus: 'negative',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
     description: 'Número de cotizaciones pendientes',
-    endpoint: '/api/metrics/matching/pending-quotes',
-    category: 'workflow'
+    endpoint: '/api/metrica/matching/cotizaciones/pendientes',
+    category: 'workflow',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getMatchingPendingQuotesMetrics',
+      serviceModule: 'matchingMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative', // Más pendientes es peor
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'matching-provider-response-time': {
+    id: 'matching-provider-response-time',
+    module: 'matching',
+    type: 'card',
+    title: 'Tiempo de respuesta del prestador',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Tiempo promedio que toma un prestador en responder',
+    endpoint: '/api/metrica/matching/prestadores/tiempo-respuesta',
+    category: 'performance',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getMatchingProviderResponseTimeMetrics',
+      serviceModule: 'matchingMetricsService',
+      valueFormatter: (data) => {
+        const minutes = data.value || 0;
+        if (minutes < 60) {
+          return `${Math.round(minutes)}m`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const mins = Math.round(minutes % 60);
+        return `${hours}h ${mins}m`;
+      },
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative', // Menos tiempo es mejor
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'matching-expiration-rate': {
+    id: 'matching-expiration-rate',
+    module: 'matching',
+    type: 'card',
+    title: 'Tasa de cotizaciones expiradas',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de cotizaciones que expiran sin respuesta',
+    endpoint: '/api/metrica/matching/cotizaciones/tasa-expiracion',
+    category: 'quality',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getMatchingExpirationRateMetrics',
+      serviceModule: 'matchingMetricsService',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative', // Más expiraciones es peor
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
   }
 };
 
 // Configuraciones predefinidas por módulo
 export const MODULE_METRICS = {
   core: ['core-processing-time', 'core-retry-success', 'core-messages-flow'],
-  catalog: ['catalog-providers-registered', 'catalog-service-distribution', 'catalog-orders-heatmap'],
-  app: ['app-requests-created', 'app-conversion-rate', 'app-cancellation-rate'],
-  payments: ['payments-success-rate', 'payments-processing-time', 'payments-refunds-completed', 'payments-event-distribution'],
-  users: ['users-new-registrations', 'users-role-assignment'],
-  matching: ['matching-pending-quotes']
+  catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
+  app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
+  payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-inactive-distribution', 'users-role-distribution', 'users-total', 'users-new-providers-registered'],
+  matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time', 'matching-expiration-rate']
 };
 
 // Configuración por defecto del dashboard
 export const DEFAULT_DASHBOARD_METRICS = [
   'core-processing-time',
-  'catalog-new-providers', 
+  'catalog-win-rate', 
   'app-requests-created',
   'payments-success-rate'
 ];

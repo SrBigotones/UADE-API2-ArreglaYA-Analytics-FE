@@ -1,27 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
+import FilterSelector from '../components/FilterSelector';
 import DraggableMetricCard from '../components/DraggableMetricCard';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import { useModuleMetrics } from '../hooks/useMetrics';
+import { useFilters } from '../context/FilterContext';
 
 const PaymentsScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  const { getApiFilters, clearAllFilters } = useFilters();
+  
+  // Limpiar filtros al montar el componente (cuando se cambia de módulo)
+  useEffect(() => {
+    clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo se ejecuta al montar
+  
+  // Memorizar los filtros para que se recalculen cuando activeFilters cambie
+  const filters = useMemo(() => getApiFilters(), [getApiFilters]);
   
   // Obtener métricas específicas del módulo de pagos desde el hook híbrido
-  const { metrics: paymentsMetrics, loading, error, refetch } = useModuleMetrics('payments', dateRange);
+  const { metrics: paymentsMetrics, loading, error, refetch } = useModuleMetrics('payments', {
+    ...dateRange,
+    filters
+  });
   const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(paymentsMetrics, 'payments-metrics-order');
 
   return (
     <>
-      <div className="mb-4">
-        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="mb-4 mt-2 sm:mt-0">
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Pagos y Facturación
         </h2>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del sistema de pagos y facturación</p>
+        <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del sistema de pagos y facturación</p>
       </div>
       
-      <div className="mb-4">
+      {/* Controles de Fecha y Filtros */}
+      <div className="mb-4 flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3 lg:gap-4">
         <DateRangeSelector value={dateRange} onChange={setDateRange} />
+        <FilterSelector module="payments" />
       </div>
       
       {/* Estados de carga y error */}
@@ -39,7 +56,7 @@ const PaymentsScreen = ({ isDarkMode }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 4 }).map((_, index) => (

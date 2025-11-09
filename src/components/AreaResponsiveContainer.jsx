@@ -17,6 +17,23 @@ const AreaResponsiveContainer = ({
   title,
   onClick
 }) => {
+  // Calcular el dominio del eje Y para manejar valores en 0
+  const calculateYDomain = () => {
+    if (!data || data.length === 0) return [0, 4];
+    
+    const values = data.map(item => item[areaKey] || 0);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+    
+    // Si todos los valores son 0, establecer un rango visible
+    if (maxValue === 0 && minValue === 0) {
+      return [0, 4];
+    }
+    
+    // Si hay valores, usar 'auto' para que Recharts calcule automáticamente
+    return ['auto', 'auto'];
+  };
+
   // Tooltip personalizado para modo oscuro
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -31,6 +48,8 @@ const AreaResponsiveContainer = ({
     }
     return null;
   };
+
+  const yDomain = calculateYDomain();
 
   const Chart = (
     <div className={className || ''} style={{ width: '100%', height }}>
@@ -57,10 +76,19 @@ const AreaResponsiveContainer = ({
             fontSize={12}
             tickLine={false}
             axisLine={false}
+            domain={yDomain}
           />
           {showTooltip && <Tooltip content={<CustomTooltip />} />}
           {showLegend && <Legend className="text-gray-600 dark:text-gray-300" />}
-          <Area type="monotone" dataKey={areaKey} stroke={color} strokeWidth={strokeWidth} fillOpacity={1} fill={`url(#${gradientId})`} />
+          <Area 
+            type="monotone" 
+            dataKey={areaKey} 
+            stroke={color} 
+            strokeWidth={strokeWidth} 
+            fillOpacity={1} 
+            fill={`url(#${gradientId})`}
+            connectNulls={true}
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

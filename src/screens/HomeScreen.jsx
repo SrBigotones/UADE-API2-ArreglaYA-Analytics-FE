@@ -66,7 +66,7 @@ const HomeScreen = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics[activeCategory].metrics.map((metric, index) => (
           <div key={index} className="rounded-lg shadow-sm border p-6 bg-white border-gray-200">
             <div className="flex items-center justify-between mb-4">

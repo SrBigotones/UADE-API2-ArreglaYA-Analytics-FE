@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }) => {
     if (nextUser) {
       try {
         localStorage.setItem('arreglaya-user', JSON.stringify(nextUser));
-      } catch {
-        // ignore storage errors
+      } catch (error) {
+        console.error('❌ AuthContext - Error al guardar usuario en localStorage:', error);
       }
       setUser(nextUser);
     }

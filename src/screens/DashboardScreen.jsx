@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
+import FilterSelector from '../components/FilterSelector';
 import MetricRenderer from '../components/MetricRenderer';
 import DraggableMetricCard from '../components/DraggableMetricCard';
 import { METRICS_REGISTRY } from '../data/metricsRegistry';
 import { useDashboardMetrics } from '../hooks/useMetrics';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
+import { useFilters } from '../context/FilterContext';
 
 const CoreScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const { clearAllFilters } = useFilters();
+  
+  // Limpiar filtros al montar el componente (cuando se cambia de módulo)
+  useEffect(() => {
+    clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // La selección de métricas se gestiona dentro del hook useDashboardMetrics
 
   // Efecto para manejar el scroll del body cuando el modal está abierto
@@ -55,20 +64,18 @@ const CoreScreen = ({ isDarkMode }) => {
     <>
       
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-6">
-            <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4 mt-2 sm:mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <h2 className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               Dashboard Personal
             </h2>
             <DateRangeSelector value={dateRange} onChange={setDateRange} />
           </div>
-          <div className="flex items-center gap-4">
-            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} opacity-70`}>
-              💡 Arrastra las tarjetas para reordenarlas • Pasa el cursor por los bordes para redimensionar
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <FilterSelector module="all" />
             <button
               onClick={() => setIsCustomizing(true)}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base whitespace-nowrap"
             >
               Personalizar
             </button>
@@ -91,7 +98,7 @@ const CoreScreen = ({ isDarkMode }) => {
       )}
 
       {/* Metrics Grid */}
-      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-min grid-flow-row-dense">
+      <div className="dashboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-min grid-flow-row-dense">
         {loading ? (
           // Skeletons mientras carga
           Array.from({ length: 4 }).map((_, index) => (
