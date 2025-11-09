@@ -27,7 +27,6 @@ export const useChartSizes = () => {
         // Si se limpiaron datos, actualizar localStorage
         if (Object.keys(cleaned).length !== Object.keys(parsed).length) {
           localStorage.setItem('dashboard-chart-sizes', JSON.stringify(cleaned));
-          console.log('Datos de tamaño limpiados automáticamente');
         }
       } catch (error) {
         console.error('Error loading chart sizes:', error);
@@ -95,9 +94,6 @@ export const useChartSizes = () => {
       return;
     }
     
-    // Debug temporal para detectar cambios inesperados
-    console.log(`Actualizando tamaño - ${metricId}:`, validSize, 'Stack:', new Error().stack.split('\n')[2]);
-    
     setChartSizes(prev => ({
       ...prev,
       [metricId]: validSize
@@ -162,7 +158,6 @@ export const useChartSizes = () => {
         
         localStorage.setItem('dashboard-chart-sizes', JSON.stringify(cleaned));
         setChartSizes(cleaned);
-        console.log('Datos de tamaño limpiados:', cleaned);
       } catch (error) {
         console.error('Error limpiando datos:', error);
         resetChartSizes();
@@ -176,7 +171,6 @@ export const useChartSizes = () => {
       const newSizes = { ...prev };
       delete newSizes[metricId];
       localStorage.setItem('dashboard-chart-sizes', JSON.stringify(newSizes));
-      console.log(`Tamaño reseteado para métrica: ${metricId}`);
       return newSizes;
     });
   };

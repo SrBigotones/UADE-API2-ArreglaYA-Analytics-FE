@@ -46,7 +46,7 @@ const getPaymentMethodColor = (method) => {
 };
 
 // Función base mejorada para métricas de pagos con manejo de errores detallado
-const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate } = {}) => {
+const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate, filters = {} } = {}) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
     
@@ -59,6 +59,14 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
       params.startDate = startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate;
       params.endDate = endDate instanceof Date ? endDate.toISOString().split('T')[0] : endDate;
     }
+
+    // Agregar filtros si están disponibles
+    if (filters.rubro) params.rubro = filters.rubro;
+    if (filters.zona) params.zona = filters.zona;
+    if (filters.metodo) params.metodo = filters.metodo;
+    if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+    if (filters.minMonto) params.minMonto = filters.minMonto;
+    if (filters.maxMonto) params.maxMonto = filters.maxMonto;
 
     // Console log de la consulta que se envía al backend
     console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
@@ -118,13 +126,13 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
 };
 
 // Servicio para tasa de éxito de pagos
-export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
-    '/api/metrica/pagos/exitosos', 
+    '/api/metrica/pagos/tasa-exito', 
     period, 
     'tasa de éxito de pagos', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -146,13 +154,13 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDat
 };
 
 // Servicio para tiempo de procesamiento de pagos
-export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/tiempo-procesamiento',
     period, 
     'tiempo de procesamiento', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -174,13 +182,13 @@ export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, s
 };
 
 // Servicio para distribución de eventos de pago
-export const getPaymentDistributionMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-eventos', // ✅ ACTUALIZADO: usar endpoint nuevo
     period, 
     'distribución de pagos', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -222,13 +230,13 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
 };
 
 // Servicio para distribución de métodos de pago
-export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-metodos',
     period, 
     'distribución métodos de pago', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -269,13 +277,13 @@ export const getPaymentMethodDistributionMetrics = async (axiosInstance, { perio
 };
 
 // Servicio para ingreso bruto de pagos
-export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/ingreso-ticket',
     period, 
     'ingreso bruto de pagos', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -306,13 +314,13 @@ export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, sta
 };
 
 // Servicio para ticket medio de pagos
-export const getPaymentAverageTicketMetrics = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getPaymentAverageTicketMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/ingreso-ticket',
     period, 
     'ticket medio de pagos', 
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {

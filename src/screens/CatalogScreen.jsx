@@ -1,26 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
+import FilterSelector from '../components/FilterSelector';
 import MetricRenderer from '../components/MetricRenderer';
 import DraggableMetricCard from '../components/DraggableMetricCard';
 import { useModuleMetrics } from '../hooks/useMetrics';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
+import { useFilters } from '../context/FilterContext';
 
 const CatalogScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
-  // Traer todas las métricas del módulo catálogo desde el registry (igual que dashboard/pagos)
-  const { metrics: catalogMetrics, loading, error, refetch } = useModuleMetrics('catalog', dateRange);
+  const { activeFilters, getApiFilters, clearAllFilters } = useFilters();
+  
+  // Limpiar filtros al montar el componente (cuando se cambia de módulo)
+  useEffect(() => {
+    clearAllFilters();
+  }, []); // Solo se ejecuta al montar
+  
+  // Memorizar los filtros para que se recalculen cuando activeFilters cambie
+  const filters = useMemo(() => getApiFilters(), [activeFilters, getApiFilters]);
+  
+  // Traer todas las métricas del módulo catálogo desde el registry con filtros aplicados
+  const { metrics: catalogMetrics, loading, error, refetch } = useModuleMetrics('catalog', {
+    ...dateRange,
+    filters
+  });
   const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(catalogMetrics, 'catalog-metrics-order');
 
   return (
     <>
-      <div className="mb-4">
-        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="mb-4 mt-2 sm:mt-0">
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Catálogo de Servicios y Prestadores
         </h2>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del catálogo de servicios y prestadores</p>
+        <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del catálogo de servicios y prestadores</p>
       </div>
-      <div className="mb-4">
-          <DateRangeSelector value={dateRange} onChange={setDateRange} />
+      {/* Controles de Fecha y Filtros */}
+      <div className="mb-4 flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3 lg:gap-4">
+        <DateRangeSelector value={dateRange} onChange={setDateRange} />
+        <FilterSelector module="catalog" />
       </div>
       {/* Estados de carga y error */}
       {error && (

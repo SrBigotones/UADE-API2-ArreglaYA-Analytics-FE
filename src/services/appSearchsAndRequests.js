@@ -19,7 +19,7 @@ const formatYmd = (value) => {
 };
 
 // === Métrica: Solicitudes creadas (Volumen de demanda) ===
-export const getAppRequestsCreated = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getAppRequestsCreated = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
     const mappedPeriod = mapPeriodToBackend(period);
@@ -33,6 +33,11 @@ export const getAppRequestsCreated = async (axiosInstance, { period, startDate, 
     }
   }
 
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
   const endpoint = '/api/metrica/solicitudes/volumen';
 
   console.log('📤 ENVIANDO AL BACKEND - app: solicitudes creadas', {
@@ -44,6 +49,7 @@ export const getAppRequestsCreated = async (axiosInstance, { period, startDate, 
       endDatePassed: endDate,
       startDateFormatted: params.startDate,
       endDateFormatted: params.endDate,
+      filters,
       timestamp: new Date().toISOString()
     });
 
@@ -82,7 +88,7 @@ export const getAppRequestsCreated = async (axiosInstance, { period, startDate, 
 };
 
 // === Métrica: Tasa de cancelación ===
-export const getAppCancellationRate = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getAppCancellationRate = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -96,6 +102,11 @@ export const getAppCancellationRate = async (axiosInstance, { period, startDate,
     }
   }
 
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
   const endpoint = '/api/metrica/solicitudes/tasa-cancelacion';
 
   console.log('📤 ENVIANDO AL BACKEND - app: tasa de cancelación', {
@@ -107,6 +118,7 @@ export const getAppCancellationRate = async (axiosInstance, { period, startDate,
     endDatePassed: endDate,
     startDateFormatted: params.startDate,
     endDateFormatted: params.endDate,
+    filters,
     timestamp: new Date().toISOString()
   });
 
@@ -146,7 +158,7 @@ export const getAppCancellationRate = async (axiosInstance, { period, startDate,
 
 // === Métrica: Tiempo a primera cotización ===
 // NOTA: El backend devuelve el valor en MINUTOS, pero se muestra en HORAS
-export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -160,6 +172,11 @@ export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate,
     }
   }
 
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
   const endpoint = '/api/metrica/solicitudes/tiempo-primera-cotizacion';
 
   console.log('📤 ENVIANDO AL BACKEND - app: tiempo a primera cotización', {
@@ -171,6 +188,7 @@ export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate,
     endDatePassed: endDate,
     startDateFormatted: params.startDate,
     endDateFormatted: params.endDate,
+    filters,
     timestamp: new Date().toISOString()
   });
 
@@ -224,7 +242,7 @@ export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate,
 };
 
 // === Métrica: Conversión a cotización aceptada ===
-export const getAppQuoteConversionRate = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getAppQuoteConversionRate = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -238,6 +256,11 @@ export const getAppQuoteConversionRate = async (axiosInstance, { period, startDa
     }
   }
 
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
   const endpoint = '/api/metrica/matching/cotizaciones/conversion-aceptada';
 
   console.log('📤 ENVIANDO AL BACKEND - app: conversión a cotización aceptada', {
@@ -249,6 +272,7 @@ export const getAppQuoteConversionRate = async (axiosInstance, { period, startDa
     endDatePassed: endDate,
     startDateFormatted: params.startDate,
     endDateFormatted: params.endDate,
+    filters,
     timestamp: new Date().toISOString()
   });
 

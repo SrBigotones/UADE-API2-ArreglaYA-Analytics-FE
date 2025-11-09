@@ -96,14 +96,14 @@ const DateRangeSelector = ({
   const maxAttr = maxDate ? formatDate(new Date(maxDate)) : undefined;
 
   return (
-    <div className={className || ''}>
-      <div className="flex flex-wrap gap-2">
+    <div className={`w-full ${className || ''}`}>
+      <div className="flex flex-wrap gap-1 sm:gap-2">
         {PRESETS.map((p) => (
           <button
             key={p.id}
             type="button"
             onClick={() => handlePresetClick(p.id)}
-            className={`px-3 py-1.5 rounded border text-sm transition-colors ${
+            className={`px-2 sm:px-3 py-1.5 rounded border text-xs sm:text-sm transition-colors flex-shrink-0 ${
               preset === p.id
                 ? 'bg-teal-600 text-white border-teal-600'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -115,20 +115,20 @@ const DateRangeSelector = ({
       </div>
 
       {preset === 'custom' && (
-        <div className="mt-3 flex items-center gap-2">
-          <label className="text-sm text-gray-600 dark:text-gray-400">Desde</label>
+        <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2">
+          <label className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Desde</label>
           <input
             type="date"
-            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
             value={startDate ? formatDate(startDate) : ''}
             onChange={handleStartChange}
             min={minAttr}
             max={maxAttr}
           />
-          <label className="text-sm text-gray-600 dark:text-gray-400">Hasta</label>
+          <label className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Hasta</label>
           <input
             type="date"
-            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs sm:text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-full sm:w-auto"
             value={endDate ? formatDate(endDate) : ''}
             onChange={handleEndChange}
             min={minAttr}

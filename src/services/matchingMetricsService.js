@@ -23,7 +23,7 @@ const formatDateYmd = (date) => {
 };
 
 // Función base para servicios de matching
-const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate } = {}) => {
+const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, period, description, { startDate, endDate, filters = {} } = {}) => {
   try {
     const mappedPeriod = mapPeriodToBackend(period);
     
@@ -33,11 +33,17 @@ const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, pe
       params.endDate = formatDateYmd(endDate);
     }
 
+    // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+    if (filters.rubro) params.rubro = filters.rubro;
+    if (filters.zona) params.zona = filters.zona;
+    if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
     console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
       endpoint,
       params,
       originalPeriod: period,
       mappedPeriod,
+      filters,
       timestamp: new Date().toISOString()
     });
 
@@ -86,13 +92,13 @@ const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, pe
 };
 
 // Servicio para tiempo promedio de matching
-export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/tiempo-promedio',
     period,
     'tiempo promedio de matching',
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -114,13 +120,13 @@ export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, 
 };
 
 // Servicio para cotizaciones pendientes
-export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/cotizaciones/pendientes',
     period,
     'cotizaciones pendientes',
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -142,13 +148,13 @@ export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate
 };
 
 // Servicio para tiempo de respuesta del prestador
-export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/prestadores/tiempo-respuesta',
     period,
     'tiempo de respuesta del prestador',
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
@@ -170,13 +176,13 @@ export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { st
 };
 
 // Servicio para tasa de cotizaciones expiradas
-export const getMatchingExpirationRateMetrics = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getMatchingExpirationRateMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/cotizaciones/tasa-expiracion',
     period,
     'tasa de cotizaciones expiradas',
-    { startDate, endDate }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {

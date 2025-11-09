@@ -76,10 +76,10 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar, h
                 }`}
               >
                 <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                  {user?.name?.charAt(0) || 'A'}
+                  {user?.firstName?.charAt(0) || 'A'}
                 </div>
                 <span className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {user?.name || 'Admin'}
+                  {user?.firstName || 'Admin'}
                 </span>
                 <svg
                   className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
@@ -104,7 +104,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode, onProfileClick, onToggleSidebar, h
                 >
                   <div className={`px-4 py-2 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
                     <p className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {user?.name || 'Administrador'}
+                      {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.firstName || 'Administrador'}
                     </p>
                     <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                       {user?.email || 'admin@arreglaya.com'}

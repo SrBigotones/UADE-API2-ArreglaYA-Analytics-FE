@@ -19,7 +19,7 @@ const formatYmd = (value) => {
 };
 
 // === Heatmap de pedidos ===
-export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -33,13 +33,19 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
     }
   }
 
-  const endpoint = '/api/metrica/pedidos/mapa-calor';
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
+  const endpoint = '/api/metrica/solicitudes/mapa-calor';
 
   console.log('📤 ENVIANDO AL BACKEND - catálogo: mapa de calor de pedidos', {
     endpoint,
     params,
     originalPeriod: period,
     mappedPeriod,
+    filters,
     timestamp: new Date().toISOString()
   });
 
@@ -77,7 +83,7 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
 };
 
 // === Métrica: Prestadores registrados ===
-export const getCatalogProvidersRegistered = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getCatalogProvidersRegistered = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -140,7 +146,7 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
 };
 
 // === Métrica: Total de prestadores activos ===
-export const getCatalogTotalActiveProviders = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getCatalogTotalActiveProviders = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -202,8 +208,9 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
   };
 };
 
-// === Métrica: Win Rate por rubro ===
-export const getCatalogWinRateByCategory = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+// === Métrica: Win Rate ===
+// NOTA: Win Rate NO acepta filtros de segmentación (es una métrica general)
+export const getCatalogWinRateByCategory = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -217,9 +224,11 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
     }
   }
 
+  // Win Rate NO acepta filtros según la documentación
+
   const endpoint = '/api/metrica/prestadores/win-rate-rubro';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: win rate por rubro', {
+  console.log('📤 ENVIANDO AL BACKEND - catálogo: win rate', {
     endpoint,
     params,
     originalPeriod: period,
@@ -228,6 +237,7 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
     endDatePassed: endDate,
     startDateFormatted: params.startDate,
     endDateFormatted: params.endDate,
+    note: 'Win Rate NO acepta filtros de segmentación',
     timestamp: new Date().toISOString()
   });
 
@@ -237,7 +247,7 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
     validateStatus: status => status < 500
   });
 
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: win rate por rubro', {
+  console.log('📥 RESPUESTA RAW BACKEND - catálogo: win rate', {
     status: response.status,
     statusText: response.statusText,
     data: response.data,
@@ -266,7 +276,7 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
 };
 
 // === Métrica: Distribución de servicios ===
-export const getCatalogServiceDistribution = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
+export const getCatalogServiceDistribution = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -280,6 +290,11 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
     }
   }
 
+  // Agregar filtros de segmentación (rubro, zona, tipoSolicitud)
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+  if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
+
   const endpoint = '/api/metrica/prestadores/servicios/distribucion';
 
   console.log('📤 ENVIANDO AL BACKEND - catálogo: distribución de servicios', {
@@ -291,6 +306,7 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
     endDatePassed: endDate,
     startDateFormatted: params.startDate,
     endDateFormatted: params.endDate,
+    filters,
     timestamp: new Date().toISOString()
   });
 

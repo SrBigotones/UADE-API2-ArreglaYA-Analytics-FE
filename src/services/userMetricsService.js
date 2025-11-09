@@ -434,49 +434,285 @@ export const getUserActiveRolesRate = async (axiosInstance, { startDate, endDate
   };
 };
 
-// Servicio para asignación de roles de usuarios
-export const getUserRoleAssignments = async (axiosInstance, { startDate, endDate, period, signal }) => {
-  if (!axiosInstance) {
-    throw new Error('Cliente HTTP no inicializado');
-  }
-
+// Servicio para tasa de usuarios inactivos
+export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
   try {
+    const mappedPeriod = mapUserPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (mappedPeriod === 'personalizado' && startDate && endDate) {
+      params.startDate = formatDateYmd(startDate);
+      params.endDate = formatDateYmd(endDate);
+    }
 
-    const response = await axiosInstance.get('/api/metrics/users/roles', {
-      params: { startDate, endDate, period },
+    const endpoint = '/api/metrica/usuarios/tasa-roles-activos';
+
+    console.log('📤 ENVIANDO AL BACKEND - tasa de usuarios inactivos:', {
+      endpoint,
+      params,
+      originalPeriod: period,
+      mappedPeriod,
+      timestamp: new Date().toISOString()
+    });
+
+    const response = await axiosInstance.get(endpoint, {
+      params,
       signal,
       validateStatus: status => status < 500
     });
 
+    console.log('📥 RESPUESTA RAW BACKEND - tasa de usuarios inactivos:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
+
     if (response.status !== 200) {
-      throw new Error(`Error del servidor: ${response.status}`);
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
     }
 
-    if (!response.data) {
+    if (!response.data || !response.data.data) {
       throw new Error('Respuesta sin datos');
     }
 
+    // La respuesta del backend tiene esta estructura:
+    // { success: true, data: { tasaInactivos: {...}, distribucionPorRol: {...} } }
+    const raw = response.data.data;
+    
+    // Validar que raw existe y tiene tasaInactivos
+    if (!raw || !raw.tasaInactivos) {
+      return {
+        success: false,
+        message: 'Respuesta del backend sin datos de tasa de usuarios inactivos'
+      };
+    }
+    
+    // Retornar los datos en el formato esperado
     return {
       success: true,
       data: {
-        value: response.data.value || 0,
-        change: response.data.change || 0,
-        changeStatus: response.data.changeStatus || 'neutral',
-        lastUpdated: response.data.lastUpdated || new Date().toISOString()
+        tasaInactivos: {
+          value: raw.tasaInactivos.value ?? 0,
+          change: raw.tasaInactivos.change ?? 0,
+          changeType: raw.tasaInactivos.changeType || 'absoluto',
+          changeStatus: raw.tasaInactivos.changeStatus || 'neutral',
+          chartData: raw.tasaInactivos.chartData || []
+        },
+        distribucionPorRol: raw.distribucionPorRol || {},
+        lastUpdated: new Date().toISOString()
       }
     };
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
       return {
         success: false,
         error: 'Solicitud cancelada'
       };
     }
 
-    console.error('Error en métricas de roles:', error);
+    console.error('❌ Error en tasa de usuarios inactivos:', error);
     return {
       success: false,
-      error: error.message || 'Error desconocido'
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
+    };
+  }
+};
+
+// Servicio para distribución por rol (histórico, sin periodo)
+export const getUserRoleDistribution = async (axiosInstance, { signal } = {}) => {
+  if (!axiosInstance) {
+    throw new Error('Cliente HTTP no inicializado');
+  }
+
+  try {
+    console.log('📤 ENVIANDO AL BACKEND - distribución por rol:', {
+      endpoint: '/api/metrica/usuarios/distribucion-por-rol',
+      timestamp: new Date().toISOString()
+    });
+
+    const response = await axiosInstance.get('/api/metrica/usuarios/distribucion-por-rol', {
+      signal,
+      validateStatus: status => status < 500
+    });
+
+    console.log('📥 RESPUESTA RAW BACKEND - distribución por rol:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+    }
+
+    if (!response.data) {
+      throw new Error('Respuesta sin datos');
+    }
+
+    const rawData = response.data.data || response.data;
+
+    return {
+      success: true,
+      data: rawData
+    };
+  } catch (error) {
+    if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+      return {
+        success: false,
+        error: 'Solicitud cancelada'
+      };
+    }
+
+    console.error('❌ Error en distribución por rol:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
+    };
+  }
+};
+
+// Servicio para total de usuarios (histórico, sin periodo)
+export const getUserTotal = async (axiosInstance, { signal } = {}) => {
+  if (!axiosInstance) {
+    throw new Error('Cliente HTTP no inicializado');
+  }
+
+  try {
+    console.log('📤 ENVIANDO AL BACKEND - total de usuarios:', {
+      endpoint: '/api/metrica/usuarios/totales',
+      timestamp: new Date().toISOString()
+    });
+
+    const response = await axiosInstance.get('/api/metrica/usuarios/totales', {
+      signal,
+      validateStatus: status => status < 500
+    });
+
+    console.log('📥 RESPUESTA RAW BACKEND - total de usuarios:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+    }
+
+    if (!response.data) {
+      throw new Error('Respuesta sin datos');
+    }
+
+    const rawData = response.data.data || response.data;
+
+    return {
+      success: true,
+      data: {
+        value: rawData.value ?? 0,
+        change: rawData.change ?? 0,
+        changeType: rawData.changeType || 'absoluto',
+        changeStatus: rawData.changeStatus || 'neutro',
+        lastUpdated: new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+      return {
+        success: false,
+        error: 'Solicitud cancelada'
+      };
+    }
+
+    console.error('❌ Error en total de usuarios:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
+    };
+  }
+};
+
+// Servicio para nuevos prestadores (desde el endpoint de prestadores, con filtros)
+export const getProviderNewRegistrations = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+  try {
+    const mappedPeriod = mapUserPeriodToBackend(period);
+    
+    const params = { period: mappedPeriod };
+    if (mappedPeriod === 'personalizado' && startDate && endDate) {
+      params.startDate = formatDateYmd(startDate);
+      params.endDate = formatDateYmd(endDate);
+    }
+
+    // Agregar filtros de segmentación (rubro, zona)
+    if (filters.rubro) params.rubro = filters.rubro;
+    if (filters.zona) params.zona = filters.zona;
+
+    const endpoint = '/api/metrica/prestadores/nuevos-registrados';
+
+    console.log('📤 ENVIANDO AL BACKEND - nuevos prestadores:', {
+      endpoint,
+      params,
+      originalPeriod: period,
+      mappedPeriod,
+      filters,
+      timestamp: new Date().toISOString()
+    });
+
+    const response = await axiosInstance.get(endpoint, {
+      params,
+      signal,
+      validateStatus: status => status < 500
+    });
+
+    console.log('📥 RESPUESTA RAW BACKEND - nuevos prestadores:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      timestamp: new Date().toISOString()
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Error del servidor: ${response.status} - ${response.statusText}`);
+    }
+
+    if (!response.data) {
+      throw new Error('Respuesta sin datos');
+    }
+
+    const rawData = response.data.data || response.data;
+
+    return {
+      success: true,
+      data: {
+        value: rawData.value ?? 0,
+        change: rawData.change ?? 0,
+        changeType: rawData.changeType || 'porcentaje',
+        changeStatus: rawData.changeStatus || 'neutral',
+        chartData: rawData.chartData || [],
+        lastUpdated: new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+      return {
+        success: false,
+        error: 'Solicitud cancelada'
+      };
+    }
+
+    console.error('❌ Error en nuevos prestadores:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
     };
   }
 };

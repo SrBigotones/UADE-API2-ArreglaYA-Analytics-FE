@@ -4,6 +4,4 @@ export const config = {
     API_BASE_URL,
 };
 
-console.log('Config API:', { API_BASE_URL });
-
 export default config;

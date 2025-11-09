@@ -43,7 +43,7 @@ const importService = async (serviceModule, serviceName, serviceCache) => {
 const metricsResultsCache = new Map();
 
 // Hook personalizado para manejar métricas desde el backend
-export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
+export const useMetrics = (metricIds, { startDate, endDate, presetId, filters = {} }) => {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,9 +64,10 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
       metricIds,
       startDate,
       endDate,
-      presetId
+      presetId,
+      filters
     });
-  }, [metricIds, startDate, endDate, presetId]);
+  }, [metricIds, startDate, endDate, presetId, filters]);
 
   // Función principal para obtener métricas
   const fetchMetrics = useCallback(async () => {
@@ -75,7 +76,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
     // Verificar cache
     const cached = metricsResultsCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 5000) { // Cache por 5 segundos
-      console.log('⚡ USANDO DATOS CACHEADOS', { cacheKey, cached: cached.data });
       setMetrics(cached.data);
       setLoading(false);
       return;
@@ -109,21 +109,13 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   startDate,
                   endDate,
                   period: presetId,
+                  filters,
                   signal: abortControllerRef.current.signal
                 });
 
                 if (response && response.success) {
                   const { serviceConfig } = metric;
                   const metricData = response.data;
-                  
-                  // Console log para ver qué devuelve cada consulta del backend
-                  console.log(`🔍 RESPUESTA BACKEND - ${metric.id}:`, {
-                    endpoint: metric.endpoint,
-                    serviceConfig: metric.serviceConfig,
-                    response: response,
-                    metricData: metricData,
-                    timestamp: new Date().toISOString()
-                  });
                   
                   const formattedValue = serviceConfig.valueFormatter ? 
                     serviceConfig.valueFormatter(metricData) : 
@@ -132,10 +124,15 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   const formattedChange = serviceConfig.changeFormatter ? 
                     serviceConfig.changeFormatter(metricData) : 
                     metricData.change;
+                  
+                  // Extraer changeStatus usando changeStatusExtractor si existe, sino usar metricData.changeStatus
+                  const changeStatus = serviceConfig.changeStatusExtractor ? 
+                    serviceConfig.changeStatusExtractor(metricData) : 
+                    metricData.changeStatus;
                     
                   const mappedStatus = serviceConfig.statusMapper ? 
-                    serviceConfig.statusMapper(metricData.changeStatus) : 
-                    metricData.changeStatus;
+                    serviceConfig.statusMapper(changeStatus) : 
+                    changeStatus;
 
                   const nextMetricBase = {
                     ...metric,
@@ -167,15 +164,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   // Si no hay formatter, usar chartData directamente de response.data
                   const chartData = chartDataFormatted || (Array.isArray(response.data?.chartData) ? response.data.chartData : undefined);
                   
-                  console.log(`📊 CHART DATA FORMATEADO - ${metric.id}:`, {
-                    hasChartDataFormatter: !!serviceConfig.chartDataFormatter,
-                    responseData: response.data,
-                    chartDataFormatted: chartDataFormatted,
-                    chartDataDirect: response.data?.chartData,
-                    chartDataFinal: chartData,
-                    chartDataLength: chartData?.length || 0
-                  });
-                  
                   return {
                     ...nextMetricBase,
                     ...(chartData && {
@@ -189,15 +177,6 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                   throw new DOMException('Solicitud cancelada', 'AbortError');
                 }
 
-                // Console log cuando la respuesta no es exitosa
-                console.log(`❌ RESPUESTA NO EXITOSA - ${metric.id}:`, {
-                  endpoint: metric.endpoint,
-                  response: response,
-                  success: response?.success,
-                  data: response?.data,
-                  timestamp: new Date().toISOString()
-                });
-
                 throw new Error('Respuesta inválida del servidor');
               }
             } catch (error) {
@@ -205,8 +184,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
                 throw error; // Re-throw para que Promise.all se cancele
               }
               
-              // Console log para errores de servicios
-              console.log(`🚨 ERROR DE SERVICIO - ${metric.id}:`, {
+              console.error(`❌ ERROR DE SERVICIO - ${metric.id}:`, {
                 endpoint: metric.endpoint,
                 serviceName: metric.serviceConfig?.serviceName,
                 error: {
@@ -291,16 +269,16 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId }) => {
 };
 
 // Hook para métricas de un módulo específico
-export const useModuleMetrics = (module, { startDate, endDate, preset }) => {
+export const useModuleMetrics = (module, { startDate, endDate, preset, filters = {} }) => {
   const moduleMetricIds = Object.values(METRICS_REGISTRY)
     .filter(metric => metric.module === module)
     .map(metric => metric.id);
   
-  return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset });
+  return useMetrics(moduleMetricIds, { startDate, endDate, presetId: preset, filters });
 };
 
 // Hook específico para métricas del dashboard
-export const useDashboardMetrics = ({ startDate, endDate, preset }) => {
+export const useDashboardMetrics = ({ startDate, endDate, preset, filters = {} }) => {
   // Estado para métricas seleccionadas por el usuario
   const [selectedMetricIds, setSelectedMetricIds] = useState(() => {
     // Cargar desde localStorage o usar métricas por defecto
@@ -323,7 +301,7 @@ export const useDashboardMetrics = ({ startDate, endDate, preset }) => {
   }, []);
 
   // Usar las métricas seleccionadas en lugar de todas las del dashboard
-  const metricsResult = useMetrics(selectedMetricIds, { startDate, endDate, presetId: preset });
+  const metricsResult = useMetrics(selectedMetricIds, { startDate, endDate, presetId: preset, filters });
 
   return {
     ...metricsResult,

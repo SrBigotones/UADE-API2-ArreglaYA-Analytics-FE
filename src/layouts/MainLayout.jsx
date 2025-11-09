@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import CoreScreen from '../screens/DashboardScreen';
@@ -10,14 +11,38 @@ import MatchingScreen from '../screens/MatchingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const MainLayout = () => {
-  const [activeCategory, setActiveCategory] = useState('dashboard');
-  const [activeScreen, setActiveScreen] = useState('dashboard'); // 'dashboard' o 'profile'
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Cargar el tema guardado del localStorage al inicializar
     const savedTheme = localStorage.getItem('arreglaya-dark-mode');
     return savedTheme ? JSON.parse(savedTheme) : false;
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Obtener la pantalla actual desde la URL
+  const getCurrentScreen = () => {
+    const path = location.pathname;
+    if (path === '/profile') return 'profile';
+    return 'dashboard';
+  };
+
+  // Obtener la categoría actual desde la URL
+  const getCurrentCategory = () => {
+    const path = location.pathname;
+    switch (path) {
+      case '/dashboard': return 'dashboard';
+      case '/catalog': return 'catalog';
+      case '/app': return 'app';
+      case '/payments': return 'payments';
+      case '/users': return 'users';
+      case '/matching': return 'matching';
+      default: return 'dashboard';
+    }
+  };
+
+  const activeScreen = getCurrentScreen();
+  const activeCategory = getCurrentCategory();
 
   // Guardar el tema en localStorage cada vez que cambie
   useEffect(() => {
@@ -42,7 +67,7 @@ const MainLayout = () => {
 
   // Función para manejar el clic en Perfil desde la navbar
   const handleProfileClick = () => {
-    setActiveScreen('profile');
+    navigate('/profile');
     // Cerrar el menú desplegable del usuario
     if (window.closeUserMenu) {
       window.closeUserMenu();
@@ -51,13 +76,12 @@ const MainLayout = () => {
 
   // Función para manejar el clic en categorías del sidebar
   const handleCategoryClick = (categoryId) => {
-    setActiveCategory(categoryId);
-    setActiveScreen('dashboard');
+    navigate(`/${categoryId}`);
   };
 
   // Función para volver al dashboard
   const handleBackToDashboard = () => {
-    setActiveScreen('dashboard');
+    navigate('/dashboard');
   };
 
   // Función para renderizar la pantalla según la categoría activa
@@ -118,7 +142,7 @@ const MainLayout = () => {
         )}
 
         {/* Main Content */}
-        <div className={`p-4 ${activeScreen === 'profile' ? 'w-full' : 'flex-1'} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ marginLeft: activeScreen === 'dashboard' ? 256 : 0 }}>
+        <div className={`p-2 sm:p-4 w-full ${activeScreen === 'dashboard' ? 'md:ml-64' : ''} ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {renderActiveScreen()}
         </div>
       </div>

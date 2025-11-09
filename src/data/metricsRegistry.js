@@ -32,73 +32,11 @@ export const METRICS_REGISTRY = {
   },
 
   // === CATÁLOGO ===
-  'catalog-providers-registered': {
-    id: 'catalog-providers-registered',
-    module: 'catalog',
-    type: 'card',
-    title: 'Nuevos prestadores registrados',
-    value: '0',
-    change: '',
-    changeStatus: 'neutral',
-    description: 'Prestadores registrados en el período',
-    endpoint: '/api/metrica/prestadores/nuevos-registrados',
-    category: 'growth',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getCatalogProvidersRegistered',
-      serviceModule: 'catalogService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-  'catalog-total-active-providers': {
-    id: 'catalog-total-active-providers',
-    module: 'catalog',
-    type: 'card',
-    title: 'Total de prestadores activos',
-    value: '0',
-    change: '',
-    changeStatus: 'neutral',
-    description: 'Cantidad total de prestadores activos en el sistema',
-    endpoint: '/api/metrica/prestadores/total-activos',
-    category: 'status',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getCatalogTotalActiveProviders',
-      serviceModule: 'catalogService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
   'catalog-win-rate': {
     id: 'catalog-win-rate',
     module: 'catalog',
     type: 'card',
-    title: 'Win Rate por rubro',
+    title: 'Win Rate',
     value: '0%',
     change: '',
     changeStatus: 'neutral',
@@ -131,7 +69,7 @@ export const METRICS_REGISTRY = {
     type: 'map',
     title: 'Mapa de calor de pedidos',
     description: 'Distribución geográfica de pedidos',
-    endpoint: '/api/metrica/pedidos/mapa-calor',
+    endpoint: '/api/metrica/solicitudes/mapa-calor',
     category: 'distribution',
     hasRealService: true,
     serviceConfig: {
@@ -555,22 +493,155 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'users-new-admins': {
-    id: 'users-new-admins',
+  'users-inactive-rate': {
+    id: 'users-inactive-rate',
     module: 'users',
     type: 'card',
-    title: 'Nuevos administradores',
+    title: 'Tasa de usuarios inactivos',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de usuarios inactivos en el sistema',
+    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
+    category: 'management',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserInactiveRate',
+      serviceModule: 'userMetricsService',
+      // Necesitamos extraer el changeStatus de data.tasaInactivos para que useMetrics lo use
+      changeStatusExtractor: (data) => data.tasaInactivos?.changeStatus || 'neutral',
+      valueFormatter: (data) => `${data.tasaInactivos?.value || 0}%`,
+      changeFormatter: (data) => {
+        const change = data.tasaInactivos?.change || 0;
+        const sign = data.tasaInactivos?.changeStatus === 'positivo' ? '+' : data.tasaInactivos?.changeStatus === 'negativo' ? '-' : '';
+        return `${sign}${Math.abs(change)}%`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.tasaInactivos?.chartData || []
+    }
+  },
+  'users-inactive-distribution': {
+    id: 'users-inactive-distribution',
+    module: 'users',
+    type: 'pie',
+    title: 'Distribución de inactivos por rol',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Distribución de usuarios inactivos por rol',
+    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
+    category: 'distribution',
+    allowToggleToChart: false,
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserInactiveRate',
+      serviceModule: 'userMetricsService',
+      chartDataFormatter: (data) => {
+        // Convertir distribucionPorRol a array para el gráfico pie
+        if (!data.distribucionPorRol || typeof data.distribucionPorRol !== 'object') {
+          return [];
+        }
+        
+        // Helper para colores por rol
+        const getRoleColor = (rol) => {
+          const colors = {
+            'cliente': '#3b82f6',    // Azul
+            'prestador': '#10b981',   // Verde
+            'admin': '#f59e0b',       // Amarillo
+            'customer': '#3b82f6'     // Azul (alias)
+          };
+          return colors[rol?.toLowerCase()] || '#6b7280';
+        };
+        
+        return Object.entries(data.distribucionPorRol).map(([role, count]) => ({
+          name: role.charAt(0).toUpperCase() + role.slice(1),
+          value: typeof count === 'number' ? count : 0,
+          color: getRoleColor(role)
+        }));
+      },
+      valueFormatter: (data) => {
+        if (!data.distribucionPorRol) return '0';
+        const total = Object.values(data.distribucionPorRol).reduce((sum, count) => sum + (typeof count === 'number' ? count : 0), 0);
+        return total.toString();
+      },
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-role-distribution': {
+    id: 'users-role-distribution',
+    module: 'users',
+    type: 'pie',
+    title: 'Distribución por rol',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Distribución histórica total de usuarios por rol',
+    endpoint: '/api/metrica/usuarios/distribucion-por-rol',
+    category: 'distribution',
+    allowToggleToChart: false,
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserRoleDistribution',
+      serviceModule: 'userMetricsService',
+      chartDataFormatter: (data) => {
+        // Convertir objeto a array para el gráfico pie
+        return Object.entries(data).map(([role, count]) => ({
+          name: role,
+          value: count
+        }));
+      },
+      valueFormatter: (data) => {
+        const total = Object.values(data).reduce((sum, count) => sum + count, 0);
+        return total.toString();
+      },
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-total': {
+    id: 'users-total',
+    module: 'users',
+    type: 'card',
+    title: 'Total de usuarios',
+    value: '0',
+    change: '0',
+    changeStatus: 'neutral',
+    description: 'Cantidad total histórica de usuarios registrados',
+    endpoint: '/api/metrica/usuarios/totales',
+    category: 'overview',
+    allowToggleToChart: false,
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserTotal',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: () => '0',
+      statusMapper: () => 'neutral'
+    }
+  },
+  'users-new-providers-registered': {
+    id: 'users-new-providers-registered',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos prestadores',
     value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Nuevos administradores registrados',
-    endpoint: '/api/metrica/usuarios/nuevos-administradores',
+    description: 'Nuevos prestadores registrados (con filtros de rubro y zona)',
+    endpoint: '/api/metrica/prestadores/nuevos-registrados',
     category: 'growth',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getUserNewAdmins',
+      serviceName: 'getProviderNewRegistrations',
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
@@ -583,62 +654,6 @@ export const METRICS_REGISTRY = {
         'negativo': 'negative',
         'neutro': 'neutral'
       }[status] || 'neutral')
-    }
-  },
-  'users-active-roles-rate': {
-    id: 'users-active-roles-rate',
-    module: 'users',
-    type: 'card',
-    title: 'Tasa de roles activos',
-    value: '0%',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Porcentaje de usuarios con roles activos',
-    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
-    category: 'management',
-    allowToggleToChart: false, // No hay datos históricos en el backend
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserActiveRolesRate',
-      serviceModule: 'userMetricsService',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-      // No hay chartData histórico, solo distribución por rol (usada en users-role-assignment)
-    }
-  },
-  'users-role-assignment': {
-    id: 'users-role-assignment',
-    module: 'users',
-    type: 'pie',
-    title: 'Distribución por rol',
-    value: '0',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Distribución de usuarios activos por rol',
-    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
-    category: 'distribution',
-    allowToggleToChart: false,
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserActiveRolesRate',
-      serviceModule: 'userMetricsService',
-      chartDataFormatter: (data) => data.chartData || [],
-      valueFormatter: (data) => {
-        const total = (data.chartData || []).reduce((sum, item) => sum + (item.value || 0), 0);
-        return total.toString();
-      },
-      changeFormatter: () => '',
-      statusMapper: () => 'neutral'
     }
   },
 
@@ -785,17 +800,17 @@ export const METRICS_REGISTRY = {
 // Configuraciones predefinidas por módulo
 export const MODULE_METRICS = {
   core: ['core-processing-time', 'core-retry-success', 'core-messages-flow'],
-  catalog: ['catalog-providers-registered', 'catalog-total-active-providers', 'catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
+  catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
-  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-new-admins', 'users-active-roles-rate', 'users-role-assignment'],
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-inactive-distribution', 'users-role-distribution', 'users-total', 'users-new-providers-registered'],
   matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time', 'matching-expiration-rate']
 };
 
 // Configuración por defecto del dashboard
 export const DEFAULT_DASHBOARD_METRICS = [
   'core-processing-time',
-  'catalog-new-providers', 
+  'catalog-win-rate', 
   'app-requests-created',
   'payments-success-rate'
 ];

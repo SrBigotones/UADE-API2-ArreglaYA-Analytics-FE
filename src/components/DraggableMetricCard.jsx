@@ -62,7 +62,6 @@ const DraggableMetricCard = ({
       }
     }
     
-    console.log(`Iniciando drag de: ${metric.id} (${metric.type})`);
     setIsDragging(true);
     e.dataTransfer.setData('text/plain', index.toString());
     e.dataTransfer.effectAllowed = 'move';
@@ -92,7 +91,6 @@ const DraggableMetricCard = ({
     const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
     
     if (draggedIndex !== index) {
-      console.log(`Reordenando: ${draggedIndex} -> ${index}, metric: ${metric.id}`);
       onReorder(draggedIndex, index);
     }
   };
@@ -131,7 +129,6 @@ const DraggableMetricCard = ({
           onSizeChange={(metricId, newSize) => {
             // Evitar redimensionamiento accidental durante drag
             if (!isDragging && !isDragOver) {
-              console.log(`Redimensionando manualmente: ${metricId}`, newSize);
               updateChartSize(metricId, newSize);
             }
           }}

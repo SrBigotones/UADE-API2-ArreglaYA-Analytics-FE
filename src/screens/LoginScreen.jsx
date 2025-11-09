@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/authContextCore';
 import { loginRequest } from '../services/authService'; // reservado para backend real
 import { saveToken } from '../utils/tokenStorage';
@@ -6,12 +7,20 @@ import { saveToken } from '../utils/tokenStorage';
 import Navbar from '../components/Navbar';
 
 const LoginScreen = () => {
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     try {
@@ -45,6 +54,7 @@ const LoginScreen = () => {
       setIsSubmitting(true);
       // Use mock for now; keep real request ready for later switch
       const data = await loginRequest({ email: usernameOrEmail, password });
+      
       const token = data?.token || data?.jwt || data?.accessToken;
       if (!token) {
         setErrorMessage('Respuesta inválida del servidor.');
@@ -52,6 +62,9 @@ const LoginScreen = () => {
       }
       await saveToken(token);
       await login({ token, user: data?.user });
+      
+      // Redirigir después del login exitoso
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const apiMessage = err?.response?.data?.message || 'Credenciales inválidas o error de conexión.';
       setErrorMessage(apiMessage);

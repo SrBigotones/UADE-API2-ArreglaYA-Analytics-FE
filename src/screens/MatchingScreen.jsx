@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
+import FilterSelector from '../components/FilterSelector';
 import DraggableMetricCard from '../components/DraggableMetricCard';
 import { useModuleMetrics } from '../hooks/useMetrics';
 import { useDashboardOrder } from '../hooks/useDashboardOrder';
+import { useFilters } from '../context/FilterContext';
 
 const MatchingScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  const { activeFilters, getApiFilters, clearAllFilters } = useFilters();
+  
+  // Limpiar filtros al montar el componente (cuando se cambia de módulo)
+  useEffect(() => {
+    clearAllFilters();
+  }, []);
+  
+  // Memorizar los filtros para que se recalculen cuando activeFilters cambie
+  const filters = useMemo(() => getApiFilters(), [activeFilters, getApiFilters]);
   
   // Obtener métricas específicas del módulo de matching desde el hook híbrido
-  const { metrics: matchingMetrics, loading, error, refetch } = useModuleMetrics('matching', dateRange);
+  const { metrics: matchingMetrics, loading, error, refetch } = useModuleMetrics('matching', {
+    ...dateRange,
+    filters
+  });
   const { orderedMetrics, reorderMetrics, saveOrderToStorage } = useDashboardOrder(matchingMetrics, 'matching-metrics-order');
 
   return (
     <>
-      <div className="mb-4">
-        <h2 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="mb-4 mt-2 sm:mt-0">
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           Matching y Agenda
         </h2>
-        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del sistema de matching y agenda</p>
+        <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del sistema de matching y agenda</p>
       </div>
       
-      <div className="mb-4">
+      {/* Controles de Fecha y Filtros */}
+      <div className="mb-4 flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3 lg:gap-4">
         <DateRangeSelector value={dateRange} onChange={setDateRange} />
+        <FilterSelector module="matching" />
       </div>
 
       {/* Estados de carga y error */}
