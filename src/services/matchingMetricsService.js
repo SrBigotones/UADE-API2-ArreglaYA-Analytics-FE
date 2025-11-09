@@ -92,7 +92,7 @@ const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, pe
 };
 
 // Servicio para tiempo promedio de matching
-export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/tiempo-promedio',
@@ -120,7 +120,7 @@ export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, 
 };
 
 // Servicio para cotizaciones pendientes
-export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/cotizaciones/pendientes',
@@ -148,7 +148,7 @@ export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate
 };
 
 // Servicio para tiempo de respuesta del prestador
-export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/prestadores/tiempo-respuesta',
@@ -176,7 +176,7 @@ export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { st
 };
 
 // Servicio para tasa de cotizaciones expiradas
-export const getMatchingExpirationRateMetrics = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+export const getMatchingExpirationRateMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/matching/cotizaciones/tasa-expiracion',

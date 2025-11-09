@@ -1,5 +1,5 @@
 // Servicio para métricas de usuarios
-export const getUserMetrics = async (axiosInstance, { startDate, endDate, period, signal }) => {
+export const getUserMetrics = async (axiosInstance, { startDate, endDate, period }) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
@@ -7,7 +7,6 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
       params: { startDate, endDate, period },
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -107,7 +106,7 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
   }
 };
 
-export const getUserActivityDistribution = async (axiosInstance, { startDate, endDate, signal }) => {
+export const getUserActivityDistribution = async (axiosInstance, { startDate, endDate }) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
@@ -115,7 +114,6 @@ export const getUserActivityDistribution = async (axiosInstance, { startDate, en
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/distribucion', {
       params: { startDate, endDate },
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -143,7 +141,7 @@ export const getUserActivityDistribution = async (axiosInstance, { startDate, en
   }
 };
 
-export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate, signal }) => {
+export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate }) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
@@ -151,7 +149,6 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate, s
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/crecimiento', {
       params: { startDate, endDate },
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -263,7 +260,7 @@ const fetchUserMetricsWithErrorHandling = async (axiosInstance, endpoint, period
   }
 };
 
-export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period } = {}) => {
   const result = await fetchUserMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/usuarios/nuevos-clientes', // ✅ ACTUALIZADO: usar endpoint nuevo
@@ -291,7 +288,7 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
 };
 
 // Servicio para nuevos clientes registrados
-export const getUserNewCustomers = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserNewCustomers = async (axiosInstance, { startDate, endDate, period } = {}) => {
   const result = await fetchUserMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/usuarios/nuevos-clientes',
@@ -319,7 +316,7 @@ export const getUserNewCustomers = async (axiosInstance, { startDate, endDate, p
 };
 
 // Servicio para nuevos prestadores usuarios registrados
-export const getUserNewProviders = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserNewProviders = async (axiosInstance, { startDate, endDate, period } = {}) => {
   const result = await fetchUserMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/usuarios/nuevos-prestadores',
@@ -347,7 +344,7 @@ export const getUserNewProviders = async (axiosInstance, { startDate, endDate, p
 };
 
 // Servicio para nuevos administradores registrados
-export const getUserNewAdmins = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserNewAdmins = async (axiosInstance, { startDate, endDate, period } = {}) => {
   const result = await fetchUserMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/usuarios/nuevos-administradores',
@@ -375,7 +372,7 @@ export const getUserNewAdmins = async (axiosInstance, { startDate, endDate, peri
 };
 
 // Servicio para tasa de roles activos
-export const getUserActiveRolesRate = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserActiveRolesRate = async (axiosInstance, { startDate, endDate, period } = {}) => {
   const result = await fetchUserMetricsWithErrorHandling(
     axiosInstance,
     '/api/metrica/usuarios/tasa-roles-activos',
@@ -435,7 +432,7 @@ export const getUserActiveRolesRate = async (axiosInstance, { startDate, endDate
 };
 
 // Servicio para tasa de usuarios inactivos
-export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, period, signal } = {}) => {
+export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, period } = {}) => {
   try {
     const mappedPeriod = mapUserPeriodToBackend(period);
     
@@ -457,7 +454,6 @@ export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, p
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -522,7 +518,7 @@ export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, p
 };
 
 // Servicio para distribución por rol (histórico, sin periodo)
-export const getUserRoleDistribution = async (axiosInstance, { signal } = {}) => {
+export const getUserRoleDistribution = async (axiosInstance) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
@@ -534,7 +530,6 @@ export const getUserRoleDistribution = async (axiosInstance, { signal } = {}) =>
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/distribucion-por-rol', {
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -578,7 +573,7 @@ export const getUserRoleDistribution = async (axiosInstance, { signal } = {}) =>
 };
 
 // Servicio para total de usuarios (histórico, sin periodo)
-export const getUserTotal = async (axiosInstance, { signal } = {}) => {
+export const getUserTotal = async (axiosInstance) => {
   if (!axiosInstance) {
     throw new Error('Cliente HTTP no inicializado');
   }
@@ -590,7 +585,6 @@ export const getUserTotal = async (axiosInstance, { signal } = {}) => {
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/totales', {
-      signal,
       validateStatus: status => status < 500
     });
 
@@ -640,7 +634,7 @@ export const getUserTotal = async (axiosInstance, { signal } = {}) => {
 };
 
 // Servicio para nuevos prestadores (desde el endpoint de prestadores, con filtros)
-export const getProviderNewRegistrations = async (axiosInstance, { startDate, endDate, period, filters = {}, signal } = {}) => {
+export const getProviderNewRegistrations = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   try {
     const mappedPeriod = mapUserPeriodToBackend(period);
     
@@ -667,7 +661,6 @@ export const getProviderNewRegistrations = async (axiosInstance, { startDate, en
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      signal,
       validateStatus: status => status < 500
     });
 

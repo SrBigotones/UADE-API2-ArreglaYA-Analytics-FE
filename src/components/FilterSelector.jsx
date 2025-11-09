@@ -8,7 +8,7 @@ import { useAxios } from '../hooks/useAxios';
 import { getAllFilterOptions } from '../services/filterOptionsService';
 
 const FilterSelector = ({ className = '', module = 'all' }) => {
-  const { activeFilters, updateFilter, clearFilter, clearAllFilters } = useFilters();
+  const { activeFilters, updateFilter, clearAllFilters } = useFilters();
   const [activeDropdown, setActiveDropdown] = useState('');
   const [filterOptions, setFilterOptions] = useState({
     rubro: [],
@@ -162,12 +162,6 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     
     updateFilter(contextFilterType, valueToSend);
     setActiveDropdown('');
-  };
-
-  const handleClearFilter = (filterType) => {
-    // Mapear el tipo local al tipo del contexto
-    const contextFilterType = filterType === 'tipo' ? 'tipoSolicitud' : filterType;
-    clearFilter(contextFilterType);
   };
 
   const handleClearAllFilters = () => {

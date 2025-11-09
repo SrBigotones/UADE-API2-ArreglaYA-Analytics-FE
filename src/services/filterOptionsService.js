@@ -20,7 +20,7 @@ const isCacheValid = () => {
 };
 
 // Obtener rubros disponibles
-export const getRubros = async (axiosInstance) => {
+export const getRubros = async () => {
   try {
     if (filterOptionsCache.rubros && isCacheValid()) {
       return { success: true, data: filterOptionsCache.rubros };
@@ -54,7 +54,7 @@ export const getRubros = async (axiosInstance) => {
 };
 
 // Obtener zonas disponibles
-export const getZonas = async (axiosInstance) => {
+export const getZonas = async () => {
   try {
     if (filterOptionsCache.zonas && isCacheValid()) {
       return { success: true, data: filterOptionsCache.zonas };
@@ -122,7 +122,7 @@ export const getZonas = async (axiosInstance) => {
 };
 
 // Obtener métodos de pago disponibles
-export const getMetodosPago = async (axiosInstance) => {
+export const getMetodosPago = async () => {
   try {
     if (filterOptionsCache.metodos && isCacheValid()) {
       return { success: true, data: filterOptionsCache.metodos };
@@ -146,7 +146,7 @@ export const getMetodosPago = async (axiosInstance) => {
 };
 
 // Obtener tipos de solicitud disponibles
-export const getTiposSolicitud = async (axiosInstance) => {
+export const getTiposSolicitud = async () => {
   try {
     if (filterOptionsCache.tiposSolicitud && isCacheValid()) {
       return { success: true, data: filterOptionsCache.tiposSolicitud };

@@ -83,7 +83,7 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
 };
 
 // === Métrica: Prestadores registrados ===
-export const getCatalogProvidersRegistered = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getCatalogProvidersRegistered = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -146,7 +146,7 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
 };
 
 // === Métrica: Total de prestadores activos ===
-export const getCatalogTotalActiveProviders = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getCatalogTotalActiveProviders = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);
@@ -210,7 +210,7 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
 
 // === Métrica: Win Rate ===
 // NOTA: Win Rate NO acepta filtros de segmentación (es una métrica general)
-export const getCatalogWinRateByCategory = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getCatalogWinRateByCategory = async (axiosInstance, { period, startDate, endDate, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
   const mappedPeriod = mapPeriodToBackend(period);

@@ -16,6 +16,7 @@ const CoreScreen = ({ isDarkMode }) => {
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
     clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // La selección de métricas se gestiona dentro del hook useDashboardMetrics
 

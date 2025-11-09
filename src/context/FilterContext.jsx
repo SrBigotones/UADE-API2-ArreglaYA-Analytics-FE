@@ -6,6 +6,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const FilterContext = createContext();
 
+// Hook personalizado para usar el contexto de filtros
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFilters = () => {
   const context = useContext(FilterContext);
   if (!context) {

@@ -126,7 +126,7 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
 };
 
 // Servicio para tasa de éxito de pagos
-export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/tasa-exito', 
@@ -154,7 +154,7 @@ export const getPaymentSuccessMetrics = async (axiosInstance, { period, startDat
 };
 
 // Servicio para tiempo de procesamiento de pagos
-export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/tiempo-procesamiento',
@@ -182,7 +182,7 @@ export const getPaymentProcessingTimeMetrics = async (axiosInstance, { period, s
 };
 
 // Servicio para distribución de eventos de pago
-export const getPaymentDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-eventos', // ✅ ACTUALIZADO: usar endpoint nuevo
@@ -230,7 +230,7 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
 };
 
 // Servicio para distribución de métodos de pago
-export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-metodos',
@@ -277,7 +277,7 @@ export const getPaymentMethodDistributionMetrics = async (axiosInstance, { perio
 };
 
 // Servicio para ingreso bruto de pagos
-export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/ingreso-ticket',
@@ -314,7 +314,7 @@ export const getPaymentGrossRevenueMetrics = async (axiosInstance, { period, sta
 };
 
 // Servicio para ticket medio de pagos
-export const getPaymentAverageTicketMetrics = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+export const getPaymentAverageTicketMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/ingreso-ticket',

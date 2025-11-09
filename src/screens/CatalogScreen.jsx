@@ -9,15 +9,16 @@ import { useFilters } from '../context/FilterContext';
 
 const CatalogScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
-  const { activeFilters, getApiFilters, clearAllFilters } = useFilters();
+  const { getApiFilters, clearAllFilters } = useFilters();
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
     clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo se ejecuta al montar
   
   // Memorizar los filtros para que se recalculen cuando activeFilters cambie
-  const filters = useMemo(() => getApiFilters(), [activeFilters, getApiFilters]);
+  const filters = useMemo(() => getApiFilters(), [getApiFilters]);
   
   // Traer todas las métricas del módulo catálogo desde el registry con filtros aplicados
   const { metrics: catalogMetrics, loading, error, refetch } = useModuleMetrics('catalog', {

@@ -10,15 +10,16 @@ import { useFilters } from '../context/FilterContext';
 
 const UsersScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
-  const { activeFilters, getApiFilters, clearAllFilters } = useFilters();
+  const { getApiFilters, clearAllFilters } = useFilters();
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
     clearAllFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Memorizar los filtros para que se recalculen cuando activeFilters cambie
-  const filters = useMemo(() => getApiFilters(), [activeFilters, getApiFilters]);
+  const filters = useMemo(() => getApiFilters(), [getApiFilters]);
   
   // Obtener métricas específicas del módulo de usuarios desde el hook híbrido
   const { metrics: usersMetrics, loading, error, refetch } = useModuleMetrics('users', {

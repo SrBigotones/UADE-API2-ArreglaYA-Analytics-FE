@@ -227,7 +227,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId, filters = 
     } finally {
       setLoading(false);
     }
-  }, [axiosInstance, baseMetrics, cacheKey, startDate, endDate, presetId]);
+  }, [axiosInstance, baseMetrics, cacheKey, startDate, endDate, presetId, filters]);
 
   // Mantener una referencia al fetchMetrics más reciente
   const latestFetchRef = useRef(fetchMetrics);
