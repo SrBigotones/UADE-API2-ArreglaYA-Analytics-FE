@@ -467,7 +467,7 @@ export const METRICS_REGISTRY = {
     id: 'users-new-providers',
     module: 'users',
     type: 'card',
-    title: 'Nuevos prestadores (usuarios)',
+    title: 'Nuevos prestadores',
     value: '0',
     change: '0%',
     changeStatus: 'neutral',
@@ -504,8 +504,7 @@ export const METRICS_REGISTRY = {
     description: 'Porcentaje de usuarios inactivos en el sistema',
     endpoint: '/api/metrica/usuarios/tasa-roles-activos',
     category: 'management',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
+    allowToggleToChart: false,
     hasRealService: true,
     serviceConfig: {
       serviceName: 'getUserInactiveRate',
@@ -526,54 +525,6 @@ export const METRICS_REGISTRY = {
       chartDataFormatter: (data) => data.tasaInactivos?.chartData || []
     }
   },
-  'users-inactive-distribution': {
-    id: 'users-inactive-distribution',
-    module: 'users',
-    type: 'pie',
-    title: 'Distribución de inactivos por rol',
-    value: '0',
-    change: '',
-    changeStatus: 'neutral',
-    description: 'Distribución de usuarios inactivos por rol',
-    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
-    category: 'distribution',
-    allowToggleToChart: false,
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserInactiveRate',
-      serviceModule: 'userMetricsService',
-      chartDataFormatter: (data) => {
-        // Convertir distribucionPorRol a array para el gráfico pie
-        if (!data.distribucionPorRol || typeof data.distribucionPorRol !== 'object') {
-          return [];
-        }
-        
-        // Helper para colores por rol
-        const getRoleColor = (rol) => {
-          const colors = {
-            'cliente': '#3b82f6',    // Azul
-            'prestador': '#10b981',   // Verde
-            'admin': '#f59e0b',       // Amarillo
-            'customer': '#3b82f6'     // Azul (alias)
-          };
-          return colors[rol?.toLowerCase()] || '#6b7280';
-        };
-        
-        return Object.entries(data.distribucionPorRol).map(([role, count]) => ({
-          name: role.charAt(0).toUpperCase() + role.slice(1),
-          value: typeof count === 'number' ? count : 0,
-          color: getRoleColor(role)
-        }));
-      },
-      valueFormatter: (data) => {
-        if (!data.distribucionPorRol) return '0';
-        const total = Object.values(data.distribucionPorRol).reduce((sum, count) => sum + (typeof count === 'number' ? count : 0), 0);
-        return total.toString();
-      },
-      changeFormatter: () => '',
-      statusMapper: () => 'neutral'
-    }
-  },
   'users-role-distribution': {
     id: 'users-role-distribution',
     module: 'users',
@@ -591,10 +542,24 @@ export const METRICS_REGISTRY = {
       serviceName: 'getUserRoleDistribution',
       serviceModule: 'userMetricsService',
       chartDataFormatter: (data) => {
-        // Convertir objeto a array para el gráfico pie
+        // Helper para colores por rol
+        const getRoleColor = (rol) => {
+          const colors = {
+            'cliente': '#3b82f6',      // Azul
+            'prestador': '#10b981',    // Verde
+            'admin': '#f59e0b',        // Amarillo/Naranja
+            'administrador': '#f59e0b', // Amarillo/Naranja (alias)
+            'customer': '#3b82f6',     // Azul (alias inglés)
+            'provider': '#10b981'      // Verde (alias inglés)
+          };
+          return colors[rol?.toLowerCase()] || '#6b7280'; // Gris por defecto
+        };
+        
+        // Convertir objeto a array para el gráfico pie con colores
         return Object.entries(data).map(([role, count]) => ({
-          name: role,
-          value: count
+          name: role.charAt(0).toUpperCase() + role.slice(1), // Capitalizar primera letra
+          value: typeof count === 'number' ? count : 0,
+          color: getRoleColor(role)
         }));
       },
       valueFormatter: (data) => {
@@ -611,51 +576,23 @@ export const METRICS_REGISTRY = {
     type: 'card',
     title: 'Total de usuarios',
     value: '0',
-    change: '0',
+    change: '',
     changeStatus: 'neutral',
     description: 'Cantidad total histórica de usuarios registrados',
     endpoint: '/api/metrica/usuarios/totales',
     category: 'overview',
     allowToggleToChart: false,
     hasRealService: true,
+    hideChangeIndicator: true, // Ocultar completamente el indicador de cambio
     serviceConfig: {
       serviceName: 'getUserTotal',
       serviceModule: 'userMetricsService',
       valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: () => '0',
+      changeFormatter: () => '',
       statusMapper: () => 'neutral'
     }
   },
-  'users-new-providers-registered': {
-    id: 'users-new-providers-registered',
-    module: 'users',
-    type: 'card',
-    title: 'Nuevos prestadores',
-    value: '0',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Nuevos prestadores registrados (con filtros de rubro y zona)',
-    endpoint: '/api/metrica/prestadores/nuevos-registrados',
-    category: 'growth',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getProviderNewRegistrations',
-      serviceModule: 'userMetricsService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
-  },
+  
 
   // === MATCHING ===
   'matching-average-time': {
@@ -803,7 +740,7 @@ export const MODULE_METRICS = {
   catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
-  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-inactive-distribution', 'users-role-distribution', 'users-total', 'users-new-providers-registered'],
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total', 'users-new-providers-registered'],
   matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time', 'matching-expiration-rate']
 };
 

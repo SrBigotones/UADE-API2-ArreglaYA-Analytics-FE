@@ -18,7 +18,8 @@ const MetricCard = ({
   icon = null,
   className,
   onClick,
-  compact = false
+  compact = false,
+  hideChangeIndicator = false
 }) => {
   return (
     <div
@@ -47,7 +48,7 @@ const MetricCard = ({
         ) : (
           <div className="flex items-center gap-2">
             <div className={`${compact ? 'text-2xl' : 'text-3xl'} font-bold text-gray-900 dark:text-gray-100`}>{value}</div>
-            {(change !== undefined && change !== null) && (
+            {!hideChangeIndicator && (change !== undefined && change !== null && change !== '') && (
               <>
                 <span className={`px-2 py-0.5 rounded-full ${compact ? 'text-[11px]' : 'text-xs'} font-medium ${statusStyles[changeStatus] || statusStyles.neutral}`}>
                   {change}
