@@ -124,7 +124,7 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId, filters = 
                   const formattedChange = serviceConfig.changeFormatter ? 
                     serviceConfig.changeFormatter(metricData) : 
                     metricData.change;
-                  
+                    
                   // Extraer changeStatus usando changeStatusExtractor si existe, sino usar metricData.changeStatus
                   const changeStatus = serviceConfig.changeStatusExtractor ? 
                     serviceConfig.changeStatusExtractor(metricData) : 

@@ -18,6 +18,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
     loading: metric.loading,
     error: metric.error,
     isRealData: metric.isRealData,
+    hideChangeIndicator: metric.hideChangeIndicator || false,
   };
 
   // Calcular altura dinámica según el tamaño del chart

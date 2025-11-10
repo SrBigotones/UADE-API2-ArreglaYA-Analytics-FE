@@ -261,30 +261,83 @@ const fetchUserMetricsWithErrorHandling = async (axiosInstance, endpoint, period
 };
 
 export const getUserNewRegistrations = async (axiosInstance, { startDate, endDate, period } = {}) => {
-  const result = await fetchUserMetricsWithErrorHandling(
-    axiosInstance,
-    '/api/metrica/usuarios/nuevos-clientes', // ✅ ACTUALIZADO: usar endpoint nuevo
-    period,
-    'nuevos usuarios registrados',
-    { startDate, endDate }
-  );
+  try {
+    // Obtener datos de nuevos clientes
+    const clientsResult = await fetchUserMetricsWithErrorHandling(
+      axiosInstance,
+      '/api/metrica/usuarios/nuevos-clientes',
+      period,
+      'nuevos clientes',
+      { startDate, endDate }
+    );
 
-  if (!result.success) {
-    return result;
-  }
+    // Obtener datos de nuevos prestadores
+    const providersResult = await fetchUserMetricsWithErrorHandling(
+      axiosInstance,
+      '/api/metrica/usuarios/nuevos-prestadores',
+      period,
+      'nuevos prestadores',
+      { startDate, endDate }
+    );
 
-  const raw = result.data;
-  return {
-    success: true,
-    data: {
-      value: raw.value ?? 0,
-      change: raw.change ?? 0,
-      changeType: raw.changeType || 'porcentaje',
-      changeStatus: raw.changeStatus || 'neutral',
-      chartData: raw.chartData || [],
-      lastUpdated: new Date().toISOString()
+    // Si alguno falla, retornar el error
+    if (!clientsResult.success) {
+      return clientsResult;
     }
-  };
+    if (!providersResult.success) {
+      return providersResult;
+    }
+
+    const clientsData = clientsResult.data;
+    const providersData = providersResult.data;
+
+    // Sumar los valores
+    const totalValue = (clientsData.value ?? 0) + (providersData.value ?? 0);
+    
+    // Calcular el cambio promedio ponderado o usar el de clientes como principal
+    const totalChange = clientsData.change ?? 0;
+    const changeStatus = clientsData.changeStatus || 'neutral';
+
+    // Combinar chartData si existe
+    const combinedChartData = [];
+    if (clientsData.chartData && providersData.chartData) {
+      // Sumar valores por fecha si ambos tienen datos
+      const dateMap = new Map();
+      
+      clientsData.chartData.forEach(item => {
+        dateMap.set(item.date || item.name, (item.value || 0));
+      });
+      
+      providersData.chartData.forEach(item => {
+        const key = item.date || item.name;
+        const existing = dateMap.get(key) || 0;
+        dateMap.set(key, existing + (item.value || 0));
+      });
+      
+      dateMap.forEach((value, date) => {
+        combinedChartData.push({ date, value });
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        value: totalValue,
+        change: totalChange,
+        changeType: clientsData.changeType || 'porcentaje',
+        changeStatus: changeStatus,
+        chartData: combinedChartData.length > 0 ? combinedChartData : (clientsData.chartData || []),
+        lastUpdated: new Date().toISOString()
+      }
+    };
+  } catch (error) {
+    console.error('Error en getUserNewRegistrations:', error);
+    return {
+      success: false,
+      message: error.message || 'Error al obtener nuevos usuarios registrados',
+      status: 500
+    };
+  }
 };
 
 // Servicio para nuevos clientes registrados
