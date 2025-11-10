@@ -112,12 +112,13 @@ export const METRICS_REGISTRY = {
     value: '892',
     change: '+31%',
     changeStatus: 'positive',
-    description: 'Número de solicitudes de servicio creadas',
+    description: 'Número de solicitudes de servicio creadas en el periodo seleccionado',
     endpoint: '/api/metrica/solicitudes/volumen',
     category: 'usage',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getAppRequestsCreated',
       serviceModule: 'appSearchsAndRequests',
@@ -143,12 +144,13 @@ export const METRICS_REGISTRY = {
     value: '12.3%',
     change: '-2.1%',
     changeStatus: 'positive',
-    description: 'Porcentaje de solicitudes canceladas sobre el total',
+    description: 'Porcentaje de solicitudes canceladas sobre el total de las solicitudes',
     endpoint: '/api/metrica/solicitudes/tasa-cancelacion',
     category: 'retention',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getAppCancellationRate',
       serviceModule: 'appSearchsAndRequests',
@@ -174,12 +176,13 @@ export const METRICS_REGISTRY = {
     value: '2.1h',
     change: '-0.3h',
     changeStatus: 'positive',
-    description: 'Tiempo promedio desde solicitud creada hasta primera cotización (en horas)',
+    description: 'Tiempo promedio desde solicitud creada hasta primera cotización',
     endpoint: '/api/metrica/solicitudes/tiempo-primera-cotizacion',
     category: 'performance',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getAppTimeToFirstQuote',
       serviceModule: 'appSearchsAndRequests',
@@ -211,6 +214,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getAppQuoteConversionRate',
       serviceModule: 'appSearchsAndRequests',
@@ -245,6 +249,7 @@ export const METRICS_REGISTRY = {
     toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'metodo'],
     serviceConfig: {
       serviceName: 'getPaymentSuccessMetrics',
       serviceModule: 'paymentMetricsService',
@@ -276,6 +281,7 @@ export const METRICS_REGISTRY = {
     toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'metodo'],
     serviceConfig: {
       serviceName: 'getPaymentProcessingTimeMetrics',
       serviceModule: 'paymentMetricsService',
@@ -332,6 +338,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/pagos/distribucion-metodos',
     category: 'distribution',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'metodo'],
     serviceConfig: {
       serviceName: 'getPaymentMethodDistributionMetrics',
       serviceModule: 'paymentMetricsService',
@@ -355,6 +362,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'metodo'],
     serviceConfig: {
       serviceName: 'getPaymentGrossRevenueMetrics',
       serviceModule: 'paymentMetricsService',
@@ -385,6 +393,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'metodo'],
     serviceConfig: {
       serviceName: 'getPaymentAverageTicketMetrics',
       serviceModule: 'paymentMetricsService',
@@ -497,7 +506,7 @@ export const METRICS_REGISTRY = {
     id: 'users-inactive-rate',
     module: 'users',
     type: 'card',
-    title: 'Tasa de usuarios inactivos',
+    title: 'Usuarios inactivos',
     value: '0%',
     change: '0%',
     changeStatus: 'neutral',
@@ -578,12 +587,13 @@ export const METRICS_REGISTRY = {
     value: '0',
     change: '',
     changeStatus: 'neutral',
-    description: 'Cantidad total histórica de usuarios registrados',
+    description: 'Cantidad total de usuarios registrados en la plataforma',
     endpoint: '/api/metrica/usuarios/totales',
     category: 'overview',
     allowToggleToChart: false,
     hasRealService: true,
     hideChangeIndicator: true, // Ocultar completamente el indicador de cambio
+    customPeriodLabel: 'Registrados en la plataforma', // Label personalizado para esta métrica
     serviceConfig: {
       serviceName: 'getUserTotal',
       serviceModule: 'userMetricsService',
@@ -609,6 +619,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getMatchingAverageTimeMetrics',
       serviceModule: 'matchingMetricsService',
@@ -648,6 +659,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getMatchingPendingQuotesMetrics',
       serviceModule: 'matchingMetricsService',
@@ -678,6 +690,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getMatchingProviderResponseTimeMetrics',
       serviceModule: 'matchingMetricsService',
@@ -716,6 +729,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getMatchingExpirationRateMetrics',
       serviceModule: 'matchingMetricsService',
@@ -740,7 +754,7 @@ export const MODULE_METRICS = {
   catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
-  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total', 'users-new-providers-registered'],
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total'],
   matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time', 'matching-expiration-rate']
 };
 

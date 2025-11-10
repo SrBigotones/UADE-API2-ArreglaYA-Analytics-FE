@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import MetricRenderer from './MetricRenderer';
 import SimpleResizeHandles from './SimpleResizeHandles';
 import { useChartSizes } from '../hooks/useChartSizes';
+import { useFilters } from '../context/FilterContext';
 
 const DraggableMetricCard = ({ 
   metric, 
@@ -13,6 +14,7 @@ const DraggableMetricCard = ({
   allowToggleToChart = true,
   chartKind = 'line'
 }) => {
+  const { activeFilters } = useFilters();
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showResizeHandles, setShowResizeHandles] = useState(false);
@@ -182,6 +184,7 @@ const DraggableMetricCard = ({
           isDarkMode={isDarkMode}
           chartSize={currentSize}
           metricKey={`${metric.id}-${index}`}
+          activeFilters={activeFilters}
           onClick={(e) => { 
             if (allowToggleToChart && metric.type === 'card' && showTrend) {
               setShowTrend(false);

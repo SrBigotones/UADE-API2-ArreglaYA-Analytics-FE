@@ -19,8 +19,42 @@ const MetricCard = ({
   className,
   onClick,
   compact = false,
-  hideChangeIndicator = false
+  hideChangeIndicator = false,
+  activeFilters = null,
+  acceptsFilters = []
 }) => {
+  // Formatear filtros activos para mostrar (solo los que la métrica acepta)
+  const formatActiveFilters = () => {
+    if (!activeFilters || !acceptsFilters || acceptsFilters.length === 0) return null;
+    
+    const filterLabels = {
+      rubro: 'Rubro',
+      zona: 'Zona',
+      metodo: 'Método',
+      tipoSolicitud: 'Tipo'
+    };
+    
+    // Mapeo de valores de métodos de pago a labels legibles
+    const paymentMethodLabels = {
+      'CREDIT_CARD': 'Tarjeta de Crédito',
+      'DEBIT_CARD': 'Tarjeta de Débito',
+      'MERCADO_PAGO': 'Mercado Pago'
+    };
+    
+    const filters = [];
+    Object.entries(activeFilters).forEach(([key, value]) => {
+      // Solo mostrar el filtro si la métrica lo acepta y tiene valor
+      if (value && value !== '' && acceptsFilters.includes(key)) {
+        // Para métodos de pago, usar el label legible
+        const displayValue = key === 'metodo' ? (paymentMethodLabels[value] || value) : value;
+        filters.push(`${filterLabels[key] || key}: ${displayValue}`);
+      }
+    });
+    
+    return filters.length > 0 ? filters : null;
+  };
+
+  const displayFilters = formatActiveFilters();
   return (
     <div
       className={`rounded-lg shadow-sm border ${compact ? 'p-4' : 'p-5'} bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} ${className || ''} h-full flex flex-col`}
@@ -35,9 +69,21 @@ const MetricCard = ({
             <p className={`${compact ? 'text-[11px]' : 'text-xs'} text-gray-500 dark:text-gray-400 mt-1`}>{periodLabel}</p>
           )}
         </div>
-        {icon && (
-          <div className="text-gray-400 dark:text-gray-500">{icon}</div>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {icon && (
+            <div className="text-gray-400 dark:text-gray-500">{icon}</div>
+          )}
+          {displayFilters && (
+            <div className="text-right">
+              <p className="text-[10px] font-medium text-blue-600 dark:text-blue-400 mb-0.5">Filtros:</p>
+              {displayFilters.map((filter, index) => (
+                <p key={index} className="text-[10px] text-gray-600 dark:text-gray-400 leading-tight">
+                  {filter}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-3">
