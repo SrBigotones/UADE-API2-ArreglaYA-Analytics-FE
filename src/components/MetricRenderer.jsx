@@ -5,7 +5,7 @@ import AreaResponsiveContainer from './AreaResponsiveContainer';
 import CandlestickChart from './CandlestickChart';
 import LeafletHeatMap from './LeafletHeatMap';
 
-const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey }) => {
+const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey, activeFilters }) => {
   if (!metric) return null;
 
   const commonProps = {
@@ -13,12 +13,14 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
     value: metric.value,
     change: metric.change,
     changeStatus: metric.changeStatus,
-    periodLabel: dateRange?.preset === 'custom' ? 'Personalizado' : 'Periodo seleccionado',
+    periodLabel: metric.customPeriodLabel || (dateRange?.preset === 'custom' ? 'Personalizado' : 'Periodo seleccionado'),
     description: metric.description,
     loading: metric.loading,
     error: metric.error,
     isRealData: metric.isRealData,
     hideChangeIndicator: metric.hideChangeIndicator || false,
+    activeFilters: activeFilters || null,
+    acceptsFilters: metric.acceptsFilters || [],
   };
 
   // Calcular altura dinámica según el tamaño del chart
