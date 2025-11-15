@@ -52,7 +52,6 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - catálogo: mapa de calor de pedidos', {
@@ -114,7 +113,6 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - catálogo: nuevos prestadores registrados', {
@@ -177,7 +175,6 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - catálogo: total prestadores activos', {
@@ -244,7 +241,6 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - catálogo: win rate', {
@@ -313,7 +309,6 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - catálogo: distribución de servicios', {
