@@ -49,7 +49,6 @@ const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, pe
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      validateStatus: status => status < 500
     });
 
     console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {

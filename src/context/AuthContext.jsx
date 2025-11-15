@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    console.log('🔴 Ejecutando logout en AuthContext');
     await removeToken();
     setIsAuthenticated(false);
     setUser(null);
@@ -42,6 +43,10 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // ignore storage errors
     }
+    
+    // Forzar redirección a login
+    console.log('🔴 Redirigiendo a /login', isAuthenticated);
+    window.location.href = '/login';
   };
 
   return (

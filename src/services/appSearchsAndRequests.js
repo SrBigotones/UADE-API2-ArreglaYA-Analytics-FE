@@ -56,7 +56,6 @@ export const getAppRequestsCreated = async (axiosInstance, { period, startDate, 
     const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
     });
 
   console.log('📥 RESPUESTA RAW BACKEND - app: solicitudes creadas', {
@@ -125,7 +124,6 @@ export const getAppCancellationRate = async (axiosInstance, { period, startDate,
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - app: tasa de cancelación', {
@@ -195,7 +193,6 @@ export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate,
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - app: tiempo a primera cotización', {
@@ -279,7 +276,6 @@ export const getAppQuoteConversionRate = async (axiosInstance, { period, startDa
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    validateStatus: status => status < 500
   });
 
   console.log('📥 RESPUESTA RAW BACKEND - app: conversión a cotización aceptada', {

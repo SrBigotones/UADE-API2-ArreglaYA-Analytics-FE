@@ -7,7 +7,6 @@ export const getUserMetrics = async (axiosInstance, { startDate, endDate, period
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/creados', {
       params: { startDate, endDate, period },
-      validateStatus: status => status < 500
     });
 
     // Validar la respuesta
@@ -114,7 +113,6 @@ export const getUserActivityDistribution = async (axiosInstance, { startDate, en
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/distribucion', {
       params: { startDate, endDate },
-      validateStatus: status => status < 500
     });
 
     if (response.status !== 200) {
@@ -149,7 +147,6 @@ export const getUserGrowthTrends = async (axiosInstance, { startDate, endDate })
   try {
     const response = await axiosInstance.get('/api/metrica/usuarios/crecimiento', {
       params: { startDate, endDate },
-      validateStatus: status => status < 500
     });
 
     if (response.status !== 200) {
@@ -218,7 +215,6 @@ const fetchUserMetricsWithErrorHandling = async (axiosInstance, endpoint, period
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      validateStatus: status => status < 500
     });
 
     console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
@@ -507,7 +503,6 @@ export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, p
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      validateStatus: status => status < 500
     });
 
     console.log('📥 RESPUESTA RAW BACKEND - tasa de usuarios inactivos:', {
@@ -583,7 +578,6 @@ export const getUserRoleDistribution = async (axiosInstance) => {
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/distribucion-por-rol', {
-      validateStatus: status => status < 500
     });
 
     console.log('📥 RESPUESTA RAW BACKEND - distribución por rol:', {
@@ -638,7 +632,6 @@ export const getUserTotal = async (axiosInstance) => {
     });
 
     const response = await axiosInstance.get('/api/metrica/usuarios/totales', {
-      validateStatus: status => status < 500
     });
 
     console.log('📥 RESPUESTA RAW BACKEND - total de usuarios:', {
@@ -714,7 +707,6 @@ export const getProviderNewRegistrations = async (axiosInstance, { startDate, en
 
     const response = await axiosInstance.get(endpoint, {
       params,
-      validateStatus: status => status < 500
     });
 
     console.log('📥 RESPUESTA RAW BACKEND - nuevos prestadores:', {

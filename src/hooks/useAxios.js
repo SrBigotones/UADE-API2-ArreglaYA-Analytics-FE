@@ -8,11 +8,14 @@ export const useAxios = () => {
   const { logout } = useContext(AuthContext);
   const axiosInstance = useRef(axios.create({ 
     baseURL: config.API_BASE_URL,
-    timeout: 10000, // Aumenté el timeout para web
+    timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
     }
   }));
+  
+  // Flag para evitar llamar logout múltiples veces
+  const isLoggingOut = useRef(false);
 
   useEffect(() => {
     const instance = axiosInstance.current;
@@ -54,9 +57,11 @@ export const useAxios = () => {
 
         // Error de autenticación (401)
         if (err.response?.status === 401 && !err.config.url.includes('/login')) {
-          await logout();
-          // En web, podrías redirigir a la página de login
-          // window.location.href = '/login';
+          if (!isLoggingOut.current) {
+            isLoggingOut.current = true;
+            console.log('🔴 401 detectado en interceptor - Llamando logout()');
+            await logout();
+          }
         }
         
         return Promise.reject(err);
