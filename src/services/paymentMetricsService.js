@@ -27,7 +27,6 @@ const getStatusColor = (status) => {
     APROBADO: '#22c55e',   // Verde
     RECHAZADO: '#ef4444',  // Rojo
     PENDIENTE: '#f59e0b',  // Amarillo
-    EXPIRADO: '#6b7280'    // Gris
   };
   return colors[status] || '#0ea5e9'; // Color por defecto
 };

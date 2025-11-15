@@ -93,6 +93,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/prestadores/servicios/distribucion',
     category: 'distribution',
     hasRealService: true,
+    acceptsFilters: ['zona', 'rubro'],
     serviceConfig: {
       serviceName: 'getCatalogServiceDistribution',
       serviceModule: 'catalogService',
