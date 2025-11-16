@@ -174,30 +174,3 @@ export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { st
   };
 };
 
-// Servicio para tasa de cotizaciones expiradas
-export const getMatchingExpirationRateMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
-  const result = await fetchMatchingMetricsWithErrorHandling(
-    axiosInstance,
-    '/api/metrica/matching/cotizaciones/tasa-expiracion',
-    period,
-    'tasa de cotizaciones expiradas',
-    { startDate, endDate, filters }
-  );
-
-  if (!result.success) {
-    return result;
-  }
-
-  const raw = result.data;
-  return {
-    success: true,
-    data: {
-      value: raw.value ?? 0,
-      change: raw.change ?? 0,
-      changeType: raw.changeType || 'absoluto',
-      changeStatus: raw.changeStatus || 'neutral',
-      chartData: raw.chartData || [],
-      lastUpdated: new Date().toISOString()
-    }
-  };
-};

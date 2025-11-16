@@ -180,11 +180,20 @@ export const METRICS_REGISTRY = {
     serviceConfig: {
       serviceName: 'getAppTimeToFirstQuote',
       serviceModule: 'appSearchsAndRequests',
-      valueFormatter: (data) => `${data.value}h`,
+      valueFormatter: (data) => {
+        // El backend devuelve tiempo en minutos, convertirlo a formato legible
+        const minutes = data.value || 0;
+        if (minutes < 60) {
+          return `${Math.round(minutes)}m`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const mins = Math.round(minutes % 60);
+        return `${hours}h ${mins}m`;
+      },
       changeFormatter: (data) => {
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);
-        return `${sign}${value}h`;
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
       },
       statusMapper: (status) => ({
         'positivo': 'negative',  // Invertido: aumento de tiempo es MALO
@@ -674,11 +683,11 @@ export const METRICS_REGISTRY = {
     id: 'matching-provider-response-time',
     module: 'matching',
     type: 'card',
-    title: 'Tiempo de respuesta del prestador',
+    title: 'Tiempo promedio de cotizaciones',
     value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Tiempo promedio que toma un prestador en responder',
+    description: 'Promedio del tiempo transcurrido desde la creacion de cada solicitud hasta todas sus cotizaciones recibidas.',
     endpoint: '/api/metrica/matching/prestadores/tiempo-respuesta',
     category: 'performance',
     allowToggleToChart: true,
@@ -708,37 +717,6 @@ export const METRICS_REGISTRY = {
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
-  },
-  'matching-expiration-rate': {
-    id: 'matching-expiration-rate',
-    module: 'matching',
-    type: 'card',
-    title: 'Tasa de cotizaciones expiradas',
-    value: '0%',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Porcentaje de cotizaciones que expiran sin respuesta',
-    endpoint: '/api/metrica/matching/cotizaciones/tasa-expiracion',
-    category: 'quality',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getMatchingExpirationRateMetrics',
-      serviceModule: 'matchingMetricsService',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'negative', // Más expiraciones es peor
-        'negativo': 'positive',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
   }
 };
 
@@ -749,7 +727,7 @@ export const MODULE_METRICS = {
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
   users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total'],
-  matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time', 'matching-expiration-rate']
+  matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time']
 };
 
 // Configuración por defecto del dashboard

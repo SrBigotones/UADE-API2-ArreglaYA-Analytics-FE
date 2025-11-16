@@ -33,16 +33,22 @@ const getStatusColor = (status) => {
 };
 
 // Helper para asignar colores según el método de pago
+// Usa la misma paleta de colores que el gráfico de distribución de prestadores por rubro
 const getPaymentMethodColor = (method) => {
-  const colors = {
-    'TARJETA_CREDITO': '#3b82f6',     // Azul
-    'TARJETA_DEBITO': '#8b5cf6',      // Púrpura
-    'TRANSFERENCIA': '#10b981',       // Verde
-    'EFECTIVO': '#f59e0b',            // Amarillo
-    'MERCADO_PAGO': '#00d4ff',        // Cyan
-    'DESCONOCIDO': '#6b7280'          // Gris
+  // Paleta de colores más diferenciados (misma que distribución de prestadores por rubro)
+  const colorPalette = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0ea5e9', '#ef4444', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
+  
+  // Mapeo específico de métodos a colores de la paleta
+  const methodColorMap = {
+    'TARJETA_CREDITO': colorPalette[0],    // #8884d8 - Púrpura azulado
+    'TARJETA_DEBITO': colorPalette[6],      // #8b5cf6 - Púrpura
+    'TRANSFERENCIA': colorPalette[1],       // #82ca9d - Verde claro
+    'EFECTIVO': colorPalette[2],            // #ffc658 - Amarillo
+    'MERCADO_PAGO': colorPalette[4],        // #0ea5e9 - Azul cielo
+    'DESCONOCIDO': colorPalette[5]          // #ef4444 - Rojo
   };
-  return colors[method] || '#0ea5e9'; // Color por defecto
+  
+  return methodColorMap[method] || colorPalette[3]; // Color por defecto: #ff7300 (naranja)
 };
 
 // Función base mejorada para métricas de pagos con manejo de errores detallado
