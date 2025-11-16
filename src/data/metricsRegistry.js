@@ -2,35 +2,6 @@
 // Cada métrica tiene toda la información necesaria para renderizarse
 
 export const METRICS_REGISTRY = {
-  // === CORE / DASHBOARD ===
-  'core-processing-time': {
-    id: 'core-processing-time',
-    module: 'core',
-    type: 'card',
-    title: 'Tiempo promedio de procesamiento',
-    value: '2.3s',
-    change: '+5%',
-    changeStatus: 'positive',
-    description: 'Tiempo promedio de procesamiento de mensajes',
-    endpoint: '/api/metrics/core/processing-time',
-    category: 'performance',
-    allowToggleToChart: true,
-    toggleChartKind: 'line'
-  },
-  'core-retry-success': {
-    id: 'core-retry-success',
-    module: 'core',
-    type: 'card',
-    title: 'Tasa de reintentos exitosos',
-    value: '94.2%',
-    change: '+2.1%',
-    changeStatus: 'positive',
-    description: 'Tasa de reintentos exitosos',
-    endpoint: '/api/metrics/core/retry-success-rate',
-    category: 'reliability',
-    allowToggleToChart: false
-  },
-
   // === CATÁLOGO ===
   'catalog-win-rate': {
     id: 'catalog-win-rate',
@@ -85,20 +56,43 @@ export const METRICS_REGISTRY = {
     id: 'catalog-service-distribution',
     module: 'catalog',
     type: 'pie',
-    title: 'Distribución de servicios',
+    title: 'Distribución de prestadores por habilidad',
     value: '0',
     change: '',
     changeStatus: 'neutral',
-    description: 'Distribución por categoría de servicios',
+    description: 'Cantidad de prestadores que ofrecen cada tipo de servicio',
     endpoint: '/api/metrica/prestadores/servicios/distribucion',
     category: 'distribution',
     hasRealService: true,
+    acceptsFilters: ['zona', 'rubro'],
     serviceConfig: {
       serviceName: 'getCatalogServiceDistribution',
       serviceModule: 'catalogService',
       chartDataFormatter: (data) => data.chartData,
       valueFormatter: (data) => data.total?.toString() || '0',
       changeFormatter: () => '', // Los gráficos de torta no usan change
+      statusMapper: () => 'neutral'
+    }
+  },
+  'catalog-service-distribution-by-category': {
+    id: 'catalog-service-distribution-by-category',
+    module: 'catalog',
+    type: 'pie',
+    title: 'Distribución de prestadores por rubro',
+    value: '0',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Cantidad de prestadores especializados en cada categoría de rubro',
+    endpoint: '/api/metrica/prestadores/servicios/distribucion-por-rubro',
+    category: 'distribution',
+    hasRealService: true,
+    acceptsFilters: ['zona'], // NO acepta filtro de rubro (es la distribución POR rubros)
+    serviceConfig: {
+      serviceName: 'getCatalogServiceDistributionByCategory',
+      serviceModule: 'catalogService',
+      chartDataFormatter: (data) => data.chartData,
+      valueFormatter: (data) => data.total?.toString() || '0',
+      changeFormatter: () => '',
       statusMapper: () => 'neutral'
     }
   },
@@ -161,8 +155,8 @@ export const METRICS_REGISTRY = {
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
+        'positivo': 'negative',  // Invertido: aumento de cancelaciones es MALO
+        'negativo': 'positive',  // Invertido: reducción de cancelaciones es BUENO
         'neutro': 'neutral'
       }[status] || 'neutral'),
       chartDataFormatter: (data) => data.chartData || []
@@ -193,8 +187,8 @@ export const METRICS_REGISTRY = {
         return `${sign}${value}h`;
       },
       statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
+        'positivo': 'negative',  // Invertido: aumento de tiempo es MALO
+        'negativo': 'positive',  // Invertido: reducción de tiempo es BUENO
         'neutro': 'neutral'
       }[status] || 'neutral'),
       chartDataFormatter: (data) => data.chartData || []
@@ -751,7 +745,7 @@ export const METRICS_REGISTRY = {
 // Configuraciones predefinidas por módulo
 export const MODULE_METRICS = {
   core: ['core-processing-time', 'core-retry-success', 'core-messages-flow'],
-  catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-orders-heatmap'],
+  catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-service-distribution-by-category', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
   users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total'],

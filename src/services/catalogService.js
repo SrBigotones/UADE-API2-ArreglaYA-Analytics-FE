@@ -431,4 +431,82 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
   };
 };
 
+// === Métrica: Distribución de prestadores por rubro ===
+export const getCatalogServiceDistributionByCategory = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
+
+  const mappedPeriod = mapPeriodToBackend(period);
+  const params = { period: mappedPeriod };
+  if (mappedPeriod === 'personalizado') {
+    const start = formatYmd(startDate);
+    const end = formatYmd(endDate);
+    if (start && end) {
+      params.startDate = start;
+      params.endDate = end;
+    }
+  }
+
+  // Agregar filtro de zona (NO rubro, porque esta métrica ES la distribución por rubros)
+  if (filters.zona) params.zona = filters.zona;
+
+  const endpoint = '/api/metrica/prestadores/servicios/distribucion-por-rubro';
+
+  console.log('📤 ENVIANDO AL BACKEND - catálogo: distribución por rubro', {
+    endpoint,
+    params,
+    originalPeriod: period,
+    mappedPeriod,
+    filters,
+    timestamp: new Date().toISOString()
+  });
+
+  const response = await axiosInstance.get(endpoint, {
+    params,
+    signal,
+  });
+
+  console.log('📥 RESPUESTA RAW BACKEND - catálogo: distribución por rubro', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+    timestamp: new Date().toISOString()
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
+  }
+  if (!response.data || typeof response.data === 'string') {
+    throw new Error('Respuesta inválida o sin datos');
+  }
+
+  const raw = response.data.data || response.data;
+  
+  // Convertir el objeto de distribución a formato de gráfico de torta
+  const chartData = [];
+  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0ea5e9', '#ef4444', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
+  let colorIndex = 0;
+  
+  for (const [name, value] of Object.entries(raw)) {
+    if (name !== 'total' && typeof value === 'number') {
+      chartData.push({
+        name,
+        value,
+        color: colors[colorIndex % colors.length]
+      });
+      colorIndex++;
+    }
+  }
+
+  const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  return {
+    success: true,
+    data: {
+      chartData,
+      total,
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};
+
 
