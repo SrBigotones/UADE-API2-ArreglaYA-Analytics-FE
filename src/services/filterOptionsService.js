@@ -2,6 +2,8 @@
  * Servicio para obtener las opciones disponibles para los filtros
  */
 
+import { getCatalogoRubros, getCatalogoZonas } from './catalogService';
+
 // Cache para las opciones de filtros
 const filterOptionsCache = {
   rubros: null,
@@ -19,105 +21,73 @@ const isCacheValid = () => {
          (Date.now() - filterOptionsCache.lastFetch) < CACHE_DURATION;
 };
 
-// Obtener rubros disponibles
-export const getRubros = async () => {
+// Obtener rubros disponibles desde la API
+export const getRubros = async (axiosInstance) => {
   try {
     if (filterOptionsCache.rubros && isCacheValid()) {
+      console.log('✅ Usando rubros desde cache');
       return { success: true, data: filterOptionsCache.rubros };
     }
 
-    // Rubros reales del sistema
-    const rubros = [
-      'Sistemas',
-      'Diseño y Comunicación',
-      'Marketing',
-      'Consultoría',
-      'Educación',
-      'Legal',
-      'Arquitectura',
-      'Jardinería',
-      'Plomería',
-      'Carpintería',
-      'Limpieza',
-      'Catering',
-      'Mecánica'
+    console.log('📡 Obteniendo rubros desde la API...');
+    const result = await getCatalogoRubros(axiosInstance);
+    
+    if (result.success && result.data) {
+      // Guardar en cache con formato { id, nombre }
+      filterOptionsCache.rubros = result.data;
+      filterOptionsCache.lastFetch = Date.now();
+      
+      console.log('✅ Rubros obtenidos:', result.data.length);
+      return { success: true, data: result.data };
+    }
+    
+    throw new Error('No se pudieron obtener los rubros');
+  } catch (error) {
+    console.error('❌ Error fetching rubros:', error);
+    
+    // Fallback: rubros hardcodeados si falla la API
+    const fallbackRubros = [
+      { id: 48, nombre: 'Sistemas' },
+      { id: 49, nombre: 'Plomería' },
+      { id: 50, nombre: 'Electricidad' }
     ];
     
-    filterOptionsCache.rubros = rubros;
-    filterOptionsCache.lastFetch = Date.now();
-    
-    return { success: true, data: rubros };
-  } catch (error) {
-    console.error('Error fetching rubros:', error);
-    return { success: false, message: error.message };
+    return { success: true, data: fallbackRubros };
   }
 };
 
-// Obtener zonas disponibles
-export const getZonas = async () => {
+// Obtener zonas disponibles desde la API
+export const getZonas = async (axiosInstance) => {
   try {
     if (filterOptionsCache.zonas && isCacheValid()) {
+      console.log('✅ Usando zonas desde cache');
       return { success: true, data: filterOptionsCache.zonas };
     }
 
-    // Barrios/zonas reales del sistema
-    const zonas = [
-      'Agronomía',
-      'Almagro',
-      'Balvanera',
-      'Barracas',
-      'Belgrano',
-      'Boedo',
-      'Caballito',
-      'Chacarita',
-      'Coghlan',
-      'Colegiales',
-      'Constitución',
-      'Flores',
-      'Floresta',
-      'La Boca',
-      'La Paternal',
-      'Liniers',
-      'Mataderos',
-      'Monte Castro',
-      'Montserrat',
-      'Nueva Pompeya',
-      'Núñez',
-      'Palermo',
-      'Parque Avellaneda',
-      'Parque Chacabuco',
-      'Parque Patricios',
-      'Puerto Madero',
-      'Recoleta',
-      'Retiro',
-      'Saavedra',
-      'San Cristóbal',
-      'San Nicolás',
-      'San Telmo',
-      'Versalles',
-      'Villa Crespo',
-      'Villa Devoto',
-      'Villa General Mitre',
-      'Villa Lugano',
-      'Villa Luro',
-      'Villa Ortúzar',
-      'Villa Pueyrredón',
-      'Villa Real',
-      'Villa Riachuelo',
-      'Villa Santa Rita',
-      'Villa Soldati',
-      'Villa Urquiza',
-      'Villa del Parque',
-      'Vélez Sarsfield'
+    console.log('📡 Obteniendo zonas desde la API...');
+    const result = await getCatalogoZonas(axiosInstance);
+    
+    if (result.success && result.data) {
+      // Guardar en cache con formato { id, nombre }
+      filterOptionsCache.zonas = result.data;
+      filterOptionsCache.lastFetch = Date.now();
+      
+      console.log('✅ Zonas obtenidas:', result.data.length);
+      return { success: true, data: result.data };
+    }
+    
+    throw new Error('No se pudieron obtener las zonas');
+  } catch (error) {
+    console.error('❌ Error fetching zonas:', error);
+    
+    // Fallback: zonas hardcodeadas si falla la API
+    const fallbackZonas = [
+      { id: 64, nombre: 'Agronomía' },
+      { id: 65, nombre: 'Almagro' },
+      { id: 67, nombre: 'Balvanera' }
     ];
     
-    filterOptionsCache.zonas = zonas;
-    filterOptionsCache.lastFetch = Date.now();
-    
-    return { success: true, data: zonas };
-  } catch (error) {
-    console.error('Error fetching zonas:', error);
-    return { success: false, message: error.message };
+    return { success: true, data: fallbackZonas };
   }
 };
 
