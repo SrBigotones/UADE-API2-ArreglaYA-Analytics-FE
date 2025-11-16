@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DateRangeSelector from '../components/DateRangeSelector';
 import FilterSelector from '../components/FilterSelector';
 import MetricRenderer from '../components/MetricRenderer';
@@ -11,7 +11,7 @@ import { useFilters } from '../context/FilterContext';
 const CoreScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const { clearAllFilters } = useFilters();
+  const { clearAllFilters, activeFilters, getApiFilters } = useFilters();
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
@@ -19,6 +19,27 @@ const CoreScreen = ({ isDarkMode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // La selección de métricas se gestiona dentro del hook useDashboardMetrics
+
+  // Memorizar los filtros para que se recalculen cuando activeFilters cambie
+  const filters = useMemo(() => getApiFilters(), [activeFilters]);
+
+  // Preparar parámetros de fecha basados en el selector
+  const dateParams = useMemo(() => {
+    if (dateRange.preset === 'custom' && dateRange.startDate && dateRange.endDate) {
+      return {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        preset: 'custom',
+        filters
+      };
+    }
+    return {
+      startDate: undefined,
+      endDate: undefined,
+      preset: dateRange.preset,
+      filters
+    };
+  }, [dateRange, filters]);
 
   // Efecto para manejar el scroll del body cuando el modal está abierto
   useEffect(() => {
@@ -44,7 +65,7 @@ const CoreScreen = ({ isDarkMode }) => {
     refetch,
     selectedMetricIds,
     updateSelectedMetrics
-  } = useDashboardMetrics(dateRange);
+  } = useDashboardMetrics(dateParams);
 
   // Hook para manejar el orden de las métricas
   const {
