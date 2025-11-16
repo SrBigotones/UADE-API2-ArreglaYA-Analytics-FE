@@ -286,8 +286,8 @@ export const METRICS_REGISTRY = {
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
       },
       statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
+        'positivo': 'negative',
+        'negativo': 'positive',
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
