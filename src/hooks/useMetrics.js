@@ -196,10 +196,15 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId, filters = 
                 timestamp: new Date().toISOString()
               });
               
+              // En caso de error, sobrescribir valores hardcodeados del registry
+              // para que MetricCard muestre SOLO el mensaje de error
               return {
                 ...metric,
+                value: null,        // Forzar a null para que no muestre el valor hardcodeado
+                change: null,       // Forzar a null para que no muestre el cambio hardcodeado
+                chartData: null,    // Forzar a null para que no muestre datos hardcodeados
                 loading: false,
-                error: error.message,
+                error: error.message,  // MetricCard renderiza esto en lugar del valor
                 isRealData: true
               };
             }

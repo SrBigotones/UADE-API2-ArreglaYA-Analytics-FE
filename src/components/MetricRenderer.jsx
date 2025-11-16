@@ -167,6 +167,26 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
         );
       }
       
+      // Si no hay datos, mostrar mensaje
+      if (!metric.chartData || metric.chartData.length === 0) {
+        return (
+          <div className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full h-full min-h-[300px] flex items-center justify-center ${className}`}>
+            <div className="text-center">
+              <svg className={`w-16 h-16 mb-3 mx-auto ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              <p className={`text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {metric.title}
+              </p>
+              <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                No hay datos para mostrar
+              </p>
+            </div>
+          </div>
+        );
+      }
+      
       return (
         <PieResponsiveContainer
           data={metric.chartData}
