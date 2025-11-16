@@ -89,8 +89,16 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
 
   // Opciones fallback (datos reales del sistema)
   const getFallbackOptions = () => ({
-    rubro: ['Sistemas', 'Diseño y Comunicación', 'Marketing', 'Consultoría', 'Educación', 'Legal', 'Arquitectura', 'Jardinería', 'Plomería', 'Carpintería', 'Limpieza', 'Catering', 'Mecánica'],
-    zona: ['Agronomía', 'Almagro', 'Balvanera', 'Barracas', 'Belgrano', 'Boedo', 'Caballito', 'Chacarita', 'Coghlan', 'Colegiales', 'Constitución', 'Flores', 'Floresta', 'La Boca', 'La Paternal', 'Liniers', 'Mataderos', 'Monte Castro', 'Montserrat', 'Nueva Pompeya', 'Núñez', 'Palermo', 'Parque Avellaneda', 'Parque Chacabuco', 'Parque Patricios', 'Puerto Madero', 'Recoleta', 'Retiro', 'Saavedra', 'San Cristóbal', 'San Nicolás', 'San Telmo', 'Versalles', 'Villa Crespo', 'Villa Devoto', 'Villa General Mitre', 'Villa Lugano', 'Villa Luro', 'Villa Ortúzar', 'Villa Pueyrredón', 'Villa Real', 'Villa Riachuelo', 'Villa Santa Rita', 'Villa Soldati', 'Villa Urquiza', 'Villa del Parque', 'Vélez Sarsfield'],
+    rubro: [
+      { id: 48, nombre: 'Sistemas' },
+      { id: 49, nombre: 'Plomería' },
+      { id: 50, nombre: 'Electricidad' }
+    ],
+    zona: [
+      { id: 64, nombre: 'Agronomía' },
+      { id: 65, nombre: 'Almagro' },
+      { id: 67, nombre: 'Balvanera' }
+    ],
     metodo: [
       { label: 'Tarjeta de Crédito', value: 'CREDIT_CARD' },
       { label: 'Tarjeta de Débito', value: 'DEBIT_CARD' },
@@ -155,10 +163,30 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     // Mapear el tipo local al tipo del contexto
     const contextFilterType = filterType === 'tipo' ? 'tipoSolicitud' : filterType;
     
-    // Para métodos de pago, usar el value del objeto, para otros usar el string directamente
-    const valueToSend = filterType === 'metodo' && typeof selectedOption === 'object' 
-      ? selectedOption.value 
-      : selectedOption;
+    // Para rubros: enviar ID (número)
+    // Para zonas: enviar NOMBRE (string)
+    // Para métodos de pago: enviar value
+    // Para tipos de solicitud: enviar string
+    let valueToSend;
+    if (filterType === 'rubro') {
+      // Enviar el ID para rubros (habilidades.id_rubro es numérico)
+      valueToSend = selectedOption.id;
+    } else if (filterType === 'zona') {
+      // Enviar el NOMBRE para zonas (usuarios.ubicacion es VARCHAR)
+      valueToSend = selectedOption.nombre;
+    } else if (filterType === 'metodo') {
+      // Enviar el value para métodos de pago
+      valueToSend = typeof selectedOption === 'object' ? selectedOption.value : selectedOption;
+    } else {
+      // Enviar el valor directamente para tipos de solicitud
+      valueToSend = selectedOption;
+    }
+    
+    console.log(`🎯 FilterSelector: ${filterType} selected`, { 
+      displayValue: filterType === 'rubro' || filterType === 'zona' ? selectedOption.nombre : selectedOption, 
+      valueToSend,
+      note: filterType === 'rubro' ? 'Enviando ID' : filterType === 'zona' ? 'Enviando NOMBRE' : ''
+    });
     
     updateFilter(contextFilterType, valueToSend);
     setActiveDropdown('');
@@ -234,15 +262,29 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
             <div className="p-1">
               {currentOptions.length > 0 ? (
                 currentOptions.map((option) => {
-                  // Para métodos de pago, option es un objeto {label, value}
-                  // Para otros filtros, option es un string
-                  const displayText = typeof option === 'object' ? option.label : option;
-                  const optionValue = typeof option === 'object' ? option.value : option;
+                  // Para rubros: option es {id, nombre} → comparar con ID
+                  // Para zonas: option es {id, nombre} → comparar con NOMBRE
+                  // Para métodos de pago: option es {label, value} → comparar con value
+                  // Para tipos de solicitud: option es string → comparar con string
+                  const isRubro = activeDropdown === 'rubro';
+                  const isZona = activeDropdown === 'zona';
+                  const isMetodo = activeDropdown === 'metodo';
+                  
+                  const displayText = (isRubro || isZona)
+                    ? option.nombre 
+                    : (isMetodo ? option.label : option);
+                    
+                  const optionValue = isRubro
+                    ? option.id 
+                    : isZona
+                    ? option.nombre
+                    : (isMetodo ? option.value : option);
+                    
                   const isSelected = selectedFilters[activeDropdown] === optionValue;
                   
                   return (
                     <button
-                      key={optionValue}
+                      key={isRubro ? option.id : (isZona ? option.id : optionValue)}
                       onClick={() => handleValueSelect(activeDropdown, option)}
                       className={`
                         w-full text-left px-3 py-2 text-sm rounded transition-colors
