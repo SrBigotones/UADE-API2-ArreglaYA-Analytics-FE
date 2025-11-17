@@ -718,8 +718,6 @@ export const METRICS_REGISTRY = {
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
-<<<<<<< Updated upstream
-=======
   },
   'matching-expiration-rate': {
     id: 'matching-expiration-rate',
@@ -747,7 +745,6 @@ export const METRICS_REGISTRY = {
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
->>>>>>> Stashed changes
   }
 };
 
