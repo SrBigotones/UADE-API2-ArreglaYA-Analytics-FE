@@ -2,12 +2,13 @@
  * Servicio para obtener las opciones disponibles para los filtros
  */
 
-import { getCatalogoRubros, getCatalogoZonas } from './catalogService';
+import { getCatalogoRubros, getCatalogoZonas, getCatalogoZonasSolicitudes } from './catalogService';
 
 // Cache para las opciones de filtros
 const filterOptionsCache = {
   rubros: null,
-  zonas: null,
+  zonasPrestadores: null,      // Zonas de prestadores (Agronomía, Barracas...)
+  zonasSolicitudes: null,       // Zonas de solicitudes (Quilmes, caba...)
   metodos: null,
   tiposSolicitud: null,
   lastFetch: null
@@ -56,37 +57,67 @@ export const getRubros = async (axiosInstance) => {
   }
 };
 
-// Obtener zonas disponibles desde la API
-export const getZonas = async (axiosInstance) => {
+/**
+ * Obtener zonas disponibles según el módulo
+ * @param {Object} axiosInstance - Instancia de axios
+ * @param {string} module - Módulo actual ('catalog' para prestadores, otros para solicitudes)
+ * @returns {Promise<{success: boolean, data: Array}>}
+ */
+export const getZonas = async (axiosInstance, module = 'all') => {
   try {
-    if (filterOptionsCache.zonas && isCacheValid()) {
-      console.log('✅ Usando zonas desde cache');
-      return { success: true, data: filterOptionsCache.zonas };
+    // Determinar qué tipo de zonas usar según el módulo
+    // Prestadores: catalog, users (zona de prestadores - Agronomía, Barracas...)
+    // Solicitudes/Pagos: app, payments, matching (zona de solicitudes - Quilmes, caba...)
+    const usePrestadorZones = module === 'catalog' || module === 'users';
+    const cacheKey = usePrestadorZones ? 'zonasPrestadores' : 'zonasSolicitudes';
+    
+    if (filterOptionsCache[cacheKey] && isCacheValid()) {
+      console.log(`✅ Usando zonas ${usePrestadorZones ? 'prestadores' : 'solicitudes'} desde cache`);
+      return { success: true, data: filterOptionsCache[cacheKey] };
     }
 
-    console.log('📡 Obteniendo zonas desde la API...');
-    const result = await getCatalogoZonas(axiosInstance);
-    
-    if (result.success && result.data) {
-      // Guardar en cache con formato { id, nombre }
-      filterOptionsCache.zonas = result.data;
-      filterOptionsCache.lastFetch = Date.now();
+    if (usePrestadorZones) {
+      // CATÁLOGO / USUARIOS: Zonas de prestadores (tabla zonas - relación prestador-zona)
+      console.log('📡 Obteniendo zonas de PRESTADORES (Agronomía, Barracas...)');
+      const result = await getCatalogoZonas(axiosInstance);
       
-      console.log('✅ Zonas obtenidas:', result.data.length);
-      return { success: true, data: result.data };
+      if (result.success && result.data) {
+        filterOptionsCache.zonasPrestadores = result.data;
+        filterOptionsCache.lastFetch = Date.now();
+        console.log('✅ Zonas de prestadores obtenidas:', result.data.length);
+        return { success: true, data: result.data };
+      }
+    } else {
+      // APP / PAGOS / MATCHING: Zonas de solicitudes (valores reales de solicitud.zona)
+      console.log('📡 Obteniendo zonas de SOLICITUDES (Quilmes, caba...)');
+      const result = await getCatalogoZonasSolicitudes(axiosInstance);
+      
+      if (result.success && result.data) {
+        filterOptionsCache.zonasSolicitudes = result.data;
+        filterOptionsCache.lastFetch = Date.now();
+        console.log('✅ Zonas de solicitudes obtenidas:', result.data.length);
+        return { success: true, data: result.data };
+      }
     }
     
     throw new Error('No se pudieron obtener las zonas');
   } catch (error) {
     console.error('❌ Error fetching zonas:', error);
     
-    // Fallback: zonas hardcodeadas si falla la API
-    const fallbackZonas = [
-      { id: 64, nombre: 'Agronomía' },
-      { id: 65, nombre: 'Almagro' },
-      { id: 67, nombre: 'Balvanera' }
-    ];
+    // Fallback según el tipo de zona
+    const usePrestadorZones = module === 'catalog' || module === 'users';
+    const fallbackZonas = usePrestadorZones
+      ? [
+          { id: 64, nombre: 'Agronomía' },
+          { id: 65, nombre: 'Almagro' },
+          { id: 67, nombre: 'Balvanera' }
+        ]
+      : [
+          { id: 1, nombre: 'Quilmes' },
+          { id: 2, nombre: 'caba' }
+        ];
     
+    console.log(`⚠️ Usando fallback de zonas ${usePrestadorZones ? 'prestadores' : 'solicitudes'}`);
     return { success: true, data: fallbackZonas };
   }
 };
@@ -135,12 +166,16 @@ export const getTiposSolicitud = async () => {
   }
 };
 
-// Función para obtener todas las opciones de filtros
-export const getAllFilterOptions = async (axiosInstance) => {
+/**
+ * Función para obtener todas las opciones de filtros
+ * @param {Object} axiosInstance - Instancia de axios
+ * @param {string} module - Módulo actual para determinar qué zonas cargar
+ */
+export const getAllFilterOptions = async (axiosInstance, module = 'all') => {
   try {
     const [rubrosResult, zonasResult, metodosResult, tiposResult] = await Promise.all([
       getRubros(axiosInstance),
-      getZonas(axiosInstance),
+      getZonas(axiosInstance, module), // Pasamos el módulo para decidir qué zonas cargar
       getMetodosPago(axiosInstance),
       getTiposSolicitud(axiosInstance)
     ]);
@@ -165,7 +200,8 @@ export const getAllFilterOptions = async (axiosInstance) => {
 // Función para limpiar el cache
 export const clearFilterOptionsCache = () => {
   filterOptionsCache.rubros = null;
-  filterOptionsCache.zonas = null;
+  filterOptionsCache.zonasPrestadores = null;
+  filterOptionsCache.zonasSolicitudes = null;
   filterOptionsCache.metodos = null;
   filterOptionsCache.tiposSolicitud = null;
   filterOptionsCache.lastFetch = null;
