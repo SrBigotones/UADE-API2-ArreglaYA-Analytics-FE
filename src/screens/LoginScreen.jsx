@@ -101,13 +101,13 @@ const LoginScreen = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Usuario o Email</label>
+            <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>Email</label>
             <input
               type="text"
               className={`block w-full rounded-md px-3 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 border ${
                 isDarkMode ? 'bg-gray-900 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'
               }`}
-              placeholder="tu.usuario o email@dominio.com"
+              placeholder="ej: email@dominio.com"
               value={usernameOrEmail}
               onChange={(e) => setUsernameOrEmail(e.target.value)}
               disabled={isSubmitting}
