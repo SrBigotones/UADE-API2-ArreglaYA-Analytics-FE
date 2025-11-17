@@ -1,6 +1,19 @@
 // Registro centralizado de todas las métricas disponibles
 // Cada métrica tiene toda la información necesaria para renderizarse
 
+// Helper function para formatear cambios en métricas de porcentaje
+const formatPercentageChange = (data) => {
+  const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+  const value = Math.abs(data.change || 0);
+  
+  if (data.changeType === 'porcentaje') {
+    return `${sign}${value}%`;
+  } else {
+    // Cambio absoluto en puntos porcentuales
+    return `${sign}${value}% (abs)`;
+  }
+};
+
 export const METRICS_REGISTRY = {
   // === CATÁLOGO ===
   'catalog-win-rate': {
@@ -21,11 +34,7 @@ export const METRICS_REGISTRY = {
       serviceName: 'getCatalogWinRateByCategory',
       serviceModule: 'catalogService',
       valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
+      changeFormatter: formatPercentageChange,
       statusMapper: (status) => ({
         'positivo': 'positive',
         'negativo': 'negative',
@@ -149,11 +158,7 @@ export const METRICS_REGISTRY = {
       serviceName: 'getAppCancellationRate',
       serviceModule: 'appSearchsAndRequests',
       valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
+      changeFormatter: formatPercentageChange,
       statusMapper: (status) => ({
         'positivo': 'negative',  // Invertido: aumento de cancelaciones es MALO
         'negativo': 'positive',  // Invertido: reducción de cancelaciones es BUENO
@@ -222,11 +227,7 @@ export const METRICS_REGISTRY = {
       serviceName: 'getAppQuoteConversionRate',
       serviceModule: 'appSearchsAndRequests',
       valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
+      changeFormatter: formatPercentageChange,
       statusMapper: (status) => ({
         'positivo': 'positive',
         'negativo': 'negative',
@@ -257,11 +258,7 @@ export const METRICS_REGISTRY = {
       serviceName: 'getPaymentSuccessMetrics',
       serviceModule: 'paymentMetricsService',
       valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
+      changeFormatter: formatPercentageChange,
       statusMapper: (status) => ({
         'positivo': 'positive',
         'negativo': 'negative',
@@ -525,9 +522,13 @@ export const METRICS_REGISTRY = {
       changeStatusExtractor: (data) => data.tasaInactivos?.changeStatus || 'neutral',
       valueFormatter: (data) => `${data.tasaInactivos?.value || 0}%`,
       changeFormatter: (data) => {
-        const change = data.tasaInactivos?.change || 0;
-        const sign = data.tasaInactivos?.changeStatus === 'positivo' ? '+' : data.tasaInactivos?.changeStatus === 'negativo' ? '-' : '';
-        return `${sign}${Math.abs(change)}%`;
+        // Crear un objeto compatible con formatPercentageChange
+        const normalizedData = {
+          change: data.tasaInactivos?.change || 0,
+          changeStatus: data.tasaInactivos?.changeStatus || 'neutral',
+          changeType: data.tasaInactivos?.changeType || 'absoluto'
+        };
+        return formatPercentageChange(normalizedData);
       },
       statusMapper: (status) => ({
         'positivo': 'positive',
@@ -717,6 +718,36 @@ export const METRICS_REGISTRY = {
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
+<<<<<<< Updated upstream
+=======
+  },
+  'matching-expiration-rate': {
+    id: 'matching-expiration-rate',
+    module: 'matching',
+    type: 'card',
+    title: 'Tasa de cotizaciones expiradas',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de cotizaciones que expiran sin respuesta',
+    endpoint: '/api/metrica/matching/cotizaciones/tasa-expiracion',
+    category: 'quality',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    serviceConfig: {
+      serviceName: 'getMatchingExpirationRateMetrics',
+      serviceModule: 'matchingMetricsService',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: formatPercentageChange,
+      statusMapper: (status) => ({
+        'positivo': 'negative', // Más expiraciones es peor
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+>>>>>>> Stashed changes
   }
 };
 
