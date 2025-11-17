@@ -2,7 +2,7 @@
  * Servicio para obtener las opciones disponibles para los filtros
  */
 
-import { getCatalogoRubros, getCatalogoZonas } from './catalogService';
+import { getCatalogoRubros, getCatalogoZonasSolicitudes } from './catalogService';
 
 // Cache para las opciones de filtros
 const filterOptionsCache = {
@@ -56,7 +56,7 @@ export const getRubros = async (axiosInstance) => {
   }
 };
 
-// Obtener zonas disponibles desde la API
+// Obtener zonas disponibles desde la API (zonas reales usadas en solicitudes)
 export const getZonas = async (axiosInstance) => {
   try {
     if (filterOptionsCache.zonas && isCacheValid()) {
@@ -64,15 +64,15 @@ export const getZonas = async (axiosInstance) => {
       return { success: true, data: filterOptionsCache.zonas };
     }
 
-    console.log('📡 Obteniendo zonas desde la API...');
-    const result = await getCatalogoZonas(axiosInstance);
+    console.log('📡 Obteniendo zonas reales desde solicitudes...');
+    const result = await getCatalogoZonasSolicitudes(axiosInstance);
     
     if (result.success && result.data) {
       // Guardar en cache con formato { id, nombre }
       filterOptionsCache.zonas = result.data;
       filterOptionsCache.lastFetch = Date.now();
       
-      console.log('✅ Zonas obtenidas:', result.data.length);
+      console.log('✅ Zonas obtenidas desde solicitudes:', result.data.length);
       return { success: true, data: result.data };
     }
     
@@ -82,9 +82,9 @@ export const getZonas = async (axiosInstance) => {
     
     // Fallback: zonas hardcodeadas si falla la API
     const fallbackZonas = [
-      { id: 64, nombre: 'Agronomía' },
-      { id: 65, nombre: 'Almagro' },
-      { id: 67, nombre: 'Balvanera' }
+      { id: 1, nombre: 'Quilmes' },
+      { id: 2, nombre: 'caba' },
+      { id: 3, nombre: 'Agronomía' }
     ];
     
     return { success: true, data: fallbackZonas };

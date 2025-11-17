@@ -59,7 +59,7 @@ export const getCatalogoRubros = async (axiosInstance, { signal } = {}) => {
 
 /**
  * GET /api/catalogo/zonas
- * Obtiene la lista completa de zonas
+ * Obtiene la lista completa de zonas (tabla prestador-zona)
  */
 export const getCatalogoZonas = async (axiosInstance, { signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
@@ -91,6 +91,54 @@ export const getCatalogoZonas = async (axiosInstance, { signal } = {}) => {
     success: true,
     data: response.data.data || [],
     total: response.data.total || 0
+  };
+};
+
+/**
+ * GET /api/catalogo/zonas-solicitudes
+ * Obtiene las zonas REALES usadas en la tabla solicitudes (valores DISTINCT de solicitud.zona)
+ * Retorna array de strings: ["Quilmes", "caba", ...]
+ */
+export const getCatalogoZonasSolicitudes = async (axiosInstance, { signal } = {}) => {
+  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
+
+  const endpoint = '/api/catalogo/zonas-solicitudes';
+
+  console.log('📤 ENVIANDO AL BACKEND - catálogo: zonas desde solicitudes', {
+    endpoint,
+    timestamp: new Date().toISOString()
+  });
+
+  const response = await axiosInstance.get(endpoint, { signal });
+
+  console.log('📥 RESPUESTA RAW BACKEND - catálogo: zonas desde solicitudes', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+    timestamp: new Date().toISOString()
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
+  }
+  if (!response.data || typeof response.data === 'string') {
+    throw new Error('Respuesta inválida o sin datos');
+  }
+
+  // El backend retorna array de strings directamente
+  const zonas = response.data.data || response.data || [];
+  
+  // Convertir a formato { id, nombre } para consistencia con otros filtros
+  // Usamos el nombre como id ya que no tenemos un ID real
+  const zonasFormateadas = zonas.map((zona, index) => ({
+    id: index + 1,
+    nombre: zona
+  }));
+
+  return {
+    success: true,
+    data: zonasFormateadas,
+    total: zonasFormateadas.length
   };
 };
 
