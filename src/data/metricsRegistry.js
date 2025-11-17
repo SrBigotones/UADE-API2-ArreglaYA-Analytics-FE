@@ -20,7 +20,7 @@ export const METRICS_REGISTRY = {
     id: 'catalog-win-rate',
     module: 'catalog',
     type: 'card',
-    title: 'Win Rate',
+    title: 'Tasa de solicitudes aceptadas',
     value: '0%',
     change: '',
     changeStatus: 'neutral',
