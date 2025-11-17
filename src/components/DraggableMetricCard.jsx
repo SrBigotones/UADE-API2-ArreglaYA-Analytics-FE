@@ -14,7 +14,7 @@ const DraggableMetricCard = ({
   allowToggleToChart = true,
   chartKind = 'line'
 }) => {
-  const { activeFilters } = useFilters();
+  const { activeFilters, activeFilterLabels } = useFilters();
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showResizeHandles, setShowResizeHandles] = useState(false);
@@ -38,6 +38,11 @@ const DraggableMetricCard = ({
     if (!allowToggleToChart && showTrend) {
       setShowTrend(false);
       localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
+      // Al volver a tarjeta, forzar altura 1 si era mayor
+      const currentStoredSize = getChartSize(metric.id, metric.type);
+      if (currentStoredSize?.rows > 1) {
+        updateChartSize(metric.id, { ...currentStoredSize, rows: 1 });
+      }
     }
   }, [allowToggleToChart, showTrend, metric?.id]);
   
@@ -185,10 +190,15 @@ const DraggableMetricCard = ({
           chartSize={currentSize}
           metricKey={`${metric.id}-${index}`}
           activeFilters={activeFilters}
+          activeFilterLabels={activeFilterLabels}
           onClick={(e) => { 
             if (allowToggleToChart && metric.type === 'card' && showTrend) {
-              setShowTrend(false);
-              localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
+            setShowTrend(false);
+            localStorage.setItem(`dashboard-showTrend-${metric.id}`, JSON.stringify(false));
+            const currentStoredSize = getChartSize(metric.id, metric.type);
+            if (currentStoredSize?.rows > 1) {
+              updateChartSize(metric.id, { ...currentStoredSize, rows: 1 });
+            }
             }
             // Para mapas, evitar interferencia con navegación
             if (metric.type === 'map') {

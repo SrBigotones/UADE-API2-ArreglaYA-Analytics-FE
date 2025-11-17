@@ -220,7 +220,7 @@ const CoreScreen = ({ isDarkMode }) => {
             
             {/* Footer fijo */}
             <div className={`p-6 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'} flex-shrink-0`}>
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end">
                 <button
                   onClick={() => {
                     const defaultMetrics = ['core-processing-time', 'catalog-new-providers', 'app-requests-created', 'payments-success-rate'];
@@ -229,12 +229,6 @@ const CoreScreen = ({ isDarkMode }) => {
                   className={`px-4 py-2 border rounded-lg ${isDarkMode ? 'text-gray-300 border-gray-600 hover:bg-gray-700' : 'text-gray-600 border-gray-300 hover:bg-gray-50'}`}
                 >
                   Restaurar por defecto
-                </button>
-                <button
-                  onClick={() => setIsCustomizing(false)}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
-                >
-                  Guardar cambios
                 </button>
               </div>
             </div>

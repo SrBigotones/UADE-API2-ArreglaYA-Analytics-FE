@@ -35,20 +35,21 @@ const getStatusColor = (status) => {
 // Helper para asignar colores según el método de pago
 // Usa la misma paleta de colores que el gráfico de distribución de prestadores por rubro
 const getPaymentMethodColor = (method) => {
-  // Paleta de colores más diferenciados (misma que distribución de prestadores por rubro)
-  const colorPalette = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0ea5e9', '#ef4444', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
-  
-  // Mapeo específico de métodos a colores de la paleta
+  // Paleta con contraste asegurado (verdes, azules, naranjas y violetas)
   const methodColorMap = {
-    'TARJETA_CREDITO': colorPalette[0],    // #8884d8 - Púrpura azulado
-    'TARJETA_DEBITO': colorPalette[6],      // #8b5cf6 - Púrpura
-    'TRANSFERENCIA': colorPalette[1],       // #82ca9d - Verde claro
-    'EFECTIVO': colorPalette[2],            // #ffc658 - Amarillo
-    'MERCADO_PAGO': colorPalette[4],        // #0ea5e9 - Azul cielo
-    'DESCONOCIDO': colorPalette[5]          // #ef4444 - Rojo
+    'TARJETA_CREDITO': '#f97316',     // Naranja intenso
+    'TARJETA_DEBITO': '#10b981',      // Verde brillante
+    'TRANSFERENCIA': '#6366f1',       // Violeta/azul fuerte
+    'EFECTIVO': '#eab308',            // Amarillo dorado
+    'MERCADO_PAGO': '#0ea5e9',        // Celeste ArreglaYA
+    'CREDIT_CARD': '#f97316',
+    'DEBIT_CARD': '#10b981',
+    'TRANSFER': '#6366f1',
+    'CASH': '#eab308',
+    'DESCONOCIDO': '#ef4444'
   };
-  
-  return methodColorMap[method] || colorPalette[3]; // Color por defecto: #ff7300 (naranja)
+
+  return methodColorMap[method] || '#8b5cf6';
 };
 
 // Función base mejorada para métricas de pagos con manejo de errores detallado
@@ -206,10 +207,11 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
   
   // Si viene como objeto plano, transformarlo
   if (raw.chartData && Array.isArray(raw.chartData)) {
+    const hasData = raw.chartData.some(item => (item?.value || 0) > 0);
     return {
       success: true,
       data: {
-        chartData: raw.chartData,
+        chartData: hasData ? raw.chartData : [],
         total: raw.total || raw.chartData.reduce((sum, item) => sum + (item.value || 0), 0),
         lastUpdated: new Date().toISOString()
       }
@@ -224,11 +226,12 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
   }));
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
+  const hasData = chartData.some(item => item.value > 0);
 
   return {
     success: true,
     data: {
-      chartData,
+      chartData: hasData ? chartData : [],
       total,
       lastUpdated: new Date().toISOString()
     }
@@ -237,12 +240,16 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
 
 // Servicio para distribución de métodos de pago
 export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
+  // Este KPI muestra la distribución entre métodos, por lo que ignorar un filtro
+  // por método evita que el resultado quede sesgado o vacío.
+  const { metodo, ...filtersWithoutMethod } = filters || {};
+
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-metodos',
     period, 
     'distribución métodos de pago', 
-    { startDate, endDate, filters }
+    { startDate, endDate, filters: filtersWithoutMethod }
   );
 
   if (!result.success) {

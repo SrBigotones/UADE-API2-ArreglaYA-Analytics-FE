@@ -6,6 +6,25 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const FilterContext = createContext();
 
+const FILTER_VALUES_STORAGE_KEY = 'arreglaya-active-filters';
+const FILTER_LABELS_STORAGE_KEY = 'arreglaya-active-filter-labels';
+
+const getDefaultFilterValues = () => ({
+  rubro: '',
+  zona: '',
+  metodo: '',
+  tipoSolicitud: '',
+  minMonto: '',
+  maxMonto: ''
+});
+
+const getDefaultFilterLabels = () => ({
+  rubro: '',
+  zona: '',
+  metodo: '',
+  tipoSolicitud: ''
+});
+
 // Hook personalizado para usar el contexto de filtros
 // eslint-disable-next-line react-refresh/only-export-components
 export const useFilters = () => {
@@ -18,38 +37,56 @@ export const useFilters = () => {
 
 export const FilterProvider = ({ children }) => {
   const [activeFilters, setActiveFilters] = useState(() => {
-    // Intentar cargar filtros desde localStorage
     try {
-      const saved = localStorage.getItem('arreglaya-active-filters');
+      const saved = localStorage.getItem(FILTER_VALUES_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return { ...getDefaultFilterValues(), ...parsed };
       }
     } catch (error) {
       console.error('Error loading filters from localStorage:', error);
     }
-    return {
-      rubro: '',
-      zona: '',
-      metodo: '',
-      tipoSolicitud: '',
-      minMonto: '',
-      maxMonto: ''
-    };
+    return getDefaultFilterValues();
+  });
+
+  const [activeFilterLabels, setActiveFilterLabels] = useState(() => {
+    try {
+      const saved = localStorage.getItem(FILTER_LABELS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...getDefaultFilterLabels(), ...parsed };
+      }
+    } catch (error) {
+      console.error('Error loading filter labels from localStorage:', error);
+    }
+    return getDefaultFilterLabels();
   });
 
   // Guardar filtros en localStorage cuando cambien
   useEffect(() => {
     try {
-      localStorage.setItem('arreglaya-active-filters', JSON.stringify(activeFilters));
+      localStorage.setItem(FILTER_VALUES_STORAGE_KEY, JSON.stringify(activeFilters));
     } catch (error) {
       console.error('Error saving filters to localStorage:', error);
     }
   }, [activeFilters]);
 
-  const updateFilter = (filterType, value) => {
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTER_LABELS_STORAGE_KEY, JSON.stringify(activeFilterLabels));
+    } catch (error) {
+      console.error('Error saving filter labels to localStorage:', error);
+    }
+  }, [activeFilterLabels]);
+
+  const updateFilter = (filterType, value, displayLabel = '') => {
     setActiveFilters(prev => ({
       ...prev,
       [filterType]: value
+    }));
+    setActiveFilterLabels(prev => ({
+      ...prev,
+      [filterType]: displayLabel || ''
     }));
   };
 
@@ -58,17 +95,15 @@ export const FilterProvider = ({ children }) => {
       ...prev,
       [filterType]: ''
     }));
+    setActiveFilterLabels(prev => ({
+      ...prev,
+      [filterType]: ''
+    }));
   };
 
   const clearAllFilters = () => {
-    setActiveFilters({
-      rubro: '',
-      zona: '',
-      metodo: '',
-      tipoSolicitud: '',
-      minMonto: '',
-      maxMonto: ''
-    });
+    setActiveFilters(getDefaultFilterValues());
+    setActiveFilterLabels(getDefaultFilterLabels());
   };
 
   const hasActiveFilters = Object.values(activeFilters).some(value => value !== '');
@@ -90,6 +125,7 @@ export const FilterProvider = ({ children }) => {
   return (
     <FilterContext.Provider value={{
       activeFilters,
+      activeFilterLabels,
       updateFilter,
       clearFilter,
       clearAllFilters,

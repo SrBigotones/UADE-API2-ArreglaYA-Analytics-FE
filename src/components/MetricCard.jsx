@@ -21,7 +21,8 @@ const MetricCard = ({
   compact = false,
   hideChangeIndicator = false,
   activeFilters = null,
-  acceptsFilters = []
+  acceptsFilters = [],
+  activeFilterLabels = null
 }) => {
   // Formatear filtros activos para mostrar (solo los que la métrica acepta)
   const formatActiveFilters = () => {
@@ -45,8 +46,10 @@ const MetricCard = ({
     Object.entries(activeFilters).forEach(([key, value]) => {
       // Solo mostrar el filtro si la métrica lo acepta y tiene valor
       if (value && value !== '' && acceptsFilters.includes(key)) {
+        const labelOverride = activeFilterLabels?.[key];
         // Para métodos de pago, usar el label legible
-        const displayValue = key === 'metodo' ? (paymentMethodLabels[value] || value) : value;
+        const fallbackValue = key === 'metodo' ? (paymentMethodLabels[value] || value) : value;
+        const displayValue = labelOverride || fallbackValue;
         filters.push(`${filterLabels[key] || key}: ${displayValue}`);
       }
     });

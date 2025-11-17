@@ -24,7 +24,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
   const moduleFilterConfig = {
     'app': ['rubro', 'zona', 'tipo'], // APP DE BÚSQUEDA Y SOLICITUDES
     'payments': ['rubro', 'zona', 'metodo'], // PAGOS Y FACTURACIÓN
-    'users': ['rubro', 'zona'], // USUARIOS Y ROLES (para Nuevos Prestadores)
+    'users': [], // USUARIOS Y ROLES (sin filtros por rubro/zona)
     'matching': ['rubro', 'zona', 'tipo'], // MATCHING Y AGENDA
     'catalog': ['rubro', 'zona'], // CATÁLOGO DE SERVICIOS Y PRESTADORES
     'all': ['rubro', 'zona', 'metodo', 'tipo'] // Por defecto, todos los filtros
@@ -86,6 +86,11 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
   const filterTypes = allFilterTypes.filter(filterType => 
     availableFilters.includes(filterType.id)
   );
+
+  // Si no hay filtros configurados para el módulo, no renderizar el componente
+  if (filterTypes.length === 0) {
+    return null;
+  }
 
   // Opciones fallback (datos reales del sistema)
   const getFallbackOptions = () => ({
@@ -159,7 +164,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     }
   };
 
-  const handleValueSelect = (filterType, selectedOption) => {
+  const handleValueSelect = (filterType, selectedOption, displayLabel) => {
     // Mapear el tipo local al tipo del contexto
     const contextFilterType = filterType === 'tipo' ? 'tipoSolicitud' : filterType;
     
@@ -188,7 +193,15 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
       note: filterType === 'rubro' ? 'Enviando ID' : filterType === 'zona' ? 'Enviando NOMBRE' : ''
     });
     
-    updateFilter(contextFilterType, valueToSend);
+    const labelToPersist = displayLabel || (
+      typeof selectedOption === 'object' && selectedOption.nombre
+        ? selectedOption.nombre
+        : (typeof selectedOption === 'object' && selectedOption.label)
+          ? selectedOption.label
+          : (typeof selectedOption === 'string' ? selectedOption : '')
+    );
+
+    updateFilter(contextFilterType, valueToSend, labelToPersist);
     setActiveDropdown('');
   };
 
@@ -285,7 +298,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
                   return (
                     <button
                       key={isRubro ? option.id : (isZona ? option.id : optionValue)}
-                      onClick={() => handleValueSelect(activeDropdown, option)}
+                      onClick={() => handleValueSelect(activeDropdown, option, displayText)}
                       className={`
                         w-full text-left px-3 py-2 text-sm rounded transition-colors
                         ${isSelected
