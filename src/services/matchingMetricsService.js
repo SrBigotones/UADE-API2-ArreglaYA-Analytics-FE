@@ -38,25 +38,8 @@ const fetchMatchingMetricsWithErrorHandling = async (axiosInstance, endpoint, pe
     if (filters.zona) params.zona = filters.zona;
     if (filters.tipoSolicitud) params.tipoSolicitud = filters.tipoSolicitud;
 
-    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      filters,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
       params,
-    });
-
-    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
-      endpoint,
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {

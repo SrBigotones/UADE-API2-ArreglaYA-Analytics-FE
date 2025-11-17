@@ -134,13 +134,6 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
             metodo: result.data.metodos || [],
             tipo: result.data.tiposSolicitud || []
           });
-          
-          // Log para debug
-          console.log(`📍 Zonas cargadas para módulo "${module}" (efectivo: "${effectiveModule}"):`, {
-            count: result.data.zonas?.length || 0,
-            type: (effectiveModule === 'catalog' || effectiveModule === 'users') ? 'PRESTADORES' : 'SOLICITUDES',
-            samples: result.data.zonas?.slice(0, 3).map(z => z.nombre) || []
-          });
         } else {
           console.error('Error loading filter options:', result.message);
           setFilterOptions(getFallbackOptions());

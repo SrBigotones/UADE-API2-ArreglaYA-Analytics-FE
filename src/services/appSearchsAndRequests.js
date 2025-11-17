@@ -40,29 +40,9 @@ export const getAppRequestsCreated = async (axiosInstance, { period, startDate, 
 
   const endpoint = '/api/metrica/solicitudes/volumen';
 
-  console.log('📤 ENVIANDO AL BACKEND - app: solicitudes creadas', {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      startDatePassed: startDate,
-      endDatePassed: endDate,
-      startDateFormatted: params.startDate,
-      endDateFormatted: params.endDate,
-      filters,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-    });
-
-  console.log('📥 RESPUESTA RAW BACKEND - app: solicitudes creadas', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -108,29 +88,9 @@ export const getAppCancellationRate = async (axiosInstance, { period, startDate,
 
   const endpoint = '/api/metrica/solicitudes/tasa-cancelacion';
 
-  console.log('📤 ENVIANDO AL BACKEND - app: tasa de cancelación', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - app: tasa de cancelación', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -177,29 +137,9 @@ export const getAppTimeToFirstQuote = async (axiosInstance, { period, startDate,
 
   const endpoint = '/api/metrica/solicitudes/tiempo-primera-cotizacion';
 
-  console.log('📤 ENVIANDO AL BACKEND - app: tiempo a primera cotización', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - app: tiempo a primera cotización', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -260,29 +200,9 @@ export const getAppQuoteConversionRate = async (axiosInstance, { period, startDa
 
   const endpoint = '/api/metrica/matching/cotizaciones/conversion-aceptada';
 
-  console.log('📤 ENVIANDO AL BACKEND - app: conversión a cotización aceptada', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - app: conversión a cotización aceptada', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {

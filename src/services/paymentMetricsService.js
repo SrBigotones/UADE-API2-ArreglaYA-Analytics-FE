@@ -75,27 +75,8 @@ const fetchMetricsWithErrorHandling = async (axiosInstance, endpoint, period, de
     if (filters.minMonto) params.minMonto = filters.minMonto;
     if (filters.maxMonto) params.maxMonto = filters.maxMonto;
 
-    // Console log de la consulta que se envía al backend
-    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
       params
-    });
-
-    // Console log de la respuesta raw del backend
-    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
-      endpoint,
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      headers: response.headers,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {

@@ -29,19 +29,7 @@ export const getCatalogoRubros = async (axiosInstance, { signal } = {}) => {
 
   const endpoint = '/api/catalogo/rubros';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: rubros', {
-    endpoint,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, { signal });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: rubros', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
 
   if (response.status !== 200) {
     throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
@@ -66,19 +54,7 @@ export const getCatalogoZonas = async (axiosInstance, { signal } = {}) => {
 
   const endpoint = '/api/catalogo/zonas';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: zonas', {
-    endpoint,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, { signal });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: zonas', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
 
   if (response.status !== 200) {
     throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
@@ -104,19 +80,7 @@ export const getCatalogoZonasSolicitudes = async (axiosInstance, { signal } = {}
 
   const endpoint = '/api/catalogo/zonas-solicitudes';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: zonas desde solicitudes', {
-    endpoint,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, { signal });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: zonas desde solicitudes', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
-  });
 
   if (response.status !== 200) {
     throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
@@ -164,25 +128,9 @@ export const getCatalogOrdersHeatmap = async (axiosInstance, { period, startDate
 
   const endpoint = '/api/metrica/solicitudes/mapa-calor';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: mapa de calor de pedidos', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: mapa de calor de pedidos', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -222,28 +170,9 @@ export const getCatalogProvidersRegistered = async (axiosInstance, { period, sta
 
   const endpoint = '/api/metrica/prestadores/nuevos-registrados';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: nuevos prestadores registrados', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: nuevos prestadores registrados', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -284,28 +213,9 @@ export const getCatalogTotalActiveProviders = async (axiosInstance, { period, st
 
   const endpoint = '/api/metrica/prestadores/total-activos';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: total prestadores activos', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: total prestadores activos', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -349,29 +259,9 @@ export const getCatalogWinRateByCategory = async (axiosInstance, { period, start
 
   const endpoint = '/api/metrica/prestadores/win-rate-rubro';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: win rate', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    note: 'Win Rate NO acepta filtros de segmentación',
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: win rate', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -417,29 +307,9 @@ export const getCatalogServiceDistribution = async (axiosInstance, { period, sta
 
   const endpoint = '/api/metrica/prestadores/servicios/distribucion';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: distribución de servicios', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    startDatePassed: startDate,
-    endDatePassed: endDate,
-    startDateFormatted: params.startDate,
-    endDateFormatted: params.endDate,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: distribución de servicios', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {
@@ -499,25 +369,9 @@ export const getCatalogServiceDistributionByCategory = async (axiosInstance, { p
 
   const endpoint = '/api/metrica/prestadores/servicios/distribucion-por-rubro';
 
-  console.log('📤 ENVIANDO AL BACKEND - catálogo: distribución por rubro', {
-    endpoint,
-    params,
-    originalPeriod: period,
-    mappedPeriod,
-    filters,
-    timestamp: new Date().toISOString()
-  });
-
   const response = await axiosInstance.get(endpoint, {
     params,
     signal,
-  });
-
-  console.log('📥 RESPUESTA RAW BACKEND - catálogo: distribución por rubro', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    timestamp: new Date().toISOString()
   });
 
   if (response.status !== 200) {

@@ -205,24 +205,8 @@ const fetchUserMetricsWithErrorHandling = async (axiosInstance, endpoint, period
       params.endDate = formatDateYmd(endDate);
     }
 
-    console.log(`📤 ENVIANDO AL BACKEND - ${description}:`, {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
       params,
-    });
-
-    console.log(`📥 RESPUESTA RAW BACKEND - ${description}:`, {
-      endpoint,
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -493,23 +477,8 @@ export const getUserInactiveRate = async (axiosInstance, { startDate, endDate, p
 
     const endpoint = '/api/metrica/usuarios/tasa-roles-activos';
 
-    console.log('📤 ENVIANDO AL BACKEND - tasa de usuarios inactivos:', {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
       params,
-    });
-
-    console.log('📥 RESPUESTA RAW BACKEND - tasa de usuarios inactivos:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -572,19 +541,7 @@ export const getUserRoleDistribution = async (axiosInstance) => {
   }
 
   try {
-    console.log('📤 ENVIANDO AL BACKEND - distribución por rol:', {
-      endpoint: '/api/metrica/usuarios/distribucion-por-rol',
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get('/api/metrica/usuarios/distribucion-por-rol', {
-    });
-
-    console.log('📥 RESPUESTA RAW BACKEND - distribución por rol:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -626,19 +583,7 @@ export const getUserTotal = async (axiosInstance) => {
   }
 
   try {
-    console.log('📤 ENVIANDO AL BACKEND - total de usuarios:', {
-      endpoint: '/api/metrica/usuarios/totales',
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get('/api/metrica/usuarios/totales', {
-    });
-
-    console.log('📥 RESPUESTA RAW BACKEND - total de usuarios:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
@@ -696,24 +641,8 @@ export const getProviderNewRegistrations = async (axiosInstance, { startDate, en
 
     const endpoint = '/api/metrica/prestadores/nuevos-registrados';
 
-    console.log('📤 ENVIANDO AL BACKEND - nuevos prestadores:', {
-      endpoint,
-      params,
-      originalPeriod: period,
-      mappedPeriod,
-      filters,
-      timestamp: new Date().toISOString()
-    });
-
     const response = await axiosInstance.get(endpoint, {
       params,
-    });
-
-    console.log('📥 RESPUESTA RAW BACKEND - nuevos prestadores:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      timestamp: new Date().toISOString()
     });
 
     if (response.status !== 200) {
