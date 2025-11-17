@@ -52,6 +52,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/solicitudes/mapa-calor',
     category: 'distribution',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
       serviceName: 'getCatalogOrdersHeatmap',
       serviceModule: 'catalogService',
@@ -253,7 +254,7 @@ export const METRICS_REGISTRY = {
     toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'metodo'],
+    acceptsFilters: ['rubro', 'zona'],
     serviceConfig: {
       serviceName: 'getPaymentSuccessMetrics',
       serviceModule: 'paymentMetricsService',
@@ -719,33 +720,6 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'matching-expiration-rate': {
-    id: 'matching-expiration-rate',
-    module: 'matching',
-    type: 'card',
-    title: 'Tasa de cotizaciones expiradas',
-    value: '0%',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Porcentaje de cotizaciones que expiran sin respuesta',
-    endpoint: '/api/metrica/matching/cotizaciones/tasa-expiracion',
-    category: 'quality',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getMatchingExpirationRateMetrics',
-      serviceModule: 'matchingMetricsService',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: formatPercentageChange,
-      statusMapper: (status) => ({
-        'positivo': 'negative', // Más expiraciones es peor
-        'negativo': 'positive',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
-  }
 };
 
 // Configuraciones predefinidas por módulo

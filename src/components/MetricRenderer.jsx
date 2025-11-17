@@ -1,11 +1,44 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import MetricCard from './MetricCard';
 import PieResponsiveContainer from './PieResponsiveContainer';
 import AreaResponsiveContainer from './AreaResponsiveContainer';
 import CandlestickChart from './CandlestickChart';
 import LeafletHeatMap from './LeafletHeatMap';
 
-const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey, activeFilters }) => {
+const formatDisplayFilters = (activeFilters, acceptsFilters = [], activeFilterLabels = null) => {
+  if (!activeFilters || !acceptsFilters || acceptsFilters.length === 0) return null;
+
+  const filterLabels = {
+    rubro: 'Rubro',
+    zona: 'Zona',
+    metodo: 'Método',
+    tipoSolicitud: 'Tipo'
+  };
+
+  const paymentMethodLabels = {
+    'CREDIT_CARD': 'Tarjeta de Crédito',
+    'DEBIT_CARD': 'Tarjeta de Débito',
+    'MERCADO_PAGO': 'Mercado Pago'
+  };
+
+  const filters = [];
+  Object.entries(activeFilters).forEach(([key, value]) => {
+    if (value && value !== '' && acceptsFilters.includes(key)) {
+      const labelOverride = activeFilterLabels?.[key];
+      const fallbackValue = key === 'metodo' ? (paymentMethodLabels[value] || value) : value;
+      filters.push(`${filterLabels[key] || key}: ${labelOverride || fallbackValue}`);
+    }
+  });
+
+  return filters.length > 0 ? filters : null;
+};
+
+const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey, activeFilters, activeFilterLabels }) => {
+  const displayFilters = useMemo(
+    () => formatDisplayFilters(activeFilters, metric?.acceptsFilters, activeFilterLabels),
+    [activeFilters, metric?.acceptsFilters, activeFilterLabels]
+  );
+
   if (!metric) return null;
 
   const commonProps = {
@@ -20,6 +53,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
     isRealData: metric.isRealData,
     hideChangeIndicator: metric.hideChangeIndicator || false,
     activeFilters: activeFilters || null,
+    activeFilterLabels: activeFilterLabels || null,
     acceptsFilters: metric.acceptsFilters || [],
   };
 
@@ -170,7 +204,10 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       // Si no hay datos, mostrar mensaje
       if (!metric.chartData || metric.chartData.length === 0) {
         return (
-          <div className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full h-full min-h-[300px] flex items-center justify-center ${className}`}>
+          <div
+            className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full flex items-center justify-center ${className}`}
+            style={{ height: getChartHeight() }}
+          >
             <div className="text-center">
               <svg className={`w-16 h-16 mb-3 mx-auto ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
@@ -188,16 +225,17 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       }
       
       return (
-        <PieResponsiveContainer
-          data={metric.chartData}
-          dataKey="value"
-          nameKey="name"
-          colors={metric.chartData?.map(item => item.color)}
-          asCard={true}
-          title={metric.title}
-          height={getChartHeight()}
-          className={className}
-        />
+          <PieResponsiveContainer
+            data={metric.chartData}
+            dataKey="value"
+            nameKey="name"
+            colors={metric.chartData?.map(item => item.color)}
+            asCard={true}
+            title={metric.title}
+            filters={displayFilters}
+            height={getChartHeight()}
+            className={className}
+          />
       );
     
     case 'area':
@@ -281,14 +319,30 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
     case 'map': {
       // Renderizar el mapa con altura dinámica según el tamaño
       const mapHeight = getChartHeight();
+      const filterLabelClasses = isDarkMode ? 'text-blue-400' : 'text-blue-600';
+      const filterTextClasses = isDarkMode ? 'text-gray-400' : 'text-gray-600';
       return (
         <div className={className}>
           <div className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-              <h3 className="text-base font-medium">{metric.title}</h3>
-              {metric.description && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">{metric.description}</p>
-              )}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-medium">{metric.title}</h3>
+                  {metric.description && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{metric.description}</p>
+                  )}
+                </div>
+                {displayFilters && (
+                  <div className="text-right">
+                    <p className={`text-[10px] font-medium ${filterLabelClasses} mb-0.5`}>Filtros:</p>
+                    {displayFilters.map((filter, index) => (
+                      <p key={index} className={`text-[10px] ${filterTextClasses} leading-tight`}>
+                        {filter}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <LeafletHeatMap
               key={`${metricKey}-${chartSize?.cols || 1}x${chartSize?.rows || 2}`}

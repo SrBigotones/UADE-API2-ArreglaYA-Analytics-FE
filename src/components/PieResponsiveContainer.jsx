@@ -2,7 +2,7 @@ import React from 'react';
 import { ResponsiveContainer, PieChart, Pie, Tooltip, Legend, Cell } from 'recharts';
 
 const DEFAULT_COLORS = [
-  '#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#e11d48', '#06b6d4'
+  '#0ea5e9', '#22c55e', '#f97316', '#ef4444', '#8b5cf6', '#14b8a6', '#e11d48', '#06b6d4', '#a855f7'
 ];
 
 const PieResponsiveContainer = ({
@@ -20,7 +20,8 @@ const PieResponsiveContainer = ({
   chartMargin = { top: 0, right: 0, bottom: 0, left: 0 },
   legendProps = { layout: 'horizontal', align: 'center', verticalAlign: 'bottom', wrapperStyle: { fontSize: 12 } },
   asCard = false,
-  title
+  title,
+  filters = null
 }) => {
   // Tooltip personalizado para modo oscuro
   const CustomTooltip = ({ active, payload }) => {
@@ -79,8 +80,22 @@ const PieResponsiveContainer = ({
 
   return (
     <div className="rounded-lg shadow-sm border p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-full flex flex-col">
-      {title && (
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">{title}</h3>
+      {(title || filters) && (
+        <div className="flex items-start justify-between gap-3 mb-2">
+          {title && (
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
+          )}
+          {filters && (
+            <div className="text-right">
+              <p className="text-[10px] font-medium text-blue-600 dark:text-blue-400 mb-0.5">Filtros:</p>
+              {filters.map((filter, index) => (
+                <p key={index} className="text-[10px] text-gray-600 dark:text-gray-400 leading-tight">
+                  {filter}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
       )}
       <div className="flex-1">
         {Chart}

@@ -10,6 +10,7 @@ import { getAllFilterOptions } from '../services/filterOptionsService';
 const FilterSelector = ({ className = '', module = 'all' }) => {
   const { activeFilters, updateFilter, clearAllFilters } = useFilters();
   const [activeDropdown, setActiveDropdown] = useState('');
+  const [zonaType, setZonaType] = useState('solicitudes'); // 'solicitudes' o 'prestadores'
   const [filterOptions, setFilterOptions] = useState({
     rubro: [],
     zona: [],
@@ -24,7 +25,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
   const moduleFilterConfig = {
     'app': ['rubro', 'zona', 'tipo'], // APP DE BÚSQUEDA Y SOLICITUDES
     'payments': ['rubro', 'zona', 'metodo'], // PAGOS Y FACTURACIÓN
-    'users': ['rubro', 'zona'], // USUARIOS Y ROLES (para Nuevos Prestadores)
+    'users': [], // USUARIOS Y ROLES (sin filtros por rubro/zona)
     'matching': ['rubro', 'zona', 'tipo'], // MATCHING Y AGENDA
     'catalog': ['rubro', 'zona'], // CATÁLOGO DE SERVICIOS Y PRESTADORES
     'all': ['rubro', 'zona', 'metodo', 'tipo'] // Por defecto, todos los filtros
@@ -82,11 +83,6 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     }
   ];
 
-  // Filtrar tipos de filtros según el módulo actual
-  const filterTypes = allFilterTypes.filter(filterType => 
-    availableFilters.includes(filterType.id)
-  );
-
   // Opciones fallback (datos reales del sistema)
   const getFallbackOptions = () => ({
     rubro: [
@@ -114,7 +110,13 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
       
       setLoadingOptions(true);
       try {
-        const result = await getAllFilterOptions(axiosInstance);
+        // Para módulo "all", usar el zonaType seleccionado por el usuario
+        const effectiveModule = module === 'all' 
+          ? (zonaType === 'prestadores' ? 'catalog' : 'app')
+          : module;
+        
+        // Pasar el módulo efectivo para que cargue las zonas correctas
+        const result = await getAllFilterOptions(axiosInstance, effectiveModule);
         if (result.success) {
           setFilterOptions({
             rubro: result.data.rubros || [],
@@ -135,7 +137,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     };
 
     loadFilterOptions();
-  }, [axiosInstance]);
+  }, [axiosInstance, module, zonaType]); // Agregar zonaType como dependencia
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -149,6 +151,16 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Filtrar tipos de filtros según el módulo actual
+  const filterTypes = allFilterTypes.filter(filterType => 
+    availableFilters.includes(filterType.id)
+  );
+
+  // Si no hay filtros configurados para el módulo, no renderizar el componente
+  if (filterTypes.length === 0) {
+    return null;
+  }
+
   const handleFilterTypeSelect = (filterType) => {
     if (activeDropdown === filterType) {
       // Si ya está abierto, lo cerramos
@@ -159,7 +171,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     }
   };
 
-  const handleValueSelect = (filterType, selectedOption) => {
+  const handleValueSelect = (filterType, selectedOption, displayLabel) => {
     // Mapear el tipo local al tipo del contexto
     const contextFilterType = filterType === 'tipo' ? 'tipoSolicitud' : filterType;
     
@@ -188,7 +200,15 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
       note: filterType === 'rubro' ? 'Enviando ID' : filterType === 'zona' ? 'Enviando NOMBRE' : ''
     });
     
-    updateFilter(contextFilterType, valueToSend);
+    const labelToPersist = displayLabel || (
+      typeof selectedOption === 'object' && selectedOption.nombre
+        ? selectedOption.nombre
+        : (typeof selectedOption === 'object' && selectedOption.label)
+          ? selectedOption.label
+          : (typeof selectedOption === 'string' ? selectedOption : '')
+    );
+
+    updateFilter(contextFilterType, valueToSend, labelToPersist);
     setActiveDropdown('');
   };
 
@@ -197,13 +217,53 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     setActiveDropdown('');
   };
 
+  const handleZonaTypeChange = (newType) => {
+    setZonaType(newType);
+    // Limpiar el filtro de zona actual al cambiar el tipo
+    if (selectedFilters.zona) {
+      updateFilter('zona', '');
+    }
+  };
+
   const hasAnyFilter = Object.values(selectedFilters).some(value => value !== '');
   const currentOptions = activeDropdown ? filterOptions[activeDropdown] : [];
+  const showZonaTypeSelector = module === 'all' && availableFilters.includes('zona');
 
   return (
     <div className={`relative w-full lg:w-auto lg:min-w-fit ${className}`} ref={dropdownRef}>
       {/* Contenedor principal - misma altura que DateRangeSelector */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg w-full lg:w-auto lg:min-w-fit">
+        
+        {/* Selector de tipo de zona (solo visible en module="all") */}
+        {showZonaTypeSelector && (
+          <div className="border-b border-gray-200 dark:border-gray-700 px-3 py-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Tipo de zona:</span>
+              <div className="flex space-x-1">
+                <button
+                  onClick={() => handleZonaTypeChange('solicitudes')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    zonaType === 'solicitudes'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Solicitudes
+                </button>
+                <button
+                  onClick={() => handleZonaTypeChange('prestadores')}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    zonaType === 'prestadores'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Prestadores
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Contenido principal responsive */}
         <div className="flex items-center px-2 sm:px-3 py-1.5 sm:py-1 min-h-[44px] sm:min-h-[36px]">
@@ -285,7 +345,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
                   return (
                     <button
                       key={isRubro ? option.id : (isZona ? option.id : optionValue)}
-                      onClick={() => handleValueSelect(activeDropdown, option)}
+                      onClick={() => handleValueSelect(activeDropdown, option, displayText)}
                       className={`
                         w-full text-left px-3 py-2 text-sm rounded transition-colors
                         ${isSelected

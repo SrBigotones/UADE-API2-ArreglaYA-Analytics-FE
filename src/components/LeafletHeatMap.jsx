@@ -3,9 +3,12 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet.heat'
 
-// Centro aproximado de Argentina (Córdoba) y zoom inicial ideal para todo el país
-const ARG_CENTER = [-31.4167, -64.1833]
-const DEFAULT_ZOOM = 4
+// Centro por defecto: Ciudad Autónoma de Buenos Aires
+const ARG_CENTER = [-34.6037, -58.3816]
+const DEFAULT_ZOOM =10
+const DEFAULT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+const DEFAULT_TILE_ATTR =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 
 function HeatLayer({ points, radius = 25, blur = 15, maxZoom = 17, minOpacity = 0.05 }) {
   const map = useMap()
@@ -62,9 +65,8 @@ export default function LeafletHeatMap({
   center = ARG_CENTER,
   zoom = DEFAULT_ZOOM,
   height = '400px',
-  tileAttribution =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  tileAttribution = DEFAULT_TILE_ATTR,
+  tileUrl = DEFAULT_TILE_URL,
   heatOptions = {},
   mapKey
 }) {

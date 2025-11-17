@@ -46,7 +46,7 @@ const SimpleResizeHandles = ({
       } else if (direction === 'bottom') {
         // Redimensionamiento vertical solo desde abajo
         const deltaY = moveEvent.clientY - startY;
-        const sizeChange = Math.floor(Math.abs(deltaY) / 200);
+        const sizeChange = Math.floor(Math.abs(deltaY) / 150);
         
         if (deltaY > 0) {
           // Arrastrando hacia abajo = aumentar altura
