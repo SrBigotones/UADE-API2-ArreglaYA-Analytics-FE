@@ -223,6 +223,7 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
 export const getPaymentMethodDistributionMetrics = async (axiosInstance, { period, startDate, endDate, filters = {} } = {}) => {
   // Este KPI muestra la distribución entre métodos, por lo que ignorar un filtro
   // por método evita que el resultado quede sesgado o vacío.
+  // eslint-disable-next-line no-unused-vars
   const { metodo, ...filtersWithoutMethod } = filters || {};
 
   const result = await fetchMetricsWithErrorHandling(

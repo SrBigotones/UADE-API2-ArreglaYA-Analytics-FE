@@ -83,16 +83,6 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     }
   ];
 
-  // Filtrar tipos de filtros según el módulo actual
-  const filterTypes = allFilterTypes.filter(filterType => 
-    availableFilters.includes(filterType.id)
-  );
-
-  // Si no hay filtros configurados para el módulo, no renderizar el componente
-  if (filterTypes.length === 0) {
-    return null;
-  }
-
   // Opciones fallback (datos reales del sistema)
   const getFallbackOptions = () => ({
     rubro: [
@@ -160,6 +150,16 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Filtrar tipos de filtros según el módulo actual
+  const filterTypes = allFilterTypes.filter(filterType => 
+    availableFilters.includes(filterType.id)
+  );
+
+  // Si no hay filtros configurados para el módulo, no renderizar el componente
+  if (filterTypes.length === 0) {
+    return null;
+  }
 
   const handleFilterTypeSelect = (filterType) => {
     if (activeDropdown === filterType) {

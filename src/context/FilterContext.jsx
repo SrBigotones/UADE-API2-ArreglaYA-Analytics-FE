@@ -2,7 +2,7 @@
  * Contexto para manejar el estado global de filtros
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const FilterContext = createContext();
 
@@ -109,7 +109,7 @@ export const FilterProvider = ({ children }) => {
   const hasActiveFilters = Object.values(activeFilters).some(value => value !== '');
 
   // Convertir filtros al formato esperado por la API
-  const getApiFilters = () => {
+  const getApiFilters = useCallback(() => {
     const apiFilters = {};
     
     if (activeFilters.rubro) apiFilters.rubro = activeFilters.rubro;
@@ -120,7 +120,7 @@ export const FilterProvider = ({ children }) => {
     if (activeFilters.maxMonto) apiFilters.maxMonto = parseFloat(activeFilters.maxMonto);
     
     return apiFilters;
-  };
+  }, [activeFilters]);
 
   return (
     <FilterContext.Provider value={{

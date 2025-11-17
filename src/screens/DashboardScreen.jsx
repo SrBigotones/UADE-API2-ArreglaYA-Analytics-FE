@@ -11,7 +11,7 @@ import { useFilters } from '../context/FilterContext';
 const CoreScreen = ({ isDarkMode }) => {
   const [dateRange, setDateRange] = useState({ preset: 'last7' });
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const { clearAllFilters, activeFilters, getApiFilters } = useFilters();
+  const { clearAllFilters, getApiFilters } = useFilters();
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
@@ -21,7 +21,7 @@ const CoreScreen = ({ isDarkMode }) => {
   // La selección de métricas se gestiona dentro del hook useDashboardMetrics
 
   // Memorizar los filtros para que se recalculen cuando activeFilters cambie
-  const filters = useMemo(() => getApiFilters(), [activeFilters]);
+  const filters = useMemo(() => getApiFilters(), [getApiFilters]);
 
   // Preparar parámetros de fecha basados en el selector
   const dateParams = useMemo(() => {

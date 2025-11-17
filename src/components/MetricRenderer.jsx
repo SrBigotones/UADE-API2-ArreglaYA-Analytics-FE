@@ -34,12 +34,12 @@ const formatDisplayFilters = (activeFilters, acceptsFilters = [], activeFilterLa
 };
 
 const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSize, onClick, metricKey, activeFilters, activeFilterLabels }) => {
-  if (!metric) return null;
-
   const displayFilters = useMemo(
-    () => formatDisplayFilters(activeFilters, metric.acceptsFilters, activeFilterLabels),
-    [activeFilters, metric.acceptsFilters, activeFilterLabels]
+    () => formatDisplayFilters(activeFilters, metric?.acceptsFilters, activeFilterLabels),
+    [activeFilters, metric?.acceptsFilters, activeFilterLabels]
   );
+
+  if (!metric) return null;
 
   const commonProps = {
     title: metric.title,

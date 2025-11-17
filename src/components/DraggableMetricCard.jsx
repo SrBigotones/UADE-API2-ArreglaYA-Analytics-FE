@@ -26,6 +26,8 @@ const DraggableMetricCard = ({
     return false;
   });
 
+  const { getChartSize, updateChartSize, getGridClasses: getChartGridClasses } = useChartSizes();
+
   // Persistir estado de toggle por métrica
   useEffect(() => {
     if (allowToggleToChart && metric?.type === 'card') {
@@ -44,9 +46,7 @@ const DraggableMetricCard = ({
         updateChartSize(metric.id, { ...currentStoredSize, rows: 1 });
       }
     }
-  }, [allowToggleToChart, showTrend, metric?.id]);
-  
-  const { getChartSize, updateChartSize, getGridClasses: getChartGridClasses } = useChartSizes();
+  }, [allowToggleToChart, showTrend, metric?.id, metric?.type, getChartSize, updateChartSize]);
 
   // Preparar datos locales sin mutar la métrica original
   const localChartData = useMemo(() => {
