@@ -276,6 +276,15 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
       { startDate, endDate }
     );
 
+    // Obtener datos de nuevos administradores
+    const adminsResult = await fetchUserMetricsWithErrorHandling(
+      axiosInstance,
+      '/api/metrica/usuarios/nuevos-administradores',
+      period,
+      'nuevos administradores',
+      { startDate, endDate }
+    );
+
     // Si alguno falla, retornar el error
     if (!clientsResult.success) {
       return clientsResult;
@@ -283,46 +292,101 @@ export const getUserNewRegistrations = async (axiosInstance, { startDate, endDat
     if (!providersResult.success) {
       return providersResult;
     }
+    if (!adminsResult.success) {
+      return adminsResult;
+    }
 
     const clientsData = clientsResult.data;
     const providersData = providersResult.data;
+    const adminsData = adminsResult.data;
 
-    // Sumar los valores
-    const totalValue = (clientsData.value ?? 0) + (providersData.value ?? 0);
+    // Calcular valores actuales
+    const currentClients = clientsData.value ?? 0;
+    const currentProviders = providersData.value ?? 0;
+    const currentAdmins = adminsData.value ?? 0;
+    const totalValue = currentClients + currentProviders + currentAdmins;
+
+    // Calcular valores anteriores a partir del cambio porcentual
+    // El backend devuelve change como valor absoluto, el signo está en changeStatus
+    // Si tenemos: change = ((current - previous) / previous) * 100
+    // Entonces: previous = current / (1 + change/100)
+    const calculatePrevious = (current, changePercent, changeStatus) => {
+      // Aplicar el signo según changeStatus
+      const signedChange = changeStatus === 'negativo' ? -changePercent : changePercent;
+      
+      if (signedChange === 0) return current;
+      // Si el cambio es 100% y hay valor actual, significa que anterior era 0
+      if (signedChange >= 100 && current > 0) return 0;
+      // Si el cambio es -100%, significa que actual es 0
+      if (signedChange <= -100) return current > 0 ? 0 : 1; // Asumir al menos 1 si no hay datos
+      // Fórmula general: previous = current / (1 + change/100)
+      const denominator = 1 + (signedChange / 100);
+      if (denominator === 0) return current; // Evitar división por cero
+      return current / denominator;
+    };
+
+    const previousClients = calculatePrevious(
+      currentClients, 
+      clientsData.change ?? 0, 
+      clientsData.changeStatus || 'neutro'
+    );
+    const previousProviders = calculatePrevious(
+      currentProviders, 
+      providersData.change ?? 0, 
+      providersData.changeStatus || 'neutro'
+    );
+    const previousAdmins = calculatePrevious(
+      currentAdmins, 
+      adminsData.change ?? 0, 
+      adminsData.changeStatus || 'neutro'
+    );
+    const previousTotal = previousClients + previousProviders + previousAdmins;
+
+    // Calcular el cambio porcentual correcto basado en los totales
+    let totalChange = 0;
+    let changeStatus = 'neutral';
     
-    // Calcular el cambio promedio ponderado o usar el de clientes como principal
-    const totalChange = clientsData.change ?? 0;
-    const changeStatus = clientsData.changeStatus || 'neutral';
-
-    // Combinar chartData si existe
-    const combinedChartData = [];
-    if (clientsData.chartData && providersData.chartData) {
-      // Sumar valores por fecha si ambos tienen datos
-      const dateMap = new Map();
-      
-      clientsData.chartData.forEach(item => {
-        dateMap.set(item.date || item.name, (item.value || 0));
-      });
-      
-      providersData.chartData.forEach(item => {
-        const key = item.date || item.name;
-        const existing = dateMap.get(key) || 0;
-        dateMap.set(key, existing + (item.value || 0));
-      });
-      
-      dateMap.forEach((value, date) => {
-        combinedChartData.push({ date, value });
-      });
+    if (previousTotal > 0) {
+      totalChange = Math.round(((totalValue - previousTotal) / previousTotal) * 100);
+    } else {
+      totalChange = totalValue > 0 ? 100 : 0;
     }
+    
+    changeStatus = totalChange >= 0 ? 'positivo' : 'negativo';
+
+    // Combinar chartData de los tres roles
+    const combinedChartData = [];
+    const dateMap = new Map();
+    
+    [clientsData.chartData, providersData.chartData, adminsData.chartData].forEach(chartData => {
+      if (chartData && Array.isArray(chartData)) {
+        chartData.forEach(item => {
+          const key = item.date || item.name;
+          const existing = dateMap.get(key) || 0;
+          dateMap.set(key, existing + (item.value || 0));
+        });
+      }
+    });
+    
+    dateMap.forEach((value, date) => {
+      combinedChartData.push({ date, value });
+    });
+
+    // Ordenar por fecha
+    combinedChartData.sort((a, b) => {
+      const dateA = new Date(a.date || a.name || 0);
+      const dateB = new Date(b.date || b.name || 0);
+      return dateA - dateB;
+    });
 
     return {
       success: true,
       data: {
         value: totalValue,
-        change: totalChange,
-        changeType: clientsData.changeType || 'porcentaje',
+        change: Math.abs(totalChange),
+        changeType: 'porcentaje',
         changeStatus: changeStatus,
-        chartData: combinedChartData.length > 0 ? combinedChartData : (clientsData.chartData || []),
+        chartData: combinedChartData.length > 0 ? combinedChartData : [],
         lastUpdated: new Date().toISOString()
       }
     };
