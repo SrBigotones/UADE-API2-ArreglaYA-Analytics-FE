@@ -11,6 +11,22 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Animación para el tooltip de info */
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Asegurar que Leaflet no se superponga a modales (z-50) */
