@@ -503,40 +503,35 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'users-inactive-rate': {
-    id: 'users-inactive-rate',
+  'users-new-unsubscribes': {
+    id: 'users-new-unsubscribes',
     module: 'users',
     type: 'card',
-    title: 'Usuarios inactivos',
-    value: '0%',
+    title: 'Nuevas bajas',
+    value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Porcentaje de usuarios inactivos en el sistema',
-    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
-    category: 'management',
-    allowToggleToChart: false,
+    description: 'Usuarios que se dieron de baja en el período seleccionado',
+    endpoint: '/api/metrica/usuarios/nuevas-bajas',
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getUserInactiveRate',
+      serviceName: 'getUserNewUnsubscribes',
       serviceModule: 'userMetricsService',
-      // Necesitamos extraer el changeStatus de data.tasaInactivos para que useMetrics lo use
-      changeStatusExtractor: (data) => data.tasaInactivos?.changeStatus || 'neutral',
-      valueFormatter: (data) => `${data.tasaInactivos?.value || 0}%`,
+      valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
-        // Crear un objeto compatible con formatPercentageChange
-        const normalizedData = {
-          change: data.tasaInactivos?.change || 0,
-          changeStatus: data.tasaInactivos?.changeStatus || 'neutral',
-          changeType: data.tasaInactivos?.changeType || 'absoluto'
-        };
-        return formatPercentageChange(normalizedData);
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
+        'positivo': 'negative',  // Invertido: más bajas es malo
+        'negativo': 'positive',  // Invertido: menos bajas es bueno
         'neutro': 'neutral'
       }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.tasaInactivos?.chartData || []
+      chartDataFormatter: (data) => data.chartData || []
     }
   },
   'users-role-distribution': {
@@ -728,7 +723,7 @@ export const MODULE_METRICS = {
   catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-service-distribution-by-category', 'catalog-orders-heatmap'],
   app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
-  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total'],
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-new-unsubscribes', 'users-role-distribution', 'users-total'],
   matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time']
 };
 
