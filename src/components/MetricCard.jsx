@@ -66,13 +66,11 @@ const MetricCard = ({
       onClick={onClick}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-700 dark:text-gray-300 flex items-center`}>
-              {title}
-              <InfoTooltip content={infoExtra} />
-            </h3>
-          </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-700 dark:text-gray-300`}>
+            {title} {" "}
+            <InfoTooltip content={infoExtra} />
+          </h3>
           {periodLabel && (
             <p className={`${compact ? 'text-[11px]' : 'text-xs'} text-gray-500 dark:text-gray-400 mt-1`}>{periodLabel}</p>
           )}

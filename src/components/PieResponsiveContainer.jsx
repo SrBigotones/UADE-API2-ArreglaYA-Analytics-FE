@@ -83,7 +83,7 @@ const PieResponsiveContainer = ({
       {(title || filters) && (
         <div className="flex items-start justify-between gap-3 mb-2">
           {title && (
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 min-w-0">{title}</h3>
           )}
           {filters && (
             <div className="text-right">

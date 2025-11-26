@@ -234,10 +234,10 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
             colors={metric.chartData?.map(item => item.color)}
             asCard={true}
             title={
-              <div className="flex items-center">
-                <span>{metric.title}</span>
+              <>
+                {metric.title} {" "}
                 <InfoTooltip content={metric.infoExtra} />
-              </div>
+              </>
             }
             filters={displayFilters}
             height={getChartHeight()}
@@ -333,8 +333,8 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           <div className={`rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-medium flex items-center">
+                <div className="min-w-0">
+                  <h3 className="text-base font-medium">
                     {metric.title}
                     <InfoTooltip content={metric.infoExtra} />
                   </h3>

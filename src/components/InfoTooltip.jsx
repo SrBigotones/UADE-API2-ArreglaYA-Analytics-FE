@@ -91,7 +91,7 @@ const InfoTooltip = ({ content }) => {
   ) : null;
 
   return (
-    <div className="relative inline-block ml-2">
+    <>
       <button
         ref={buttonRef}
         type="button"
@@ -101,7 +101,8 @@ const InfoTooltip = ({ content }) => {
           e.stopPropagation();
           handleMouseEnter();
         }}
-        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors cursor-help focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+        className="relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors cursor-help focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0 align-middle"
+        style={{ verticalAlign: 'middle' }}
         aria-label="Más información"
       >
         <svg
@@ -118,7 +119,7 @@ const InfoTooltip = ({ content }) => {
         </svg>
       </button>
       {tooltip}
-    </div>
+    </>
   );
 };
 
