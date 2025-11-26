@@ -4,10 +4,9 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import CoreScreen from '../screens/DashboardScreen';
 import CatalogScreen from '../screens/CatalogScreen';
-import AppScreen from '../screens/AppScreen';
+import RequestsScreen from '../screens/RequestsScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import UsersScreen from '../screens/UsersScreen';
-import MatchingScreen from '../screens/MatchingScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const MainLayout = () => {
@@ -33,10 +32,9 @@ const MainLayout = () => {
     switch (path) {
       case '/dashboard': return 'dashboard';
       case '/catalog': return 'catalog';
-      case '/app': return 'app';
+      case '/requests': return 'requests';
       case '/payments': return 'payments';
       case '/users': return 'users';
-      case '/matching': return 'matching';
       default: return 'dashboard';
     }
   };
@@ -58,11 +56,10 @@ const MainLayout = () => {
 
   const categories = [
     { id: 'dashboard', name: 'Dashboard' },
-    { id: 'catalog', name: 'Catalogo de servicios y prestadores' },
-    { id: 'app', name: 'App de busqueda y solicitudes' },
-    { id: 'payments', name: 'Pagos y facturacion' },
     { id: 'users', name: 'Usuarios y roles' },
-    { id: 'matching', name: 'Matching y agenda' }
+    { id: 'catalog', name: 'Servicios y prestadores' },
+    { id: 'requests', name: 'Solicitudes y Matching' },
+    { id: 'payments', name: 'Pagos y facturacion' },
   ];
 
   // Función para manejar el clic en Perfil desde la navbar
@@ -91,14 +88,12 @@ const MainLayout = () => {
         return <CoreScreen isDarkMode={isDarkMode} />;
       case 'catalog':
         return <CatalogScreen isDarkMode={isDarkMode} />;
-      case 'app':
-        return <AppScreen isDarkMode={isDarkMode} />;
+      case 'requests':
+        return <RequestsScreen isDarkMode={isDarkMode} />;
       case 'payments':
         return <PaymentsScreen isDarkMode={isDarkMode} />;
       case 'users':
         return <UsersScreen isDarkMode={isDarkMode} />;
-      case 'matching':
-        return <MatchingScreen isDarkMode={isDarkMode} />;
       default:
         return <CoreScreen isDarkMode={isDarkMode} />;
     }
