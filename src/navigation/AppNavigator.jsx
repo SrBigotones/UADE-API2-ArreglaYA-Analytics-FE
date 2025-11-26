@@ -25,10 +25,9 @@ const AppNavigator = () => {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<MainLayout />} />
           <Route path="/catalog" element={<MainLayout />} />
-          <Route path="/app" element={<MainLayout />} />
+          <Route path="/requests" element={<MainLayout />} />
           <Route path="/payments" element={<MainLayout />} />
           <Route path="/users" element={<MainLayout />} />
-          <Route path="/matching" element={<MainLayout />} />
           <Route path="/profile" element={<MainLayout />} />
           
           {/* Ruta de fallback para usuarios autenticados */}

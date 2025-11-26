@@ -747,3 +747,31 @@ export const getProviderNewRegistrations = async (axiosInstance, { startDate, en
     };
   }
 };
+
+// Servicio para nuevas bajas de usuarios
+export const getUserNewUnsubscribes = async (axiosInstance, { startDate, endDate, period } = {}) => {
+  const result = await fetchUserMetricsWithErrorHandling(
+    axiosInstance,
+    '/api/metrica/usuarios/nuevas-bajas',
+    period,
+    'nuevas bajas de usuarios',
+    { startDate, endDate }
+  );
+
+  if (!result.success) {
+    return result;
+  }
+
+  const raw = result.data;
+  return {
+    success: true,
+    data: {
+      value: raw.value ?? 0,
+      change: raw.change ?? 0,
+      changeType: raw.changeType || 'porcentaje',
+      changeStatus: raw.changeStatus || 'neutral',
+      chartData: raw.chartData || [],
+      lastUpdated: new Date().toISOString()
+    }
+  };
+};

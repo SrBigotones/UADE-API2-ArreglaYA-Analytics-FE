@@ -39,7 +39,7 @@ const HomeScreen = () => {
       ]
     },
     users: {
-      title: "Usuarios & Roles",
+      title: "Usuarios y Roles",
       metrics: [
         { name: "Nuevos usuarios registrados", value: "234", change: "+28%", status: "positive" },
         { name: "Usuarios con roles asignados", value: "94.1%", change: "+3.2%", status: "positive" },

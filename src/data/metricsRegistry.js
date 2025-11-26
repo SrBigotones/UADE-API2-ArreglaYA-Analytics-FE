@@ -16,52 +16,6 @@ const formatPercentageChange = (data) => {
 
 export const METRICS_REGISTRY = {
   // === CATÁLOGO ===
-  'catalog-win-rate': {
-    id: 'catalog-win-rate',
-    module: 'catalog',
-    type: 'card',
-    title: 'Tasa de solicitudes aceptadas',
-    value: '0%',
-    change: '',
-    changeStatus: 'neutral',
-    description: 'Porcentaje de cotizaciones aceptadas sobre emitidas',
-    endpoint: '/api/metrica/prestadores/win-rate-rubro',
-    category: 'conversion',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getCatalogWinRateByCategory',
-      serviceModule: 'catalogService',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: formatPercentageChange,
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-  'catalog-orders-heatmap': {
-    id: 'catalog-orders-heatmap',
-    module: 'catalog',
-    type: 'map',
-    title: 'Mapa de calor de pedidos',
-    description: 'Distribución geográfica de pedidos',
-    endpoint: '/api/metrica/solicitudes/mapa-calor',
-    category: 'distribution',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getCatalogOrdersHeatmap',
-      serviceModule: 'catalogService',
-      valueFormatter: () => '', // no aplica para mapa
-      changeFormatter: () => '',
-      statusMapper: () => 'neutral',
-      pointsFormatter: (data) => data.points || []
-    }
-  },
   'catalog-service-distribution': {
     id: 'catalog-service-distribution',
     module: 'catalog',
@@ -106,138 +60,6 @@ export const METRICS_REGISTRY = {
       statusMapper: () => 'neutral'
     }
   },
-
-  // === APP ===
-  'app-requests-created': {
-    id: 'app-requests-created',
-    module: 'app',
-    type: 'card',
-    title: 'Solicitudes creadas',
-    value: '892',
-    change: '+31%',
-    changeStatus: 'positive',
-    description: 'Número de solicitudes de servicio creadas en el periodo seleccionado',
-    endpoint: '/api/metrica/solicitudes/volumen',
-    category: 'usage',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getAppRequestsCreated',
-      serviceModule: 'appSearchsAndRequests',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-  'app-cancellation-rate': {
-    id: 'app-cancellation-rate',
-    module: 'app',
-    type: 'card',
-    title: 'Tasa de cancelación',
-    value: '12.3%',
-    change: '-2.1%',
-    changeStatus: 'positive',
-    description: 'Porcentaje de solicitudes canceladas sobre el total de las solicitudes',
-    endpoint: '/api/metrica/solicitudes/tasa-cancelacion',
-    category: 'retention',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getAppCancellationRate',
-      serviceModule: 'appSearchsAndRequests',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: formatPercentageChange,
-      statusMapper: (status) => ({
-        'positivo': 'negative',  // Invertido: aumento de cancelaciones es MALO
-        'negativo': 'positive',  // Invertido: reducción de cancelaciones es BUENO
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-  'app-time-to-first-quote': {
-    id: 'app-time-to-first-quote',
-    module: 'app',
-    type: 'card',
-    title: 'Tiempo a primera cotización',
-    value: '2.1h',
-    change: '-0.3h',
-    changeStatus: 'positive',
-    description: 'Tiempo promedio desde solicitud creada hasta primera cotización',
-    endpoint: '/api/metrica/solicitudes/tiempo-primera-cotizacion',
-    category: 'performance',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getAppTimeToFirstQuote',
-      serviceModule: 'appSearchsAndRequests',
-      valueFormatter: (data) => {
-        // El backend devuelve tiempo en minutos, convertirlo a formato legible
-        const minutes = data.value || 0;
-        if (minutes < 60) {
-          return `${Math.round(minutes)}m`;
-        }
-        const hours = Math.floor(minutes / 60);
-        const mins = Math.round(minutes % 60);
-        return `${hours}h ${mins}m`;
-      },
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'negative',  // Invertido: aumento de tiempo es MALO
-        'negativo': 'positive',  // Invertido: reducción de tiempo es BUENO
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-  'app-quote-conversion-rate': {
-    id: 'app-quote-conversion-rate',
-    module: 'app',
-    type: 'card',
-    title: 'Conversión a cotización aceptada',
-    value: '68.5%',
-    change: '+12.3%',
-    changeStatus: 'positive',
-    description: 'Porcentaje de cotizaciones emitidas que fueron aceptadas',
-    endpoint: '/api/metrica/matching/cotizaciones/conversion-aceptada',
-    category: 'conversion',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
-    serviceConfig: {
-      serviceName: 'getAppQuoteConversionRate',
-      serviceModule: 'appSearchsAndRequests',
-      valueFormatter: (data) => `${data.value}%`,
-      changeFormatter: formatPercentageChange,
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
-    }
-  },
-
   // === PAGOS ===
   'payments-success-rate': {
     id: 'payments-success-rate',
@@ -503,40 +325,35 @@ export const METRICS_REGISTRY = {
       }[status] || 'neutral')
     }
   },
-  'users-inactive-rate': {
-    id: 'users-inactive-rate',
+  'users-new-unsubscribes': {
+    id: 'users-new-unsubscribes',
     module: 'users',
     type: 'card',
-    title: 'Usuarios inactivos',
-    value: '0%',
+    title: 'Nuevas bajas',
+    value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Porcentaje de usuarios inactivos en el sistema',
-    endpoint: '/api/metrica/usuarios/tasa-roles-activos',
-    category: 'management',
-    allowToggleToChart: false,
+    description: 'Usuarios que se dieron de baja en el período seleccionado',
+    endpoint: '/api/metrica/usuarios/nuevas-bajas',
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
     hasRealService: true,
     serviceConfig: {
-      serviceName: 'getUserInactiveRate',
+      serviceName: 'getUserNewUnsubscribes',
       serviceModule: 'userMetricsService',
-      // Necesitamos extraer el changeStatus de data.tasaInactivos para que useMetrics lo use
-      changeStatusExtractor: (data) => data.tasaInactivos?.changeStatus || 'neutral',
-      valueFormatter: (data) => `${data.tasaInactivos?.value || 0}%`,
+      valueFormatter: (data) => data.value?.toString() || '0',
       changeFormatter: (data) => {
-        // Crear un objeto compatible con formatPercentageChange
-        const normalizedData = {
-          change: data.tasaInactivos?.change || 0,
-          changeStatus: data.tasaInactivos?.changeStatus || 'neutral',
-          changeType: data.tasaInactivos?.changeType || 'absoluto'
-        };
-        return formatPercentageChange(normalizedData);
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
+        'positivo': 'negative',  // Invertido: más bajas es malo
+        'negativo': 'positive',  // Invertido: menos bajas es bueno
         'neutro': 'neutral'
       }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.tasaInactivos?.chartData || []
+      chartDataFormatter: (data) => data.chartData || []
     }
   },
   'users-role-distribution': {
@@ -607,29 +424,104 @@ export const METRICS_REGISTRY = {
       statusMapper: () => 'neutral'
     }
   },
-  
-
-  // === MATCHING ===
-  'matching-average-time': {
-    id: 'matching-average-time',
-    module: 'matching',
+  // === SOLICITUDES Y MATCHING (métricas específicas para la sección combinada) ===
+  'requests-solicitudes-creadas': {
+    id: 'requests-solicitudes-creadas',
+    module: 'requests',
     type: 'card',
-    title: 'Tiempo promedio de matching',
+    title: 'Solicitudes creadas',
     value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Tiempo promedio que toma realizar el matching',
-    endpoint: '/api/metrica/matching/tiempo-promedio',
+    description: 'Número de solicitudes de servicio creadas en el periodo seleccionado',
+    endpoint: '/api/metrica/solicitudes/volumen',
+    category: 'usage',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    serviceConfig: {
+      serviceName: 'getAppRequestsCreated',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
+  'requests-mapa-calor': {
+    id: 'requests-mapa-calor',
+    module: 'requests',
+    type: 'map',
+    title: 'Mapa de calor de solicitudes',
+    description: 'Distribución geográfica de solicitudes',
+    endpoint: '/api/metrica/solicitudes/mapa-calor',
+    category: 'distribution',
+    hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    serviceConfig: {
+      serviceName: 'getCatalogOrdersHeatmap',
+      serviceModule: 'catalogService',
+      valueFormatter: () => '',
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral',
+      pointsFormatter: (data) => data.points || []
+    }
+  },
+  'requests-tasa-aceptacion': {
+    id: 'requests-tasa-aceptacion',
+    module: 'requests',
+    type: 'card',
+    title: 'Tasa de solicitudes aceptadas',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de cotizaciones aceptadas sobre emitidas',
+    endpoint: '/api/metrica/prestadores/win-rate-rubro',
+    category: 'conversion',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getCatalogWinRateByCategory',
+      serviceModule: 'catalogService',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: formatPercentageChange,
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
+  'requests-tiempo-primera-cotizacion': {
+    id: 'requests-tiempo-primera-cotizacion',
+    module: 'requests',
+    type: 'card',
+    title: 'Tiempo a primera cotización',
+    value: '0m',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Tiempo promedio desde solicitud creada hasta primera cotización',
+    endpoint: '/api/metrica/solicitudes/tiempo-primera-cotizacion',
     category: 'performance',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
     acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
-      serviceName: 'getMatchingAverageTimeMetrics',
-      serviceModule: 'matchingMetricsService',
+      serviceName: 'getAppTimeToFirstQuote',
+      serviceModule: 'appSearchsAndRequests',
       valueFormatter: (data) => {
-        // El backend devuelve tiempo en minutos, convertirlo a formato legible
         const minutes = data.value || 0;
         if (minutes < 60) {
           return `${Math.round(minutes)}m`;
@@ -644,15 +536,16 @@ export const METRICS_REGISTRY = {
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
       },
       statusMapper: (status) => ({
-        'positivo': 'negative', // Menos tiempo es mejor
+        'positivo': 'negative',
         'negativo': 'positive',
         'neutro': 'neutral'
-      }[status] || 'neutral')
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
     }
   },
-  'matching-pending-quotes': {
-    id: 'matching-pending-quotes',
-    module: 'matching',
+  'requests-cotizaciones-pendientes': {
+    id: 'requests-cotizaciones-pendientes',
+    module: 'requests',
     type: 'card',
     title: 'Cotizaciones pendientes',
     value: '0',
@@ -675,29 +568,29 @@ export const METRICS_REGISTRY = {
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
       },
       statusMapper: (status) => ({
-        'positivo': 'negative', // Más pendientes es peor
+        'positivo': 'negative',
         'negativo': 'positive',
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
   },
-  'matching-provider-response-time': {
-    id: 'matching-provider-response-time',
-    module: 'matching',
+  'requests-tiempo-matching': {
+    id: 'requests-tiempo-matching',
+    module: 'requests',
     type: 'card',
-    title: 'Tiempo promedio de cotizaciones',
-    value: '0',
+    title: 'Tiempo promedio de matching',
+    value: '0m',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Promedio del tiempo transcurrido desde la creacion de cada solicitud hasta todas sus cotizaciones recibidas.',
-    endpoint: '/api/metrica/matching/prestadores/tiempo-respuesta',
+    description: 'Tiempo promedio que toma realizar el matching',
+    endpoint: '/api/metrica/matching/tiempo-promedio',
     category: 'performance',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
     acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
-      serviceName: 'getMatchingProviderResponseTimeMetrics',
+      serviceName: 'getMatchingAverageTimeMetrics',
       serviceModule: 'matchingMetricsService',
       valueFormatter: (data) => {
         const minutes = data.value || 0;
@@ -714,22 +607,49 @@ export const METRICS_REGISTRY = {
         return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
       },
       statusMapper: (status) => ({
-        'positivo': 'negative', // Menos tiempo es mejor
+        'positivo': 'negative',
         'negativo': 'positive',
         'neutro': 'neutral'
       }[status] || 'neutral')
     }
   },
+  'requests-tasa-cancelacion': {
+    id: 'requests-tasa-cancelacion',
+    module: 'requests',
+    type: 'card',
+    title: 'Tasa de cancelación',
+    value: '0%',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Porcentaje de solicitudes canceladas sobre el total de las solicitudes',
+    endpoint: '/api/metrica/solicitudes/tasa-cancelacion',
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    serviceConfig: {
+      serviceName: 'getAppCancellationRate',
+      serviceModule: 'appSearchsAndRequests',
+      valueFormatter: (data) => `${data.value}%`,
+      changeFormatter: formatPercentageChange,
+      statusMapper: (status) => ({
+        'positivo': 'negative',
+        'negativo': 'positive',
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  }
 };
 
 // Configuraciones predefinidas por módulo
 export const MODULE_METRICS = {
   core: ['core-processing-time', 'core-retry-success', 'core-messages-flow'],
-  catalog: ['catalog-win-rate', 'catalog-service-distribution', 'catalog-service-distribution-by-category', 'catalog-orders-heatmap'],
-  app: ['app-requests-created', 'app-cancellation-rate', 'app-time-to-first-quote', 'app-quote-conversion-rate'],
+  catalog: ['catalog-service-distribution', 'catalog-service-distribution-by-category', 'catalog-orders-heatmap'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
-  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-inactive-rate', 'users-role-distribution', 'users-total'],
-  matching: ['matching-average-time', 'matching-pending-quotes', 'matching-provider-response-time']
+  users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-new-unsubscribes', 'users-role-distribution', 'users-total'],
+  requests: ['requests-solicitudes-creadas', 'requests-mapa-calor', 'requests-tasa-aceptacion', 'requests-tiempo-primera-cotizacion', 'requests-cotizaciones-pendientes', 'requests-tiempo-matching', 'requests-tasa-cancelacion', 'requests-conversion-aceptada']
 };
 
 // Configuración por defecto del dashboard

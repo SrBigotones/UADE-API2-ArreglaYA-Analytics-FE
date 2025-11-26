@@ -31,7 +31,7 @@ const CatalogScreen = ({ isDarkMode }) => {
     <>
       <div className="mb-4 mt-2 sm:mt-0">
         <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          Catálogo de Servicios y Prestadores
+          Servicios y Prestadores
         </h2>
         <p className={`text-sm sm:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Métricas del catálogo de servicios y prestadores</p>
       </div>
