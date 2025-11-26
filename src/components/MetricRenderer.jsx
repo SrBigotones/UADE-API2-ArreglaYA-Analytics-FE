@@ -4,6 +4,7 @@ import PieResponsiveContainer from './PieResponsiveContainer';
 import AreaResponsiveContainer from './AreaResponsiveContainer';
 import CandlestickChart from './CandlestickChart';
 import LeafletHeatMap from './LeafletHeatMap';
+import InfoTooltip from './InfoTooltip';
 
 const formatDisplayFilters = (activeFilters, acceptsFilters = [], activeFilterLabels = null) => {
   if (!activeFilters || !acceptsFilters || acceptsFilters.length === 0) return null;
@@ -48,6 +49,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
     changeStatus: metric.changeStatus,
     periodLabel: metric.customPeriodLabel || (dateRange?.preset === 'custom' ? 'Personalizado' : 'Periodo seleccionado'),
     description: metric.description,
+    infoExtra: metric.infoExtra,
     loading: metric.loading,
     error: metric.error,
     isRealData: metric.isRealData,
@@ -231,7 +233,12 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
             nameKey="name"
             colors={metric.chartData?.map(item => item.color)}
             asCard={true}
-            title={metric.title}
+            title={
+              <>
+                {metric.title} {" "}
+                <InfoTooltip content={metric.infoExtra} />
+              </>
+            }
             filters={displayFilters}
             height={getChartHeight()}
             className={className}
@@ -323,11 +330,14 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
       const filterTextClasses = isDarkMode ? 'text-gray-400' : 'text-gray-600';
       return (
         <div className={className}>
-          <div className={`rounded-lg overflow-hidden border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className={`rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-medium">{metric.title}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-base font-medium">
+                    {metric.title}
+                    <InfoTooltip content={metric.infoExtra} />
+                  </h3>
                   {metric.description && (
                     <p className="text-xs text-gray-500 dark:text-gray-400">{metric.description}</p>
                   )}
@@ -344,6 +354,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
                 )}
               </div>
             </div>
+            <div className="overflow-hidden rounded-b-lg">
             <LeafletHeatMap
               key={`${metricKey}-${chartSize?.cols || 1}x${chartSize?.rows || 2}`}
               mapKey={`${metricKey}-${chartSize?.cols || 1}x${chartSize?.rows || 2}`}
@@ -351,6 +362,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               height={mapHeight}
               heatOptions={metric.heatOptions || { radius: 28, blur: 16, minOpacity: 0.08 }}
             />
+            </div>
           </div>
         </div>
       );

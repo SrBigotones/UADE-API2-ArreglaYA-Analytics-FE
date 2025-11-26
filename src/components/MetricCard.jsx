@@ -1,4 +1,5 @@
 import React from 'react';
+import InfoTooltip from './InfoTooltip';
 
 const statusStyles = {
   positive: 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30',
@@ -12,6 +13,7 @@ const MetricCard = ({
   change,
   changeStatus = 'neutral',
   description,
+  infoExtra,
   periodLabel,
   loading = false,
   error = null,
@@ -64,10 +66,11 @@ const MetricCard = ({
       onClick={onClick}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-700 dark:text-gray-300`}>{title}</h3>
-          </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-700 dark:text-gray-300`}>
+            {title} {" "}
+            <InfoTooltip content={infoExtra} />
+          </h3>
           {periodLabel && (
             <p className={`${compact ? 'text-[11px]' : 'text-xs'} text-gray-500 dark:text-gray-400 mt-1`}>{periodLabel}</p>
           )}
