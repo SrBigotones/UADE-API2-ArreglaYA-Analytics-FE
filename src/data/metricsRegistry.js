@@ -484,15 +484,16 @@ export const METRICS_REGISTRY = {
     value: '0%',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Porcentaje de cotizaciones aceptadas sobre emitidas',
-    endpoint: '/api/metrica/prestadores/win-rate-rubro',
+    description: 'Porcentaje de solicitudes aceptadas (con fecha_confirmacion) sobre el total de solicitudes',
+    endpoint: '/api/metrica/matching/cotizaciones/conversion-aceptada',
     category: 'conversion',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
+    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
     serviceConfig: {
-      serviceName: 'getCatalogWinRateByCategory',
-      serviceModule: 'catalogService',
+      serviceName: 'getMatchingConversionRate',
+      serviceModule: 'matchingMetricsService',
       valueFormatter: (data) => `${data.value}%`,
       changeFormatter: formatPercentageChange,
       statusMapper: (status) => ({
@@ -503,6 +504,8 @@ export const METRICS_REGISTRY = {
       chartDataFormatter: (data) => data.chartData || []
     }
   },
+  // ⚠️ DEPRECATED - Backend endpoint removed (tabla cotizaciones eliminada)
+  /*
   'requests-tiempo-primera-cotizacion': {
     id: 'requests-tiempo-primera-cotizacion',
     module: 'requests',
@@ -543,16 +546,17 @@ export const METRICS_REGISTRY = {
       chartDataFormatter: (data) => data.chartData || []
     }
   },
-  'requests-cotizaciones-pendientes': {
+  */
+  'requests-solicitudes-pendientes': {
     id: 'requests-cotizaciones-pendientes',
     module: 'requests',
     type: 'card',
-    title: 'Cotizaciones pendientes',
+    title: 'Solicitudes pendientes',
     value: '0',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Número de cotizaciones pendientes',
-    endpoint: '/api/metrica/matching/cotizaciones/pendientes',
+    description: 'Número de solicitudes que aún no han sido aceptadas ni rechazadas',
+    endpoint: '/api/metrica/matching/solicitudes/pendientes',
     category: 'workflow',
     allowToggleToChart: true,
     toggleChartKind: 'line',
@@ -582,7 +586,7 @@ export const METRICS_REGISTRY = {
     value: '0m',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Tiempo promedio que toma realizar el matching',
+    description: 'Tiempo promedio desde que se crea la solicitud hasta que se acepta la cotización',
     endpoint: '/api/metrica/matching/tiempo-promedio',
     category: 'performance',
     allowToggleToChart: true,
@@ -649,7 +653,7 @@ export const MODULE_METRICS = {
   catalog: ['catalog-service-distribution', 'catalog-service-distribution-by-category', 'catalog-orders-heatmap'],
   payments: ['payments-success-rate', 'payments-processing-time', 'payments-event-distribution', 'payments-method-distribution', 'payments-gross-revenue', 'payments-average-ticket'],
   users: ['users-new-registrations', 'users-new-customers', 'users-new-providers', 'users-new-unsubscribes', 'users-role-distribution', 'users-total'],
-  requests: ['requests-solicitudes-creadas', 'requests-mapa-calor', 'requests-tasa-aceptacion', 'requests-tiempo-primera-cotizacion', 'requests-cotizaciones-pendientes', 'requests-tiempo-matching', 'requests-tasa-cancelacion', 'requests-conversion-aceptada']
+  requests: ['requests-solicitudes-creadas', 'requests-mapa-calor', 'requests-tasa-aceptacion', 'requests-solicitudes-pendientes', 'requests-tiempo-matching', 'requests-tasa-cancelacion']
 };
 
 // Configuración por defecto del dashboard

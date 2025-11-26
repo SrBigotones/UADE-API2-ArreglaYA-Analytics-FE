@@ -101,13 +101,13 @@ export const getMatchingAverageTimeMetrics = async (axiosInstance, { startDate, 
   };
 };
 
-// Servicio para cotizaciones pendientes
-export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
+// Servicio para solicitudes pendientes
+export const getMatchingPendingRequestsMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
-    '/api/metrica/matching/cotizaciones/pendientes',
+    '/api/metrica/matching/solicitudes/pendientes',
     period,
-    'cotizaciones pendientes',
+    'solicitudes pendientes',
     { startDate, endDate, filters }
   );
 
@@ -129,13 +129,13 @@ export const getMatchingPendingQuotesMetrics = async (axiosInstance, { startDate
   };
 };
 
-// Servicio para tiempo de respuesta del prestador
-export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
+// Servicio para tasa de conversión (solicitudes aceptadas)
+export const getMatchingConversionRate = async (axiosInstance, { startDate, endDate, period, filters = {} } = {}) => {
   const result = await fetchMatchingMetricsWithErrorHandling(
     axiosInstance,
-    '/api/metrica/matching/prestadores/tiempo-respuesta',
+    '/api/metrica/matching/cotizaciones/conversion-aceptada',
     period,
-    'tiempo de respuesta del prestador',
+    'tasa de conversión de solicitudes',
     { startDate, endDate, filters }
   );
 
@@ -149,11 +149,10 @@ export const getMatchingProviderResponseTimeMetrics = async (axiosInstance, { st
     data: {
       value: raw.value ?? 0,
       change: raw.change ?? 0,
-      changeType: raw.changeType || 'absoluto',
+      changeType: raw.changeType || 'porcentaje',
       changeStatus: raw.changeStatus || 'neutral',
       chartData: raw.chartData || [],
       lastUpdated: new Date().toISOString()
     }
   };
 };
-
