@@ -50,6 +50,53 @@ export const METRICS_REGISTRY = {
       }
     }
   },
+
+  'rubros-ingresos-top5': {
+    id: 'rubros-ingresos-top5',
+    module: 'catalog',
+    type: 'table',
+    title: 'Top 5 Rubros por Ingresos',
+    value: '',
+    change: '',
+    changeStatus: 'neutral',
+    description: 'Tabla de los 5 rubros con mayor ingreso en el período seleccionado.',
+    infoExtra: 'Muestra los rubros con mayor facturación. Al hacer click en un rubro, se muestra la tendencia histórica de ingresos para ese rubro.',
+    endpoint: '/api/metrica/rubros/ingresos-por-categoria',
+    category: 'revenue',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    acceptsFilters: ['rubro', 'zona'],
+    serviceConfig: {
+      serviceName: 'getRubrosIngresosTotales',
+      serviceModule: 'catalogService',
+      tableDataFormatter: (data) => {
+        if (!data?.categorias) return [];
+        return [...data.categorias]
+          .sort((a, b) => b.ingresos_actuales - a.ingresos_actuales)
+          .slice(0, 5)
+          .map(cat => ({
+            id: cat.id_rubro,
+            nombre: cat.nombre_rubro,
+            ingresos: cat.ingresos_actuales,
+            cambio: cat.cambio,
+            cambioEstado: cat.cambio_estado,
+            datosHistoricos: cat.datos_historicos
+          }));
+      },
+      valueFormatter: () => '',
+      changeFormatter: () => '',
+      statusMapper: () => 'neutral',
+      chartDataFormatter: (data, selectedRow) => {
+        // Si el usuario hace click en una fila, mostrar la tendencia de ese rubro
+        if (!selectedRow?.datosHistoricos) return [];
+        return selectedRow.datosHistoricos.map(d => ({
+          date: d.date,
+          value: d.value
+        }));
+      }
+    }
+  },
   // === CATÁLOGO ===
   'catalog-service-distribution': {
     id: 'catalog-service-distribution',
@@ -176,10 +223,6 @@ export const METRICS_REGISTRY = {
       { name: 'Expirado', value: 9, color: '#f59e0b' },
       { name: 'Pendiente', value: 11, color: '#0ea5e9' }
     ],
-    endpoint: '/api/metrica/pagos/distribucion-eventos',
-    category: 'distribution',
-    // Configuración para integración con servicio real
-    hasRealService: true,
     serviceConfig: {
       serviceName: 'getPaymentDistributionMetrics',
       serviceModule: 'paymentMetricsService',
@@ -307,100 +350,6 @@ export const METRICS_REGISTRY = {
         'negativo': 'negative',
         'neutro': 'neutral'
       }[status] || 'neutral')
-    }
-  },
-  'users-new-customers': {
-    id: 'users-new-customers',
-    module: 'users',
-    type: 'card',
-    title: 'Nuevos clientes',
-    value: '0',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Nuevos clientes registrados',
-    infoExtra: 'Usuarios registrados con rol "cliente" en el período seleccionado. Son los usuarios que consumen servicios (solicitan trabajos). Permite medir el crecimiento del lado de la demanda de la plataforma.',
-    endpoint: '/api/metrica/usuarios/nuevos-clientes',
-    category: 'growth',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserNewCustomers',
-      serviceModule: 'userMetricsService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
-  },
-  'users-new-providers': {
-    id: 'users-new-providers',
-    module: 'users',
-    type: 'card',
-    title: 'Nuevos prestadores',
-    value: '0',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Nuevos prestadores registrados como usuarios',
-    infoExtra: 'Usuarios registrados con rol "prestador" en el período seleccionado. Son los profesionales/empresas que ofrecen servicios en la plataforma. Métrica crucial para medir el crecimiento del lado de la oferta y la capacidad de atender demanda.',
-    endpoint: '/api/metrica/usuarios/nuevos-prestadores',
-    category: 'growth',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserNewProviders',
-      serviceModule: 'userMetricsService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'positive',
-        'negativo': 'negative',
-        'neutro': 'neutral'
-      }[status] || 'neutral')
-    }
-  },
-  'users-new-unsubscribes': {
-    id: 'users-new-unsubscribes',
-    module: 'users',
-    type: 'card',
-    title: 'Nuevas bajas',
-    value: '0',
-    change: '0%',
-    changeStatus: 'neutral',
-    description: 'Usuarios que se dieron de baja en el período seleccionado',
-    infoExtra: 'Usuarios que completaron el proceso de baja (desactivación de cuenta) en el período. Incluye todos los roles. Métrica importante para medir churn y detectar problemas de retención.',
-    endpoint: '/api/metrica/usuarios/nuevas-bajas',
-    category: 'retention',
-    allowToggleToChart: true,
-    toggleChartKind: 'line',
-    hasRealService: true,
-    serviceConfig: {
-      serviceName: 'getUserNewUnsubscribes',
-      serviceModule: 'userMetricsService',
-      valueFormatter: (data) => data.value?.toString() || '0',
-      changeFormatter: (data) => {
-        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
-        const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
-      },
-      statusMapper: (status) => ({
-        'positivo': 'negative',  // Invertido: más bajas es malo
-        'negativo': 'positive',  // Invertido: menos bajas es bueno
-        'neutro': 'neutral'
-      }[status] || 'neutral'),
-      chartDataFormatter: (data) => data.chartData || []
     }
   },
   'users-role-distribution': {
