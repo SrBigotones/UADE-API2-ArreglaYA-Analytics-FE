@@ -1,3 +1,30 @@
+// === Métrica: Ingresos totales por rubro ===
+// GET /api/metrica/rubros/ingresos-por-categoria
+export const getRubrosIngresosTotales = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
+  if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
+
+  // El endpoint ya incluye el período por backend, pero si necesitas enviar params, agrégalos aquí
+  const params = {};
+  // Si tu backend soporta filtros por fecha, descomenta:
+  // if (period) params.period = period;
+  // if (startDate) params.startDate = startDate;
+  // if (endDate) params.endDate = endDate;
+  if (filters.rubro) params.rubro = filters.rubro;
+  if (filters.zona) params.zona = filters.zona;
+
+  const endpoint = '/api/metrica/rubros/ingresos-por-categoria';
+  const response = await axiosInstance.get(endpoint, { params, signal });
+
+  if (response.status !== 200) {
+    throw new Error(`Error del servidor: ${response.status} - ${response.statusText || 'Sin statusText'}`);
+  }
+  if (!response.data || typeof response.data === 'string') {
+    throw new Error('Respuesta inválida o sin datos');
+  }
+
+  // El backend retorna el objeto completo con total y categorias
+  return response.data.data;
+};
 // Servicio del módulo Catálogo: mapas de calor y métricas de prestadores
 
 // Mapeo de períodos del frontend al backend (consistente con pagos/usuarios)
