@@ -84,6 +84,27 @@ export const METRICS_REGISTRY = {
             datosHistoricos: cat.datos_historicos
           }));
       },
+      // Columnas que la tabla debe mostrar (keys del row)
+      tableColumns: ['nombre', 'ingresos', 'cambio', 'cambioEstado'],
+      // Etiquetas legibles para los encabezados
+      tableColumnHeaders: {
+        nombre: 'Categoría',
+        ingresos: 'Ingresos',
+        cambio: 'Cambio',
+        cambioEstado: 'Tendencia'
+      },
+      // Formateador de celdas: recibe key y row
+      tableCellRenderer: (col, row) => {
+        if (col === 'nombre') return row.nombre || '-';
+        if (col === 'ingresos') return row.ingresos != null ? `$${Number(row.ingresos).toLocaleString('es-AR')}` : '-';
+        if (col === 'cambio') return row.cambio != null ? `$${Number(row.cambio).toLocaleString('es-AR')}` : '-';
+        if (col === 'cambioEstado') {
+          if (row.cambioEstado === 'positivo') return '↑';
+          if (row.cambioEstado === 'negativo') return '↓';
+          return '→';
+        }
+        return row[col] ?? '-';
+      },
       valueFormatter: () => '',
       changeFormatter: () => '',
       statusMapper: () => 'neutral',

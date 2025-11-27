@@ -282,6 +282,100 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           className={className}
         />
       );
+    case 'table': {
+      // Mostrar estado de carga / error
+      if (metric.loading) {
+        return (
+          <div className={`rounded-lg border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full h-full min-h-[200px] ${className}`}>
+            <div className="animate-pulse h-32">
+              <div className={`h-4 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+              <div className={`h-4 rounded mb-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+              <div className={`h-4 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
+            </div>
+          </div>
+        );
+      }
+
+      if (metric.error) {
+        return (
+          <div className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'} w-full h-full min-h-[200px] flex items-center justify-center ${className}`}>
+            <div className="text-center">
+              <p className={`text-sm ${isDarkMode ? 'text-red-400' : 'text-red-600'} mb-2 font-medium`}>{metric.title}</p>
+              <p className={`text-xs ${isDarkMode ? 'text-red-300' : 'text-red-500'}`}>{metric.error}</p>
+            </div>
+          </div>
+        );
+      }
+
+      const rows = metric.tableData || [];
+
+      if (!rows || rows.length === 0) {
+        return (
+          <div className={`rounded-lg shadow-sm border p-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} w-full h-full min-h-[200px] ${className}`}>
+            <div className="text-center">
+              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>{metric.title}</p>
+              <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No hay datos para mostrar</p>
+            </div>
+          </div>
+        );
+      }
+
+      // Derivar columnas a partir de la primera fila si no se especificaron
+      const first = rows[0] || {};
+      const columns = metric.serviceConfig?.tableColumns || Object.keys(first).filter(k => k !== 'datosHistoricos');
+      const columnHeaders = metric.serviceConfig?.tableColumnHeaders || {};
+
+      return (
+        <div className={className}>
+          <div className={`rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} bg-white dark:bg-gray-800`}>
+            <div className={`px-4 py-3 ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-base font-medium">
+                    {metric.title}
+                    <InfoTooltip content={metric.infoExtra} />
+                  </h3>
+                  {metric.description && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{metric.description}</p>
+                  )}
+                </div>
+                {displayFilters && (
+                  <div className="text-right">
+                    <p className={`text-[10px] font-medium ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} mb-0.5`}>Filtros:</p>
+                    {displayFilters.map((filter, index) => (
+                      <p key={index} className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} leading-tight`}>{filter}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="overflow-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    {columns.map((col) => (
+                      <th key={col} className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{columnHeaders[col] || col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
+                  {rows.map((row, idx) => (
+                    <tr key={row.id || idx} className={`hover:bg-gray-50 dark:hover:bg-gray-900`}>
+                      {columns.map((col) => (
+                        <td key={col} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">{
+                          // Si existe un renderizador en serviceConfig para esa columna, usarlo
+                          metric.serviceConfig?.tableCellRenderer ? metric.serviceConfig.tableCellRenderer(col, row) : (row[col] ?? '-')
+                        }</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
     
     case 'candlestick':
       // Si hay error, mostrar componente de error
