@@ -3,11 +3,32 @@
 export const getRubrosIngresosTotales = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
-  // Construir los parámetros para el endpoint
-  const params = {};
-  if (period) params.period = period;
-  if (startDate) params.startDate = startDate;
-  if (endDate) params.endDate = endDate;
+  // Usar el mismo mapeo de periodos y formato de fechas que el resto
+  const mapPeriodToBackend = (frontendPeriod) => {
+    const periodMap = {
+      'today': 'hoy',
+      'last7': 'ultimos_7_dias',
+      'last30': 'ultimos_30_dias',
+      'lastYear': 'ultimo_ano',
+      'custom': 'personalizado'
+    };
+    return periodMap[frontendPeriod] || 'personalizado';
+  };
+  const formatYmd = (value) => {
+    if (!value) return undefined;
+    return value instanceof Date ? value.toISOString().split('T')[0] : value;
+  };
+
+  const mappedPeriod = mapPeriodToBackend(period);
+  const params = { period: mappedPeriod };
+  if (mappedPeriod === 'personalizado') {
+    const start = formatYmd(startDate);
+    const end = formatYmd(endDate);
+    if (start && end) {
+      params.startDate = start;
+      params.endDate = end;
+    }
+  }
   if (filters.rubro) params.rubro = filters.rubro;
   if (filters.zona) params.zona = filters.zona;
 
