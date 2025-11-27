@@ -3,12 +3,11 @@
 export const getRubrosIngresosTotales = async (axiosInstance, { period, startDate, endDate, filters = {}, signal } = {}) => {
   if (!axiosInstance) throw new Error('Cliente HTTP no inicializado');
 
-  // El endpoint ya incluye el período por backend, pero si necesitas enviar params, agrégalos aquí
+  // Construir los parámetros para el endpoint
   const params = {};
-  // Si tu backend soporta filtros por fecha, descomenta:
-  // if (period) params.period = period;
-  // if (startDate) params.startDate = startDate;
-  // if (endDate) params.endDate = endDate;
+  if (period) params.period = period;
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
   if (filters.rubro) params.rubro = filters.rubro;
   if (filters.zona) params.zona = filters.zona;
 
