@@ -424,7 +424,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getAppRequestsCreated',
       serviceModule: 'appSearchsAndRequests',
@@ -452,7 +452,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/solicitudes/mapa-calor',
     category: 'distribution',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - mapa usa geocodificación de direcciones
     serviceConfig: {
       serviceName: 'getCatalogOrdersHeatmap',
       serviceModule: 'catalogService',
@@ -477,7 +477,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getMatchingConversionRate',
       serviceModule: 'matchingMetricsService',
@@ -549,7 +549,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getMatchingPendingQuotesMetrics',
       serviceModule: 'matchingMetricsService',
@@ -581,7 +581,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getMatchingAverageTimeMetrics',
       serviceModule: 'matchingMetricsService',
@@ -621,7 +621,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getAppCancellationRate',
       serviceModule: 'appSearchsAndRequests',

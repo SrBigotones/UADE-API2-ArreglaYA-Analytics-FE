@@ -23,7 +23,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
 
   // Configuración de filtros por módulo
   const moduleFilterConfig = {
-    'app': ['rubro', 'zona', 'tipo'], // APP DE BÚSQUEDA Y SOLICITUDES
+    'requests': ['rubro', 'tipo'], // SOLICITUDES Y MATCHING (zona removida - no confiable)
     'payments': ['rubro', 'zona', 'metodo'], // PAGOS Y FACTURACIÓN
     'users': [], // USUARIOS Y ROLES (sin filtros por rubro/zona)
     'matching': ['rubro', 'zona', 'tipo'], // MATCHING Y AGENDA
