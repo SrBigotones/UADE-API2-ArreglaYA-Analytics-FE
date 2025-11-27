@@ -163,12 +163,22 @@ export const useMetrics = (metricIds, { startDate, endDate, presetId, filters = 
                   
                   // Si no hay formatter, usar chartData directamente de response.data
                   const chartData = chartDataFormatted || (Array.isArray(response.data?.chartData) ? response.data.chartData : undefined);
-                  
+                  // Soporte para tablas: aplicar tableDataFormatter si existe
+                  if (metric.type === 'table') {
+                    const tableRows = serviceConfig.tableDataFormatter
+                      ? serviceConfig.tableDataFormatter(response.data)
+                      : (response.data?.rows || response.data?.categorias || []);
+
+                    return {
+                      ...nextMetricBase,
+                      tableData: Array.isArray(tableRows) ? tableRows : [],
+                      ...(chartData && { chartData })
+                    };
+                  }
+
                   return {
                     ...nextMetricBase,
-                    ...(chartData && {
-                      chartData: chartData
-                    })
+                    ...(chartData && { chartData })
                   };
                 }
 

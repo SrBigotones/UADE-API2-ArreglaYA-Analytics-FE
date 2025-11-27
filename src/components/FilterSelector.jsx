@@ -23,9 +23,10 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
 
   // Configuración de filtros por módulo
   const moduleFilterConfig = {
-    'requests': ['rubro', 'zona', 'tipo'], // SOLICITUDES Y MATCHING
+    'app': ['rubro', 'zona', 'tipo'], // APP DE BÚSQUEDA Y SOLICITUDES
     'payments': ['rubro', 'zona', 'metodo'], // PAGOS Y FACTURACIÓN
     'users': [], // USUARIOS Y ROLES (sin filtros por rubro/zona)
+    'matching': ['rubro', 'zona', 'tipo'], // MATCHING Y AGENDA
     'catalog': ['rubro', 'zona'], // CATÁLOGO DE SERVICIOS Y PRESTADORES
     'all': ['rubro', 'zona', 'metodo', 'tipo'] // Por defecto, todos los filtros
   };
@@ -82,6 +83,16 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     }
   ];
 
+  // Filtrar tipos de filtros según el módulo actual
+  const filterTypes = allFilterTypes.filter(filterType => 
+    availableFilters.includes(filterType.id)
+  );
+
+  // Si no hay filtros configurados para el módulo, no renderizar el componente
+  if (filterTypes.length === 0) {
+    return null;
+  }
+
   // Opciones fallback (datos reales del sistema)
   const getFallbackOptions = () => ({
     rubro: [
@@ -123,6 +134,13 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
             metodo: result.data.metodos || [],
             tipo: result.data.tiposSolicitud || []
           });
+          
+          // Log para debug
+          console.log(`📍 Zonas cargadas para módulo "${module}" (efectivo: "${effectiveModule}"):`, {
+            count: result.data.zonas?.length || 0,
+            type: (effectiveModule === 'catalog' || effectiveModule === 'users') ? 'PRESTADORES' : 'SOLICITUDES',
+            samples: result.data.zonas?.slice(0, 3).map(z => z.nombre) || []
+          });
         } else {
           console.error('Error loading filter options:', result.message);
           setFilterOptions(getFallbackOptions());
@@ -149,16 +167,6 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Filtrar tipos de filtros según el módulo actual
-  const filterTypes = allFilterTypes.filter(filterType => 
-    availableFilters.includes(filterType.id)
-  );
-
-  // Si no hay filtros configurados para el módulo, no renderizar el componente
-  if (filterTypes.length === 0) {
-    return null;
-  }
 
   const handleFilterTypeSelect = (filterType) => {
     if (activeDropdown === filterType) {
