@@ -124,6 +124,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
                 currentLabel="Periodo actual"
                 className={className}
                 onClick={onClick}
+                valueFormatter={metric.valueFormatter}
               />
             );
           }
@@ -141,6 +142,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
               currentLabel="Periodo actual"
               className={className}
               onClick={onClick}
+              valueFormatter={metric.valueFormatter}
             />
           );
         }
@@ -280,6 +282,7 @@ const MetricRenderer = ({ metric, dateRange, className = '', isDarkMode, chartSi
           title={metric.title}
           height={getChartHeight()}
           className={className}
+          valueFormatter={metric.valueFormatter}
         />
       );
     case 'table': {

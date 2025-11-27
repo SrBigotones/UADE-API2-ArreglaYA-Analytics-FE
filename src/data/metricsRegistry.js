@@ -582,22 +582,32 @@ export const METRICS_REGISTRY = {
     toggleChartKind: 'line',
     hasRealService: true,
     acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
+    valueFormatter: (value) => {
+      // Formatter para el tooltip del gráfico (recibe valor numérico simple)
+      const minutes = typeof value === 'number' ? value : (value?.value || 0);
+      if (minutes < 60) {
+        return minutes === 0 ? '0m' : `${minutes.toFixed(2)}m`;
+      }
+      const hours = Math.floor(minutes / 60);
+      const mins = (minutes % 60).toFixed(2);
+      return `${hours}h ${mins}m`;
+    },
     serviceConfig: {
       serviceName: 'getMatchingAverageTimeMetrics',
       serviceModule: 'matchingMetricsService',
       valueFormatter: (data) => {
         const minutes = data.value || 0;
         if (minutes < 60) {
-          return `${Math.round(minutes)}m`;
+          return minutes === 0 ? '0m' : `${minutes.toFixed(2)}m`;
         }
         const hours = Math.floor(minutes / 60);
-        const mins = Math.round(minutes % 60);
+        const mins = (minutes % 60).toFixed(2);
         return `${hours}h ${mins}m`;
       },
       changeFormatter: (data) => {
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(2)}m`;
       },
       statusMapper: (status) => ({
         'positivo': 'negative',

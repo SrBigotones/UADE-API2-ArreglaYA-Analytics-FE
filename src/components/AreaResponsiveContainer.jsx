@@ -15,7 +15,8 @@ const AreaResponsiveContainer = ({
   className,
   asCard = false,
   title,
-  onClick
+  onClick,
+  valueFormatter // Formatter para los valores del tooltip
 }) => {
   // Calcular el dominio del eje Y para manejar valores en 0
   const calculateYDomain = () => {
@@ -34,14 +35,77 @@ const AreaResponsiveContainer = ({
     return ['auto', 'auto'];
   };
 
+  // Custom tick para mostrar mes y año en dos líneas
+  const CustomXAxisTick = ({ x, y, payload }) => {
+    // Si el label contiene | (formato: "Mes|Año"), dividir en dos líneas
+    const value = payload.value;
+    if (value && value.includes('|')) {
+      const [month, year] = value.split('|');
+      return (
+        <g transform={`translate(${x},${y})`}>
+          <text 
+            x={0} 
+            y={0} 
+            dy={10} 
+            textAnchor="middle" 
+            fill="currentColor" 
+            className="text-gray-500 dark:text-gray-400"
+            fontSize={12}
+          >
+            {month}
+          </text>
+          <text 
+            x={0} 
+            y={14} 
+            dy={10} 
+            textAnchor="middle" 
+            fill="currentColor" 
+            className="text-gray-500 dark:text-gray-400"
+            fontSize={10}
+            opacity={0.7}
+          >
+            '{year}
+          </text>
+        </g>
+      );
+    }
+    
+    // Formato simple sin año
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text 
+          x={0} 
+          y={0} 
+          dy={16} 
+          textAnchor="middle" 
+          fill="currentColor" 
+          className="text-gray-500 dark:text-gray-400"
+          fontSize={12}
+        >
+          {value}
+        </text>
+      </g>
+    );
+  };
+
   // Tooltip personalizado para modo oscuro
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const value = payload[0].value;
+      const displayValue = valueFormatter ? valueFormatter(value) : value;
+      
+      // Formatear el label si tiene el formato Mes|Año
+      let displayLabel = label;
+      if (label && label.includes('|')) {
+        const [month, year] = label.split('|');
+        displayLabel = `${month} '${year}`;
+      }
+      
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900 dark:text-gray-100">{label}</p>
+          <p className="font-semibold text-gray-900 dark:text-gray-100">{displayLabel}</p>
           <p className="text-gray-600 dark:text-gray-300">
-            <span className="font-medium">Valor:</span> {payload[0].value}
+            <span className="font-medium">Valor:</span> {displayValue}
           </p>
         </div>
       );
@@ -69,6 +133,8 @@ const AreaResponsiveContainer = ({
             fontSize={12}
             tickLine={false}
             axisLine={false}
+            tick={<CustomXAxisTick />}
+            height={50}
           />
           <YAxis 
             stroke="currentColor"
