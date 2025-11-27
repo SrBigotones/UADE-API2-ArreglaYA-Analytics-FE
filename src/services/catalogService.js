@@ -43,7 +43,10 @@ export const getRubrosIngresosTotales = async (axiosInstance, { period, startDat
   }
 
   // El backend retorna el objeto completo con total y categorias
-  return response.data.data;
+  return {
+    success: true,
+    data: response.data.data
+  };
 };
 // Servicio del módulo Catálogo: mapas de calor y métricas de prestadores
 
