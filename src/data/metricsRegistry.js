@@ -16,41 +16,6 @@ const formatPercentageChange = (data) => {
 
 export const METRICS_REGISTRY = {
   // === RUBROS ===
-  'rubros-ingresos-totales': {
-    id: 'rubros-ingresos-totales',
-    module: 'catalog',
-    type: 'card',
-    title: 'Ingresos Totales por Rubro',
-    value: '$0',
-    change: '0',
-    changeStatus: 'neutral',
-    description: 'Suma total de ingresos actuales de todos los rubros en el período seleccionado.',
-    infoExtra: 'Incluye la suma de ingresos de todas las categorías de rubros. Permite ver la evolución total y la tendencia respecto al período anterior.',
-    endpoint: '/api/metrica/rubros/ingresos-por-categoria',
-    category: 'revenue',
-    allowToggleToChart: false,
-    hasRealService: true,
-    acceptsFilters: ['rubro', 'zona'],
-    serviceConfig: {
-      serviceName: 'getRubrosIngresosTotales',
-      serviceModule: 'catalogService',
-      valueFormatter: (data) => {
-        if (!data?.total?.ingresos_actuales) return '$0';
-        return `$${data.total.ingresos_actuales.toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-      },
-      changeFormatter: (data) => {
-        if (!data?.total) return '';
-        const sign = data.total.cambio_estado === 'positivo' ? '+' : data.total.cambio_estado === 'negativo' ? '-' : '';
-        return `${sign}$${Math.abs(data.total.cambio).toLocaleString('es-AR', { minimumFractionDigits: 2 })}`;
-      },
-      statusMapper: (status, data) => {
-        if (data?.total?.cambio_estado === 'positivo') return 'positive';
-        if (data?.total?.cambio_estado === 'negativo') return 'negative';
-        return 'neutral';
-      }
-    }
-  },
-
   'rubros-ingresos-top5': {
     id: 'rubros-ingresos-top5',
     module: 'catalog',
