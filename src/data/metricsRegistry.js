@@ -83,6 +83,100 @@ export const METRICS_REGISTRY = {
       }
     }
   },
+  'users-new-customers': {
+    id: 'users-new-customers',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos clientes',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos clientes registrados',
+    infoExtra: 'Usuarios registrados con rol "cliente" en el período seleccionado. Son los usuarios que consumen servicios (solicitan trabajos). Permite medir el crecimiento del lado de la demanda de la plataforma.',
+    endpoint: '/api/metrica/usuarios/nuevos-clientes',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewCustomers',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-new-providers': {
+    id: 'users-new-providers',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos prestadores',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos prestadores registrados como usuarios',
+    infoExtra: 'Usuarios registrados con rol "prestador" en el período seleccionado. Son los profesionales/empresas que ofrecen servicios en la plataforma. Métrica crucial para medir el crecimiento del lado de la oferta y la capacidad de atender demanda.',
+    endpoint: '/api/metrica/usuarios/nuevos-prestadores',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewProviders',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-new-unsubscribes': {
+    id: 'users-new-unsubscribes',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevas bajas',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Usuarios que se dieron de baja en el período seleccionado',
+    infoExtra: 'Usuarios que completaron el proceso de baja (desactivación de cuenta) en el período. Incluye todos los roles. Métrica importante para medir churn y detectar problemas de retención.',
+    endpoint: '/api/metrica/usuarios/nuevas-bajas',
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewUnsubscribes',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative',  // Invertido: más bajas es malo
+        'negativo': 'positive',  // Invertido: menos bajas es bueno
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
   // === CATÁLOGO ===
   'catalog-service-distribution': {
     id: 'catalog-service-distribution',
