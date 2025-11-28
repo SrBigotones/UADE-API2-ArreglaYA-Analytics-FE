@@ -83,6 +83,100 @@ export const METRICS_REGISTRY = {
       }
     }
   },
+  'users-new-customers': {
+    id: 'users-new-customers',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos clientes',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos clientes registrados',
+    infoExtra: 'Usuarios registrados con rol "cliente" en el período seleccionado. Son los usuarios que consumen servicios (solicitan trabajos). Permite medir el crecimiento del lado de la demanda de la plataforma.',
+    endpoint: '/api/metrica/usuarios/nuevos-clientes',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewCustomers',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-new-providers': {
+    id: 'users-new-providers',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevos prestadores',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Nuevos prestadores registrados como usuarios',
+    infoExtra: 'Usuarios registrados con rol "prestador" en el período seleccionado. Son los profesionales/empresas que ofrecen servicios en la plataforma. Métrica crucial para medir el crecimiento del lado de la oferta y la capacidad de atender demanda.',
+    endpoint: '/api/metrica/usuarios/nuevos-prestadores',
+    category: 'growth',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewProviders',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'positive',
+        'negativo': 'negative',
+        'neutro': 'neutral'
+      }[status] || 'neutral')
+    }
+  },
+  'users-new-unsubscribes': {
+    id: 'users-new-unsubscribes',
+    module: 'users',
+    type: 'card',
+    title: 'Nuevas bajas',
+    value: '0',
+    change: '0%',
+    changeStatus: 'neutral',
+    description: 'Usuarios que se dieron de baja en el período seleccionado',
+    infoExtra: 'Usuarios que completaron el proceso de baja (desactivación de cuenta) en el período. Incluye todos los roles. Métrica importante para medir churn y detectar problemas de retención.',
+    endpoint: '/api/metrica/usuarios/nuevas-bajas',
+    category: 'retention',
+    allowToggleToChart: true,
+    toggleChartKind: 'line',
+    hasRealService: true,
+    serviceConfig: {
+      serviceName: 'getUserNewUnsubscribes',
+      serviceModule: 'userMetricsService',
+      valueFormatter: (data) => data.value?.toString() || '0',
+      changeFormatter: (data) => {
+        const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
+        const value = Math.abs(data.change || 0);
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value}`;
+      },
+      statusMapper: (status) => ({
+        'positivo': 'negative',  // Invertido: más bajas es malo
+        'negativo': 'positive',  // Invertido: menos bajas es bueno
+        'neutro': 'neutral'
+      }[status] || 'neutral'),
+      chartDataFormatter: (data) => data.chartData || []
+    }
+  },
   // === CATÁLOGO ===
   'catalog-service-distribution': {
     id: 'catalog-service-distribution',
@@ -424,7 +518,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getAppRequestsCreated',
       serviceModule: 'appSearchsAndRequests',
@@ -452,7 +546,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/solicitudes/mapa-calor',
     category: 'distribution',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - mapa usa geocodificación de direcciones
     serviceConfig: {
       serviceName: 'getCatalogOrdersHeatmap',
       serviceModule: 'catalogService',
@@ -470,14 +564,14 @@ export const METRICS_REGISTRY = {
     value: '0%',
     change: '0%',
     changeStatus: 'neutral',
-    description: 'Porcentaje de solicitudes aceptadas sobre el total de solicitudes',
-    infoExtra: 'Calcula el porcentaje de solicitudes donde el cliente aceptó una cotización sobre el total de solicitudes creadas en el período. Una solicitud se considera "aceptada" cuando el cliente confirma una cotización presentada por un prestador. Métrica clave de conversión del funnel de matching.',
+    description: 'Porcentaje de solicitudes aceptadas sobre solicitudes resueltas',
+    infoExtra: 'Calcula el porcentaje de solicitudes aceptadas sobre el total de solicitudes con resultado definitivo (aceptadas + rechazadas), excluyendo las que aún están pendientes. Una solicitud se considera "aceptada" cuando el cliente confirma una cotización presentada por un prestador, y "rechazada" cuando el cliente la declina. Métrica clave de conversión del funnel de matching que refleja la efectividad de los matches realizados.',
     endpoint: '/api/metrica/matching/cotizaciones/conversion-aceptada',
     category: 'conversion',
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getMatchingConversionRate',
       serviceModule: 'matchingMetricsService',
@@ -549,7 +643,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getMatchingPendingQuotesMetrics',
       serviceModule: 'matchingMetricsService',
@@ -581,23 +675,33 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
+    valueFormatter: (value) => {
+      // Formatter para el tooltip del gráfico (recibe valor numérico simple)
+      const minutes = typeof value === 'number' ? value : (value?.value || 0);
+      if (minutes < 60) {
+        return minutes === 0 ? '0m' : `${minutes.toFixed(2)}m`;
+      }
+      const hours = Math.floor(minutes / 60);
+      const mins = (minutes % 60).toFixed(2);
+      return `${hours}h ${mins}m`;
+    },
     serviceConfig: {
       serviceName: 'getMatchingAverageTimeMetrics',
       serviceModule: 'matchingMetricsService',
       valueFormatter: (data) => {
         const minutes = data.value || 0;
         if (minutes < 60) {
-          return `${Math.round(minutes)}m`;
+          return minutes === 0 ? '0m' : `${minutes.toFixed(2)}m`;
         }
         const hours = Math.floor(minutes / 60);
-        const mins = Math.round(minutes % 60);
+        const mins = (minutes % 60).toFixed(2);
         return `${hours}h ${mins}m`;
       },
       changeFormatter: (data) => {
         const sign = data.changeStatus === 'positivo' ? '+' : data.changeStatus === 'negativo' ? '-' : '';
         const value = Math.abs(data.change || 0);
-        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(1)}m`;
+        return data.changeType === 'porcentaje' ? `${sign}${value}%` : `${sign}${value.toFixed(2)}m`;
       },
       statusMapper: (status) => ({
         'positivo': 'negative',
@@ -621,7 +725,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'tipoSolicitud'],
+    acceptsFilters: ['rubro', 'tipoSolicitud'], // Zona removida - no confiable en solicitudes
     serviceConfig: {
       serviceName: 'getAppCancellationRate',
       serviceModule: 'appSearchsAndRequests',
