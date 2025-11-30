@@ -292,17 +292,9 @@ export const METRICS_REGISTRY = {
     module: 'payments',
     type: 'pie',
     title: 'Distribución eventos de pago',
-    value: '1,247',
-    change: '-2%',
-    changeStatus: 'negative',
     description: 'Distribución por estado de pago',
-    infoExtra: 'Muestra la cantidad de pagos agrupados por su estado final: Aprobado (transacción exitosa), Rechazado (denegado por el procesador), Expirado (tiempo de pago vencido), Pendiente (en proceso de verificación). Permite identificar la salud del flujo de pagos y detectar problemas recurrentes en el procesamiento.',
-    chartData: [
-      { name: 'Aprobado', value: 62, color: '#22c55e' },
-      { name: 'Rechazado', value: 18, color: '#ef4444' },
-      { name: 'Expirado', value: 9, color: '#f59e0b' },
-      { name: 'Pendiente', value: 11, color: '#0ea5e9' }
-    ],
+    infoExtra: 'Muestra la cantidad de pagos agrupados por su estado: Aprobado (transacción exitosa), Rechazado (denegado por el procesador), Pendiente (en proceso de verificación). Permite identificar la salud del flujo de pagos y detectar problemas recurrentes en el procesamiento.',
+    hasRealService: true,
     serviceConfig: {
       serviceName: 'getPaymentDistributionMetrics',
       serviceModule: 'paymentMetricsService',
