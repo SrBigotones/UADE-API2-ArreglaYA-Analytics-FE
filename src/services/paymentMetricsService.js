@@ -188,26 +188,31 @@ export const getPaymentDistributionMetrics = async (axiosInstance, { period, sta
   
   // Si viene como objeto plano, transformarlo
   if (raw.chartData && Array.isArray(raw.chartData)) {
-    const hasData = raw.chartData.some(item => (item?.value || 0) > 0);
+    // Filtrar solo las categorías que tienen valor > 0
+    const filteredChartData = raw.chartData.filter(item => (item?.value || 0) > 0);
     return {
       success: true,
       data: {
-        chartData: hasData ? raw.chartData : [],
-        total: raw.total || raw.chartData.reduce((sum, item) => sum + (item.value || 0), 0),
+        chartData: filteredChartData,
+        total: raw.total || filteredChartData.reduce((sum, item) => sum + (item.value || 0), 0),
         lastUpdated: new Date().toISOString()
       }
     };
   }
 
   // Si viene como objeto plano del backend (ej: { APROBADO: 100, RECHAZADO: 20 })
-  const chartData = Object.entries(raw).filter(([key]) => key !== 'chartData' && key !== 'total').map(([name, value]) => ({
-    name,
-    value: typeof value === 'number' ? value : 0,
-    color: getStatusColor(name)
-  }));
+  // Filtrar solo las categorías que tienen valor > 0
+  const chartData = Object.entries(raw)
+    .filter(([key]) => key !== 'chartData' && key !== 'total')
+    .map(([name, value]) => ({
+      name,
+      value: typeof value === 'number' ? value : 0,
+      color: getStatusColor(name)
+    }))
+    .filter(item => item.value > 0); // Solo incluir categorías con datos
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
-  const hasData = chartData.some(item => item.value > 0);
+  const hasData = chartData.length > 0;
 
   return {
     success: true,
