@@ -25,7 +25,7 @@ const IngresosPorRubroDashboard = () => {
         setData(res.data.data);
         setError(null);
       })
-      .catch(err => setError('Error al cargar datos'))
+      .catch(() => setError('Error al cargar datos'))
       .finally(() => setLoading(false));
   }, [axios]);
 
