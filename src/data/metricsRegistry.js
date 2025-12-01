@@ -31,7 +31,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona'],
+    acceptsFilters: ['metodo'],
     serviceConfig: {
       serviceName: 'getRubrosIngresosTotales',
       serviceModule: 'catalogService',
@@ -270,7 +270,7 @@ export const METRICS_REGISTRY = {
     toggleChartKind: 'line',
     // Configuración para integración con servicio real
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'metodo'],
+    acceptsFilters: ['rubro', 'metodo'], // Zona removida - solicitud.zona siempre null
     serviceConfig: {
       serviceName: 'getPaymentProcessingTimeMetrics',
       serviceModule: 'paymentMetricsService',
@@ -317,7 +317,7 @@ export const METRICS_REGISTRY = {
     endpoint: '/api/metrica/pagos/distribucion-metodos',
     category: 'distribution',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'metodo'],
+    acceptsFilters: ['rubro', 'metodo'], // Zona removida - solicitud.zona siempre null
     serviceConfig: {
       serviceName: 'getPaymentMethodDistributionMetrics',
       serviceModule: 'paymentMetricsService',
@@ -342,7 +342,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'metodo'],
+    acceptsFilters: ['rubro', 'metodo'], // Zona removida - solicitud.zona siempre null
     serviceConfig: {
       serviceName: 'getPaymentGrossRevenueMetrics',
       serviceModule: 'paymentMetricsService',
@@ -374,7 +374,7 @@ export const METRICS_REGISTRY = {
     allowToggleToChart: true,
     toggleChartKind: 'line',
     hasRealService: true,
-    acceptsFilters: ['rubro', 'zona', 'metodo'],
+    acceptsFilters: ['rubro', 'metodo'], // Zona removida - solicitud.zona siempre null
     serviceConfig: {
       serviceName: 'getPaymentAverageTicketMetrics',
       serviceModule: 'paymentMetricsService',

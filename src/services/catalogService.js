@@ -29,8 +29,13 @@ export const getRubrosIngresosTotales = async (axiosInstance, { period, startDat
       params.endDate = end;
     }
   }
+  
+  // Agregar filtros de segmentación
   if (filters.rubro) params.rubro = filters.rubro;
   if (filters.zona) params.zona = filters.zona;
+  if (filters.metodo) params.metodo = filters.metodo;
+  if (filters.minMonto) params.minMonto = filters.minMonto;
+  if (filters.maxMonto) params.maxMonto = filters.maxMonto;
 
   const endpoint = '/api/metrica/rubros/ingresos-por-categoria';
   const response = await axiosInstance.get(endpoint, { params, signal });
