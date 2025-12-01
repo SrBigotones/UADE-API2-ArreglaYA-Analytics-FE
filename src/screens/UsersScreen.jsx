@@ -9,8 +9,27 @@ import { useModuleMetrics } from '../hooks/useMetrics';
 import { useFilters } from '../context/FilterContext';
 
 const UsersScreen = ({ isDarkMode }) => {
-  const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  const [dateRange, setDateRange] = useState(() => {
+    try {
+      const saved = localStorage.getItem('arreglaya-date-range-preset');
+      if (saved) {
+        return { preset: saved };
+      }
+    } catch (error) {
+      console.error('Error loading date range preset from localStorage:', error);
+    }
+    return { preset: 'last7' };
+  });
   const { getApiFilters, clearAllFilters } = useFilters();
+  
+  // Guardar el preset en localStorage cuando cambie
+  useEffect(() => {
+    try {
+      localStorage.setItem('arreglaya-date-range-preset', dateRange.preset);
+    } catch (error) {
+      console.error('Error saving date range preset to localStorage:', error);
+    }
+  }, [dateRange.preset]);
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {

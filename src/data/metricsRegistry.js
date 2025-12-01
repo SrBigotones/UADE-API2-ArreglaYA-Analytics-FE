@@ -557,7 +557,7 @@ export const METRICS_REGISTRY = {
     change: '0%',
     changeStatus: 'neutral',
     description: 'Porcentaje de solicitudes aceptadas sobre solicitudes resueltas',
-    infoExtra: 'Calcula el porcentaje de solicitudes aceptadas sobre el total de solicitudes con resultado definitivo (aceptadas + rechazadas), excluyendo las que aún están pendientes. Una solicitud se considera "aceptada" cuando el cliente confirma una cotización presentada por un prestador, y "rechazada" cuando el cliente la declina. Métrica clave de conversión del funnel de matching que refleja la efectividad de los matches realizados.',
+    infoExtra: 'Calcula el porcentaje de solicitudes aceptadas sobre el total de solicitudes con resultado definitivo (aceptadas + canceladas), excluyendo las que aún están pendientes. Una solicitud se considera "aceptada" cuando el cliente confirma una cotización presentada por un prestador, y "cancelada" cuando el cliente o el sistema cancela la solicitud. Métrica clave de conversión del funnel de matching que refleja la efectividad de los matches realizados.',
     endpoint: '/api/metrica/matching/cotizaciones/conversion-aceptada',
     category: 'conversion',
     allowToggleToChart: true,
