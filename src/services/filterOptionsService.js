@@ -63,9 +63,9 @@ export const getRubros = async (axiosInstance) => {
 export const getZonas = async (axiosInstance, module = 'all') => {
   try {
     // Determinar qué tipo de zonas usar según el módulo
-    // Prestadores: catalog, users (zona de prestadores - Agronomía, Barracas...)
-    // Solicitudes/Pagos: app, payments, matching (zona de solicitudes - Quilmes, caba...)
-    const usePrestadorZones = module === 'catalog' || module === 'users';
+    // Prestadores: catalog, users, all (zona de prestadores - Agronomía, Barracas...)
+    // Solicitudes/Pagos: app, payments, matching (DEPRECADO - zonas de solicitudes ya no existen)
+    const usePrestadorZones = module === 'catalog' || module === 'users' || module === 'all';
     const cacheKey = usePrestadorZones ? 'zonasPrestadores' : 'zonasSolicitudes';
     
     if (filterOptionsCache[cacheKey] && isCacheValid()) {
@@ -73,7 +73,7 @@ export const getZonas = async (axiosInstance, module = 'all') => {
     }
 
     if (usePrestadorZones) {
-      // CATÁLOGO / USUARIOS: Zonas de prestadores (tabla zonas - relación prestador-zona)
+      // CATÁLOGO / USUARIOS / ALL: Zonas de prestadores (tabla zonas - relación prestador-zona)
       const result = await getCatalogoZonas(axiosInstance);
       
       if (result.success && result.data) {
@@ -82,7 +82,7 @@ export const getZonas = async (axiosInstance, module = 'all') => {
         return { success: true, data: result.data };
       }
     } else {
-      // APP / PAGOS / MATCHING: Zonas de solicitudes (valores reales de solicitud.zona)
+      // APP / PAGOS / MATCHING: Zonas de solicitudes (DEPRECADO - retorna array vacío)
       const result = await getCatalogoZonasSolicitudes(axiosInstance);
       
       if (result.success && result.data) {
@@ -97,17 +97,14 @@ export const getZonas = async (axiosInstance, module = 'all') => {
     console.error('❌ Error fetching zonas:', error);
     
     // Fallback según el tipo de zona
-    const usePrestadorZones = module === 'catalog' || module === 'users';
+    const usePrestadorZones = module === 'catalog' || module === 'users' || module === 'all';
     const fallbackZonas = usePrestadorZones
       ? [
           { id: 64, nombre: 'Agronomía' },
           { id: 65, nombre: 'Almagro' },
           { id: 67, nombre: 'Balvanera' }
         ]
-      : [
-          { id: 1, nombre: 'Quilmes' },
-          { id: 2, nombre: 'caba' }
-        ];
+      : []; // Zonas de solicitudes deprecadas - retornar array vacío
     
     return { success: true, data: fallbackZonas };
   }

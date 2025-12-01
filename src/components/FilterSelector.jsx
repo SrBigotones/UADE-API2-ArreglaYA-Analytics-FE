@@ -10,7 +10,6 @@ import { getAllFilterOptions } from '../services/filterOptionsService';
 const FilterSelector = ({ className = '', module = 'all' }) => {
   const { activeFilters, updateFilter, clearAllFilters } = useFilters();
   const [activeDropdown, setActiveDropdown] = useState('');
-  const [zonaType, setZonaType] = useState('solicitudes'); // 'solicitudes' o 'prestadores'
   const [filterOptions, setFilterOptions] = useState({
     rubro: [],
     zona: [],
@@ -24,11 +23,11 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
   // Configuración de filtros por módulo
   const moduleFilterConfig = {
     'requests': ['rubro', 'tipo'], // SOLICITUDES Y MATCHING (zona removida - no confiable)
-    'payments': ['rubro', 'zona', 'metodo'], // PAGOS Y FACTURACIÓN
+    'payments': ['rubro', 'metodo'], // PAGOS Y FACTURACIÓN (zona removida - solicitud.zona siempre null)
     'users': [], // USUARIOS Y ROLES (sin filtros por rubro/zona)
-    'matching': ['rubro', 'zona', 'tipo'], // MATCHING Y AGENDA
-    'catalog': ['rubro', 'zona'], // CATÁLOGO DE SERVICIOS Y PRESTADORES
-    'all': ['rubro', 'zona', 'metodo', 'tipo'] // Por defecto, todos los filtros
+    'matching': ['rubro', 'tipo'], // MATCHING (zona removida - no confiable en solicitudes)
+    'catalog': ['rubro', 'zona', 'metodo'], // CATÁLOGO DE SERVICIOS Y PRESTADORES (zona de prestadores + método para ingresos)
+    'all': ['rubro', 'zona', 'metodo', 'tipo'] // Dashboard: zona solo se aplica a métricas de prestadores
   };
 
   // Obtener filtros disponibles para el módulo actual
@@ -115,13 +114,8 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
       
       setLoadingOptions(true);
       try {
-        // Para módulo "all", usar el zonaType seleccionado por el usuario
-        const effectiveModule = module === 'all' 
-          ? (zonaType === 'prestadores' ? 'catalog' : 'app')
-          : module;
-        
-        // Pasar el módulo efectivo para que cargue las zonas correctas
-        const result = await getAllFilterOptions(axiosInstance, effectiveModule);
+        // Las zonas siempre serán de prestadores (las de solicitudes están deprecadas)
+        const result = await getAllFilterOptions(axiosInstance, module);
         if (result.success) {
           setFilterOptions({
             rubro: result.data.rubros || [],
@@ -131,9 +125,8 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
           });
           
           // Log para debug
-          console.log(`📍 Zonas cargadas para módulo "${module}" (efectivo: "${effectiveModule}"):`, {
+          console.log(`📍 Zonas cargadas para módulo "${module}":`, {
             count: result.data.zonas?.length || 0,
-            type: (effectiveModule === 'catalog' || effectiveModule === 'users') ? 'PRESTADORES' : 'SOLICITUDES',
             samples: result.data.zonas?.slice(0, 3).map(z => z.nombre) || []
           });
         } else {
@@ -149,7 +142,7 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     };
 
     loadFilterOptions();
-  }, [axiosInstance, module, zonaType]); // Agregar zonaType como dependencia
+  }, [axiosInstance, module]);
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {
@@ -224,53 +217,13 @@ const FilterSelector = ({ className = '', module = 'all' }) => {
     setActiveDropdown('');
   };
 
-  const handleZonaTypeChange = (newType) => {
-    setZonaType(newType);
-    // Limpiar el filtro de zona actual al cambiar el tipo
-    if (selectedFilters.zona) {
-      updateFilter('zona', '');
-    }
-  };
-
   const hasAnyFilter = Object.values(selectedFilters).some(value => value !== '');
   const currentOptions = activeDropdown ? filterOptions[activeDropdown] : [];
-  const showZonaTypeSelector = module === 'all' && availableFilters.includes('zona');
 
   return (
     <div className={`relative w-full lg:w-auto lg:min-w-fit ${className}`} ref={dropdownRef}>
       {/* Contenedor principal - misma altura que DateRangeSelector */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg w-full lg:w-auto lg:min-w-fit">
-        
-        {/* Selector de tipo de zona (solo visible en module="all") */}
-        {showZonaTypeSelector && (
-          <div className="border-b border-gray-200 dark:border-gray-700 px-3 py-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Tipo de zona:</span>
-              <div className="flex space-x-1">
-                <button
-                  onClick={() => handleZonaTypeChange('solicitudes')}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    zonaType === 'solicitudes'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Solicitudes
-                </button>
-                <button
-                  onClick={() => handleZonaTypeChange('prestadores')}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    zonaType === 'prestadores'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Prestadores
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Contenido principal responsive */}
         <div className="flex items-center px-2 sm:px-3 py-1.5 sm:py-1 min-h-[44px] sm:min-h-[36px]">
