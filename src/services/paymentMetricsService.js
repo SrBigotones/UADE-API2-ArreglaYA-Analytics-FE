@@ -229,14 +229,13 @@ export const getPaymentMethodDistributionMetrics = async (axiosInstance, { perio
   // Este KPI muestra la distribución entre métodos, por lo que ignorar un filtro
   // por método evita que el resultado quede sesgado o vacío.
   // eslint-disable-next-line no-unused-vars
-  const { metodo, ...filtersWithoutMethod } = filters || {};
 
   const result = await fetchMetricsWithErrorHandling(
     axiosInstance, 
     '/api/metrica/pagos/distribucion-metodos',
     period, 
     'distribución métodos de pago', 
-    { startDate, endDate, filters: filtersWithoutMethod }
+    { startDate, endDate, filters }
   );
 
   if (!result.success) {
