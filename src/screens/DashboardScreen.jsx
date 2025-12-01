@@ -9,9 +9,28 @@ import { useDashboardOrder } from '../hooks/useDashboardOrder';
 import { useFilters } from '../context/FilterContext';
 
 const CoreScreen = ({ isDarkMode }) => {
-  const [dateRange, setDateRange] = useState({ preset: 'last7' });
+  const [dateRange, setDateRange] = useState(() => {
+    try {
+      const saved = localStorage.getItem('arreglaya-date-range-preset');
+      if (saved) {
+        return { preset: saved };
+      }
+    } catch (error) {
+      console.error('Error loading date range preset from localStorage:', error);
+    }
+    return { preset: 'last7' };
+  });
   const [isCustomizing, setIsCustomizing] = useState(false);
   const { clearAllFilters, getApiFilters } = useFilters();
+  
+  // Guardar el preset en localStorage cuando cambie
+  useEffect(() => {
+    try {
+      localStorage.setItem('arreglaya-date-range-preset', dateRange.preset);
+    } catch (error) {
+      console.error('Error saving date range preset to localStorage:', error);
+    }
+  }, [dateRange.preset]);
   
   // Limpiar filtros al montar el componente (cuando se cambia de módulo)
   useEffect(() => {
@@ -173,14 +192,28 @@ const CoreScreen = ({ isDarkMode }) => {
             {/* Contenido scrolleable */}
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
-                {Object.entries(Object.entries(METRICS_REGISTRY).reduce((acc, [, metric]) => {
+                {Object.entries(Object.entries(METRICS_REGISTRY).reduce((acc, [key, metric]) => {
+                  // Excluir la métrica de solicitudes pendientes del modal
+                  if (key === 'requests-solicitudes-pendientes' || metric.id === 'requests-cotizaciones-pendientes') {
+                    return acc;
+                  }
                   if (!acc[metric.module]) acc[metric.module] = [];
                   acc[metric.module].push(metric);
                   return acc;
-                }, {})).map(([module, metrics]) => (
+                }, {})).map(([module, metrics]) => {
+                  const moduleNames = {
+                    'core': 'Dashboard',
+                    'app': 'App de Búsqueda y Solicitudes',
+                    'catalog': 'Servicios y Prestadores',
+                    'payments': 'Pagos y Facturación',
+                    'matching': 'Matching y Agenda',
+                    'users': 'Usuarios y Roles',
+                    'requests': 'Solicitudes y Matching'
+                  };
+                  return (
                   <div key={module}>
                     <h4 className={`text-lg font-semibold mb-3 capitalize ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                      {module === 'core' ? 'Dashboard' : module}
+                      {moduleNames[module] || module}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {metrics.map((metric) => (
@@ -214,7 +247,8 @@ const CoreScreen = ({ isDarkMode }) => {
                       ))}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             
